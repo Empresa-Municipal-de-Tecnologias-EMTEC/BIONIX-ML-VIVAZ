@@ -17,7 +17,7 @@ Repositório do framework principal: https://github.com/Empresa-Municipal-de-Tec
 
 ## Execução
 
-1. Garanta o layout de diretórios:
+1. Garanta o layout de diretórios ou ajuste o `mojoproject.toml`:
 
 ```
 parent/
@@ -25,7 +25,20 @@ parent/
 └─ BIONIX-ML-VIVAZ/
 ```
 
-2. Na sessão Linux/WSL, instale os pré-requisitos do `pixi`/`mojo` e execute o serviço de inferência conforme instruções em `src/`.
+Caso não deseje clonar os repositórios como irmãos, edite o `mojoproject.toml` deste projeto para apontar a dependência local correta (por exemplo, `path = "../BIONIX-ML/src"`). Outra opção é empacotar `BIONIX-ML` como `.mojopkg` e instalar em `.pixi/envs/default/lib/mojo`.
 
-Observação: o projeto assume integração com módulos do `BIONIX-ML/src` — mantenha o repositório principal disponível no mesmo nível.
+2. Em WSL/Linux (recomendado) rode:
+
+```bash
+# compila comandos configurados no pixi
+pixi run compilar
+
+# executa o serviço e captura logs
+pixi run executar > log.log 2>&1
+
+# examinar logs
+cat log.log
+```
+
+Observação: o projeto assume integração com módulos do `BIONIX-ML/src` — mantenha o repositório principal disponível no mesmo nível ou ajuste as dependências conforme descrito acima.
 
