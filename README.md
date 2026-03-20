@@ -17,7 +17,7 @@ Repositório do framework principal: https://github.com/Empresa-Municipal-de-Tec
 
 ## Execução
 
-1. Garanta o layout de diretórios ou ajuste o `mojoproject.toml`:
+1. Garanta o layout de diretórios ou ajuste o `pixi.toml`:
 
 ```
 parent/
@@ -25,7 +25,7 @@ parent/
 └─ BIONIX-ML-VIVAZ/
 ```
 
-Caso não deseje clonar os repositórios como irmãos, edite o `mojoproject.toml` deste projeto para apontar a dependência local correta (por exemplo, `path = "../BIONIX-ML/src"`). Outra opção é empacotar `BIONIX-ML` como `.mojopkg` e instalar em `.pixi/envs/default/lib/mojo`.
+Caso não deseje clonar os repositórios como irmãos, edite o `pixi.toml` deste projeto para apontar a dependência local correta (por exemplo, `path = "../BIONIX-ML/src"`). Outra opção é empacotar `BIONIX-ML` como `.mojopkg` e instalar em `.pixi/envs/default/lib/mojo`.
 
 2. Em WSL/Linux (recomendado) rode:
 
