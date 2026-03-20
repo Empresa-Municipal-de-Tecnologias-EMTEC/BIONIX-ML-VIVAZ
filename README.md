@@ -55,3 +55,51 @@ cat log.log
 
 Observação: o projeto assume integração com módulos do `BIONIX-ML/src` — mantenha o repositório principal disponível no mesmo nível ou ajuste as dependências conforme descrito acima.
 
+## Dataset
+
+Para treinar e avaliar o sistema de reconhecimento facial usaremos o dataset VGGFace2 disponível em:
+
+https://www.kaggle.com/datasets/hearfool/vggface2
+
+Baixe e extraia o conteúdo do dataset para `src/DATASET` (ou para o caminho configurado). O diretório `src/DATASET` está ignorado pelo git.
+
+## Conversão de imagens
+
+Existe um script na raiz do repositório chamado `convert_images_to_bmp.py` que percorre recursivamente o dataset e converte imagens para o formato BMP.
+
+Pré-requisitos:
+
+- Instale Python 3.8 ou superior (recomendado: Python 3.10+).
+- Instale a biblioteca Pillow:
+
+```
+pip install pillow
+```
+
+Uso (execute a partir da raiz do repositório, onde está `convert_images_to_bmp.py`):
+
+```
+python convert_images_to_bmp.py                # usa src/DATASET, apaga originais após conversão
+python convert_images_to_bmp.py --dataset DATASET --overwrite
+python convert_images_to_bmp.py --dry-run     # mostra ações sem gravar (não apaga arquivos)
+```
+
+Opções úteis do script:
+
+- `--dataset/-d`: caminho do dataset (padrão `src/DATASET`)
+- `--overwrite/-o`: sobrescrever arquivos BMP existentes
+- O script remove os arquivos originais após uma conversão bem-sucedida por padrão.
+- `--dry-run`: simular ações sem gravar arquivos
+
+Em WSL / Linux você pode criar um ambiente virtual para isolar dependências:
+
+```
+python3 -m venv .venv
+source .venv/bin/activate
+pip install --upgrade pip
+pip install pillow
+python convert_images_to_bmp.py
+```
+
+Observação: o diretório `src/DATASET` já está listado em `.gitignore`.
+

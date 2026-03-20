@@ -1,5 +1,7 @@
 # pixi environments
 .pixi/*
 !.pixi/config.toml
+# Ignore project virtualenv if accidentally created here
+.venv/
 # Ignore dataset folder used for local data
 DATASET/
