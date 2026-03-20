@@ -1,0 +1,14 @@
+[workspace]
+channels = ["https://conda.modular.com/max", "https://repo.prefix.dev/modular-community", "conda-forge"]
+name = "BIONIX_ML_VIVAZ"
+platforms = ["linux-64"]
+version = "0.1.0"
+preview = ["pixi-build"]
+
+[dependencies]
+mojo = "==0.25.6"
+#bionix_ml = { path = "../../BIONIX-ML" }
+
+[tasks]
+executar = "mojo -I ../../BIONIX-ML principal.mojo"
+compilar = { cmd = "mkdir -p build && mojo build -I ../../BIONIX-ML -o build/principal principal.mojo" }
