@@ -17,7 +17,7 @@ Repositório do framework principal: https://github.com/Empresa-Municipal-de-Tec
 
 ## Execução
 
-1. Garanta o layout de diretórios ou ajuste o `pixi.toml`:
+1. Garanta o layout de diretórios ou, preferencialmente, declare a dependência via `pixi.toml` e importe `bionix_ml.*` nos seus módulos:
 
 ```
 parent/
@@ -25,7 +25,20 @@ parent/
 └─ BIONIX-ML-VIVAZ/
 ```
 
-Caso não deseje clonar os repositórios como irmãos, edite o `pixi.toml` deste projeto para apontar a dependência local correta (por exemplo, `path = "../BIONIX-ML/src"`). Outra opção é empacotar `BIONIX-ML` como `.mojopkg` e instalar em `.pixi/envs/default/lib/mojo`.
+Exemplo de `pixi.toml` do consumidor:
+
+```toml
+[dependencies]
+bionix_ml = { path = "../BIONIX-ML" }
+```
+
+Exemplo de import (Mojo):
+
+```mojo
+import bionix_ml.computacao as computacao_pkg
+```
+
+Observação: apontar para `../BIONIX-ML/src` mantém compatibilidade com imports `src.*` legados, mas não é o fluxo recomendado — migre para `bionix_ml.*`.
 
 2. Em WSL/Linux (recomendado) rode:
 
