@@ -20,4 +20,4 @@ alias MATCH_THRESHOLD = 0.5
 # Se True, gera arquivos de retângulos de face (um arquivo por imagem,
 # mesmo nome da imagem, extensão .box) antes do treino. Pode ser útil
 # para criar pseudo-labels ou preparar anotações iniciais.
-alias GERAR_RETANGULOS_FACE = True
+alias GERAR_RETANGULOS_FACE = False

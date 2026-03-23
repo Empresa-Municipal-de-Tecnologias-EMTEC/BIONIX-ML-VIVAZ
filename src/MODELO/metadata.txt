@@ -1,0 +1,3 @@
+model: vivaz-poc
+input_short_side: 112
+embedding_size: 512
