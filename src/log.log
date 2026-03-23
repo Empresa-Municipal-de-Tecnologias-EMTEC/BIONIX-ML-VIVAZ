@@ -1,0 +1,12 @@
+Iniciando treino POC (só um esqueleto)...
+Epoch 1 / 3
+  Samples this epoch: 230
+  Avg intra-identity similarity (proxy): -0.015300318
+  Validation samples: 4 TP=0 FP=0 TN=4 FN=4
+  Validation accuracy (proxy): 0.5
+Epoch 2 / 3
+  Samples this epoch: 230
+  Avg intra-identity similarity (proxy): -0.015300318
+  Validation samples: 4 TP=0 FP=0 TN=4 FN=4
+  Validation accuracy (proxy): 0.5
+Epoch 3 / 3
