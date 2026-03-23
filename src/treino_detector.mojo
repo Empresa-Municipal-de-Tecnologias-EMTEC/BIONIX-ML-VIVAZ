@@ -23,6 +23,9 @@ def main():
         print("Gerador de retângulos ativado — processando dataset...")
         gerador_boxes.main()
         print("Processamento de .box finalizado")
+
+    
+
     # Loop de época (stub)
     for epoch in range(1, cfg.EPOCHS + 1):
         print("Epoch " + String(epoch) + " / " + String(cfg.EPOCHS))
