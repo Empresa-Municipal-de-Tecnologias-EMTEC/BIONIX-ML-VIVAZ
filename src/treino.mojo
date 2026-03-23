@@ -7,6 +7,7 @@ import io_modelo as io
 import amostrador as amostrador_pkg
 import pre_processamento as preprocess_pkg
 import extrair_embeddings as embeddings_pkg
+import os
 
 def main():
     # Configurações básicas
@@ -70,7 +71,6 @@ def main():
         print("  Avg intra-identity similarity (proxy): " + String(avg_train_sim))
 
         # Validação simples: para cada identidade em val, compare duas imagens se existirem
-        import os
         var val_root = cfg.DATASET_ROOT + "/val"
         var val_idents_py = List[String]()
         if os.path.exists(val_root):
