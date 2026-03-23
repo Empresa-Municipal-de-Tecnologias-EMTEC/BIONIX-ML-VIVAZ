@@ -84,7 +84,7 @@ def _center_crop_bmpinfo(var info: bmpmod.BMPInfo, frac: Float32 = 0.7) -> bmpmo
         return info^
 
 
-def detect_and_align_bbox(path:String)->bmpmod.BMPInfo, List[Int]:
+def detect_and_align_bbox(path:String) -> (bmpmod.BMPInfo, List[Int]):
     # Similar a detect_and_align, mas retorna o bbox relativo à imagem original
     try:
         var info = bmpmod.zero_bmp()

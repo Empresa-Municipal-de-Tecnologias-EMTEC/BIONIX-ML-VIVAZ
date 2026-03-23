@@ -7,6 +7,7 @@ import io_modelo as io
 import amostrador as amostrador_pkg
 import pre_processamento as preprocess_pkg
 import extrair_embeddings as embeddings_pkg
+import gerar_retangulos_face as gerador_boxes
 import os
 
 def main():
@@ -17,7 +18,11 @@ def main():
     var weights_path = model_dir + "/weights.bin"
 
     print("Iniciando treino POC (só um esqueleto)...")
-
+    # Gerar pseudo-labels (.box) se configurado
+    if cfg.GERAR_RETANGULOS_FACE:
+        print("Gerador de retângulos ativado — processando dataset...")
+        gerador_boxes.main()
+        print("Processamento de .box finalizado")
     # Loop de época (stub)
     for epoch in range(1, cfg.EPOCHS + 1):
         print("Epoch " + String(epoch) + " / " + String(cfg.EPOCHS))
