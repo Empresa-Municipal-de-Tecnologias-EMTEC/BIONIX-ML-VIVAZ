@@ -12,3 +12,9 @@ mojo = "==0.25.6"
 [tasks]
 executar = "mojo -I ../../BIONIX-ML principal.mojo"
 compilar = { cmd = "mkdir -p build && mojo build -I ../../BIONIX-ML -o build/principal principal.mojo" }
+
+# Execuções e compilações dos modos principais
+treinar = "mojo -I ../../BIONIX-ML treino.mojo"
+compilar_treinar = { cmd = "mkdir -p build && mojo build -I ../../BIONIX-ML -o build/treino treino.mojo" }
+api = "mojo -I ../../BIONIX-ML src/servico_api.mojo"
+compilar_api = { cmd = "mkdir -p build && mojo build -I ../../BIONIX-ML -o build/poc src/servico_api.mojo" }

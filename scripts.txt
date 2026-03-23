@@ -2,3 +2,7 @@ pip install pillow
 python convert_images_to_bmp.py
 python convert_images_to_bmp.py --dataset DATASET --overwrite
 python convert_images_to_bmp.py -d src/DATASET -r
+
+pixi run treinar > log.log 2>&1
+
+pixi run treinar  2>&1 >/dev/null | grep -i "error:" > log.log
