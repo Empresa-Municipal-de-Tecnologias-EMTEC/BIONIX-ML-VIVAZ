@@ -18,3 +18,4 @@ treinar_detector = "mojo -I ../../BIONIX-ML treino_detector.mojo"
 compilar_treinar_detector = { cmd = "mkdir -p build && mojo build -I ../../BIONIX-ML -o build/treino treino_detector.mojo" }
 api = "mojo -I ../../BIONIX-ML src/servico_api.mojo"
 compilar_api = { cmd = "mkdir -p build && mojo build -I ../../BIONIX-ML -o build/poc src/servico_api.mojo" }
+smoke_tests = { cmd = "./scripts/run_smoke_tests.sh" }
