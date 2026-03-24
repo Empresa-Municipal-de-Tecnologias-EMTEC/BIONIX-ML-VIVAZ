@@ -4,183 +4,72 @@
 
 import config as cfg
 import io_modelo as io
-import amostrador as amostrador_pkg
-import pre_processamento as preprocess_pkg
-import extrair_embeddings as embeddings_pkg
 import gerar_retangulos_face as gerador_boxes
+import detector_dataset as dataset_pkg
+import detector_model as model_pkg
+import bionix_ml.computacao as computacao_pkg
 import os
 
+
 def main():
-    # Configurações básicas
+    print("Treino do detector — pipeline integrado (CPU/CUDA plugável)")
 
-    var model_dir = cfg.MODEL_DIR
-    var meta_path = model_dir + "/metadata.txt"
-    var weights_path = model_dir + "/weights.bin"
-
-    print("Iniciando treino POC (só um esqueleto)...")
-    # Gerar pseudo-labels (.box) se configurado
+    # gerar pseudo-labels (.box) se configurado
     if cfg.GERAR_RETANGULOS_FACE:
         print("Gerador de retângulos ativado — processando dataset...")
         gerador_boxes.main()
         print("Processamento de .box finalizado")
 
-    
+    # backend selection: prefer CUDA if available, fallback to CPU
+    var tipo = computacao_pkg.backend_nome_de_id(computacao_pkg.backend_cpu_id())
 
-    # Loop de época (stub)
-    for epoch in range(1, cfg.EPOCHS + 1):
-        print("Epoch " + String(epoch) + " / " + String(cfg.EPOCHS))
-        var batch = amostrador_pkg.sample_epoch(cfg.DATASET_ROOT, cfg.IDENTITIES_PER_EPOCH, cfg.IMAGES_PER_IDENTITY)
-        var train_similarities = List[Float32]()
-        samples = 0
-        for pair in batch:
-            identity = pair[0]
-            img_paths = pair[1]
-            # simula processamento de imagens por identidade
-            embs = List[List[Float32]]()
-            for p in img_paths:
-                img = preprocess_pkg.load_and_preprocess(p, cfg.INPUT_SHORT_SIDE)
-                emb = embeddings_pkg.extract_embedding(p)
-                embs.append(emb)
-                samples += 1
-            # calcula similaridade média intra-identity como proxy de "treino"
-            if len(embs) >= 2:
-                ssum = Float32(0.0)
-                pairs = Int(0)
-                for i in range(len(embs)):
-                    for j in range(i+1, len(embs)):
-                        # cosine
-                        a = embs[i]
-                        b = embs[j]
-                        var num = Float32(0.0)
-                        var sa = Float32(0.0)
-                        var sb = Float32(0.0)
-                        for k in range(len(a)):
-                            var x = a[k]
-                            var y = b[k]
-                            num = num + Float32(x) * Float32(y)
-                            sa = sa + Float32(x) * Float32(x)
-                            sb = sb + Float32(y) * Float32(y)
-                        var denom = Float32(1.0)
-                        if sa > Float32(0.0) and sb > Float32(0.0):
-                            denom = (sa**0.5) * (sb**0.5)
-                        ssum = ssum + (num / denom)
-                        pairs = pairs + 1
-                if pairs>0:
-                    train_similarities.append(Float32(ssum / Float32(pairs)))
+    var altura = 100
+    var largura = 64
 
-        # proxy metrics
-        var avg_train_sim = Float32(0.0)
-        if len(train_similarities) > 0:
-            var total_sim = Float32(0.0)
-            for v in train_similarities:
-                total_sim = total_sim + v
-            avg_train_sim = total_sim / Float32(len(train_similarities))
-        print("  Samples this epoch: " + String(samples))
-        print("  Avg intra-identity similarity (proxy): " + String(avg_train_sim))
+    print("Carregando dataset detector (crops " + String(largura) + "x" + String(altura) + ")...")
+    var x_det, y_det = dataset_pkg.carregar_dataset_detector_pouro(cfg.DATASET_ROOT + "/treino", altura, largura, tipo)
+    if len(x_det.formato) == 0 or x_det.formato[0] == 0:
+        print("Falha ao construir dataset detector. Verifique arquivos e .txt de bboxes.")
+        return
 
-        # Validação simples: para cada identidade em val, compare duas imagens se existirem
-        var val_root = cfg.DATASET_ROOT + "/val"
-        var val_idents_py = List[String]()
-        if os.path.exists(val_root):
-            var nomes = os.listdir(val_root)
-            for n in nomes:
-                var p = val_root + "/" + n
-                if os.path.isdir(p):
-                    val_idents_py.append(p)
-        var tp = 0
-        var tn = 0
-        var fp = 0
-        var fnn = 0
-        var val_samples = 0
-        for ident in val_idents_py:
-            var files = List[String]()
-            var nomes_f = os.listdir(ident)
-            for fname in nomes_f:
-                var p = ident + "/" + fname
-                if os.path.isfile(p):
-                    files.append(p)
-            if len(files) >= 2:
-                var db = files[0]
-                var cam = files[1]
-                emb_db = embeddings_pkg.extract_embedding(db)
-                emb_cam = embeddings_pkg.extract_embedding(cam)
-                # compute score (use Float32 accumulators to avoid dtype mixing)
-                var num = Float32(0.0)
-                var sa = Float32(0.0)
-                var sb = Float32(0.0)
-                for k in range(len(emb_db)):
-                    var x = Float32(emb_db[k])
-                    var y = Float32(emb_cam[k])
-                    num = num + x * y
-                    sa = sa + x * x
-                    sb = sb + y * y
-                var denom = Float32(1.0)
-                if sa > Float32(0.0) and sb > Float32(0.0):
-                    denom = (sa**Float32(0.5)) * (sb**Float32(0.5))
-                score = num/denom
-                is_match = score >= cfg.MATCH_THRESHOLD
-                # positive example (same identity)
-                if is_match:
-                    tp += 1
-                else:
-                    fnn += 1
-                val_samples += 1
-                # negative check: compare db to a different identity first file
-                if len(val_idents_py) > 1:
-                    var other_choices_py = List[String]()
-                    for p in val_idents_py:
-                        if p != ident:
-                            other_choices_py.append(p)
-                    if len(other_choices_py) > 0:
-                        # deterministic pick (first different identity)
-                        var other = other_choices_py[0]
-                        var other_files_py = List[String]()
-                        var nomes_of = os.listdir(other)
-                        for fname2 in nomes_of:
-                            var p2 = other + "/" + fname2
-                            if os.path.isfile(p2):
-                                other_files_py.append(p2)
-                        var emb_other = List[Float32]()
-                        if len(other_files_py) > 0:
-                            var other_db = other_files_py[0]
-                            emb_other = embeddings_pkg.extract_embedding(other_db)
-                        var num2 = Float32(0.0)
-                        var sa2 = Float32(0.0)
-                        var sb2 = Float32(0.0)
-                        if len(emb_other) > 0:
-                            for k2 in range(len(emb_db)):
-                                var x = Float32(emb_db[k2])
-                                var y = Float32(emb_other[k2])
-                                num2 = num2 + x * y
-                                sa2 = sa2 + x * x
-                                sb2 = sb2 + y * y
-                        var denom2 = Float32(1.0)
-                        if len(emb_other) > 0:
-                            if sa2 > Float32(0.0) and sb2 > Float32(0.0):
-                                denom2 = (sa2**Float32(0.5)) * (sb2**Float32(0.5))
-                            score2 = num2/denom2
-                            is_match2 = score2 >= cfg.MATCH_THRESHOLD
-                            if is_match2:
-                                fp += 1
-                            else:
-                                tn += 1
-                        # negative comparison accounted for above when `emb_other` exists
+    print("Amostras detector:", x_det.formato[0], "| Features:", x_det.formato[1])
 
-        var val_acc = Float32(0.0)
-        var denom_cnt = tp + tn + fp + fnn
-        if denom_cnt > 0:
-            val_acc = Float32(tp + tn) / Float32(denom_cnt)
-        print("  Validation samples: " + String(val_samples) + " TP=" + String(tp) + " FP=" + String(fp) + " TN=" + String(tn) + " FN=" + String(fnn))
-        print("  Validation accuracy (proxy): " + String(val_acc))
+    # criar contexto com escolha de backend (device_kind)
+    import bionix_ml.computacao.adaptadores.contexto as contexto_defs
+    var device_kind = tipo
+    var ctx = contexto_defs.criar_contexto_padrao(device_kind)
 
-    # Salva metadados e pesos dummy
-    # write simple metadata without using Python-style dict literals
+    mut bloco = model_pkg.criar_bloco_detector(altura, largura, 6, 3, 3, ctx)
+    # ajustar tipo de computacao conforme detecção de backend
+    bloco.tipo_computacao = tipo
+    # tentar carregar checkpoint se existir
+    var carregado = model_pkg.carregar_checkpoint(bloco, cfg.MODEL_DIR)
+    if carregado:
+        print("Checkpoint carregado de", cfg.MODEL_DIR)
+    else:
+        print("Nenhum checkpoint encontrado — treinando do zero")
+    print("Treinando detector com BCEWithLogits (PoC)")
+    try:
+        var loss = model_pkg.treinar_detector_bce(bloco, x_det, y_det, 0.01, cfg.EPOCHS, 10)
+        print("Treino finalizado. Loss final:", loss)
+    except _:
+        print("Erro durante o treino do detector.")
+
+    # salvar metadados simples
+    var model_dir = cfg.MODEL_DIR
+    var meta_path = model_dir + "/metadata_detector.txt"
     io._ensure_parent_dir(meta_path)
     var mf = open(meta_path, 'w')
-    mf.write("model: vivaz-poc\n")
-    mf.write("input_short_side: " + String(cfg.INPUT_SHORT_SIDE) + "\n")
-    mf.write("embedding_size: 512\n")
+    mf.write("model: vivaz-detector-poc\n")
+    mf.write("input_h: " + String(altura) + "\n")
+    mf.write("input_w: " + String(largura) + "\n")
     mf.close()
-    #io.save_weights(weights_path, b"VIVAZ-POC-WEIGHTS")
 
-    print("Treino POC concluído (stub). Substituir por loop de otimização do BIONIX-ML.")
+    # salvar checkpoint final
+    var ok = model_pkg.salvar_checkpoint(bloco, cfg.MODEL_DIR)
+    if ok:
+        print("Checkpoint salvo em", cfg.MODEL_DIR)
+    else:
+        print("Falha ao salvar checkpoint em", cfg.MODEL_DIR)
+
+    print("Treino detector concluído.")
