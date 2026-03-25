@@ -41,7 +41,12 @@ fn carregar_dataset_detector_pouro(var dir_dataset: String, var altura: Int, var
             if not f.endswith(".bmp"):
                 continue
             var bmp_path = os.path.join(caminho, f)
+            # accept either .txt or legacy .box files
             var txt_path = bmp_path.replace('.bmp', '.txt')
+            if not os.path.exists(txt_path):
+                var txt_path_box = bmp_path.replace('.bmp', '.box')
+                if os.path.exists(txt_path_box):
+                    txt_path = txt_path_box
             var img = List[List[Float32]]()
             try:
                 img = dados_pkg.carregar_bmp_grayscale_matriz(bmp_path)
