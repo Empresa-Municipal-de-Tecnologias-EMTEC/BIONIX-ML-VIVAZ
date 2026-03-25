@@ -139,6 +139,13 @@ fn main() -> None:
 
         # extract features and apply head if present
         var pred_box = List[Float32]()
+        fn _clamp01(x: Float32) -> Float32:
+            var y = x
+            if y < 0.0:
+                y = 0.0
+            if y > 1.0:
+                y = 1.0
+            return y
         try:
             var feats = cnn_pkg.extrair_features(bloco, x_s)
             if len(w_vals) > 0 and len(b_vals) > 0:
@@ -155,11 +162,12 @@ fn main() -> None:
                     head_b.dados[j] = b_vals[j]
                 var pred = dispatcher.multiplicar_matrizes(feats, head_w)
                 pred = dispatcher.adicionar_bias_coluna(pred, head_b)
-                # collect normalized prediction
+                # collect normalized prediction (clamped)
                 for v in pred.dados:
-                    pred_box.append(v)
+                    pred_box.append(_clamp01(v))
         except _:
             pass
+
 
         # if no pred, try adapter detection as fallback
         var box_pixels = List[Int]()
@@ -174,6 +182,47 @@ fn main() -> None:
                 if px1 >= info.width: px1 = info.width - 1
                 if py1 >= info.height: py1 = info.height - 1
                 box_pixels.append(px0); box_pixels.append(py0); box_pixels.append(px1); box_pixels.append(py1)
+                # Calcular IoU e acurácia se houver ground truth
+                var txt_path = path.replace('.bmp', '.txt')
+                var gt_box = List[Int]()
+                try:
+                    var linhas = dados_pkg.carregar_txt_linhas(txt_path)
+                    if len(linhas) > 0:
+                        var parts = linhas[0].replace("\t", " ").replace(",", " ").split(" ")
+                        var campos = List[String]()
+                        for p in parts:
+                            var ps = p.strip()
+                            if len(ps) != 0:
+                                campos.append(String(ps))
+                        if len(campos) >= 4:
+                            for i in range(4):
+                                try:
+                                    gt_box.append(Int(Float32(campos[i])))
+                                except _:
+                                    gt_box.append(0)
+                except _:
+                    gt_box = List[Int]()
+                if len(gt_box) >= 4:
+                    # Função IoU igual à do detector_model.mojo
+                    fn calcular_iou_bbox(pred: List[Int], alvo: List[Int]) -> Float32:
+                        if len(pred) < 4 or len(alvo) < 4:
+                            return 0.0
+                        var xA = max(pred[0], alvo[0])
+                        var yA = max(pred[1], alvo[1])
+                        var xB = min(pred[2], alvo[2])
+                        var yB = min(pred[3], alvo[3])
+                        var interW = xB - xA + 1
+                        var interH = yB - yA + 1
+                        if interW <= 0 or interH <= 0:
+                            return 0.0
+                        var interArea = Float32(interW * interH)
+                        var boxAArea = Float32((pred[2] - pred[0] + 1) * (pred[3] - pred[1] + 1))
+                        var boxBArea = Float32((alvo[2] - alvo[0] + 1) * (alvo[3] - alvo[1] + 1))
+                        return interArea / (boxAArea + boxBArea - interArea)
+                    var iou = calcular_iou_bbox(box_pixels, gt_box)
+                    print("[MÉTRICA] IoU da predição:", iou)
+                    var acuracia = 1.0 if iou > 0.5 else 0.0
+                    print("[MÉTRICA] Acurácia bbox (IoU>0.5):", acuracia)
             else:
                 var res = detect_pkg.detect_and_align_bbox(path)
                 var info2 = res[0].copy()
