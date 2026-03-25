@@ -7,25 +7,25 @@
         var resized = graficos_pkg.redimensionar_matriz_grayscale_nearest(img_gray.copy()^, altura, largura)
                                                                                          ^
                                                                                          
-/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/inferir_detector.mojo:193:45: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/inferir_detector.mojo:195:45: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
                     var px = info.pixels[ry][rx]
                              ~~~~~~~~~~~~~~~^~~~
-/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/inferir_detector.mojo:193:45: note: consider transferring the value with '^'
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/inferir_detector.mojo:195:45: note: consider transferring the value with '^'
                     var px = info.pixels[ry][rx]
                                             ^
                                                 ^
-/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/inferir_detector.mojo:193:45: note: you can copy it explicitly with '.copy()'
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/inferir_detector.mojo:195:45: note: you can copy it explicitly with '.copy()'
                     var px = info.pixels[ry][rx]
                                             ^
                                                 .copy()
-/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/inferir_detector.mojo:236:66: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/inferir_detector.mojo:238:66: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
         var bmp_bytes = graficos_pkg.bmp.gerar_bmp_24bits_de_rgb(img_rgb, W, H)
                                                                  ^~~~~~~
-/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/inferir_detector.mojo:236:66: note: consider transferring the value with '^'
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/inferir_detector.mojo:238:66: note: consider transferring the value with '^'
         var bmp_bytes = graficos_pkg.bmp.gerar_bmp_24bits_de_rgb(img_rgb, W, H)
                                                                  ^
                                                                         ^
-/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/inferir_detector.mojo:236:66: note: you can copy it explicitly with '.copy()'
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/inferir_detector.mojo:238:66: note: you can copy it explicitly with '.copy()'
         var bmp_bytes = graficos_pkg.bmp.gerar_bmp_24bits_de_rgb(img_rgb, W, H)
                                                                  ^
                                                                         .copy()
@@ -250,7 +250,7 @@ Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/inferir_detector.mojo:8
 /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/adaptadores/detectar_face.mojo:83:15: warning: 'except' logic is unreachable, try doesn't raise an exception
         print("[adaptadores.detectar_face] crop falhou")
               ^
-/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/inferir_detector.mojo:205:27: warning: assignment to 'i' was never used; assign to '_' instead?
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/inferir_detector.mojo:207:27: warning: assignment to 'i' was never used; assign to '_' instead?
             for i in range(W * H):
                           ^
 /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/inferir_detector.mojo:179:40: warning: assignment to 'info2' was never used; assign to '_' instead?
@@ -276,14 +276,24 @@ Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/inferir_detector.mojo:8
                                   ^
 Inferência do detector — valida 10 imagens e salva em validacao_inferencia
 Checkpoint carregado de MODELO
+[INFERÊNCIA] Caixa prevista: ( 0 0 -7 -8 ) para imagem: DATASET/train/n000002/0001_01.bmp
 Salvo: validacao_inferencia/inf_1_0001_01.bmp
+[INFERÊNCIA] Caixa prevista: ( 0 0 -2 -2 ) para imagem: DATASET/train/n000002/0002_01.bmp
 Salvo: validacao_inferencia/inf_2_0002_01.bmp
+[INFERÊNCIA] Caixa prevista: ( 0 0 -6 -7 ) para imagem: DATASET/train/n000002/0003_01.bmp
 Salvo: validacao_inferencia/inf_3_0003_01.bmp
+[INFERÊNCIA] Caixa prevista: ( 0 0 -1 -1 ) para imagem: DATASET/train/n000002/0004_01.bmp
 Salvo: validacao_inferencia/inf_4_0004_01.bmp
+[INFERÊNCIA] Caixa prevista: ( 0 0 -1 -1 ) para imagem: DATASET/train/n000002/0005_01.bmp
 Salvo: validacao_inferencia/inf_5_0005_01.bmp
+[INFERÊNCIA] Caixa prevista: ( 0 0 -1 -1 ) para imagem: DATASET/train/n000002/0006_01.bmp
 Salvo: validacao_inferencia/inf_6_0006_01.bmp
+[INFERÊNCIA] Caixa prevista: ( 0 0 -1 -1 ) para imagem: DATASET/train/n000002/0007_01.bmp
 Salvo: validacao_inferencia/inf_7_0007_01.bmp
+[INFERÊNCIA] Caixa prevista: ( 0 0 0 0 ) para imagem: DATASET/train/n000002/0008_01.bmp
 Salvo: validacao_inferencia/inf_8_0008_01.bmp
+[INFERÊNCIA] Caixa prevista: ( 0 0 -3 -4 ) para imagem: DATASET/train/n000002/0009_01.bmp
 Salvo: validacao_inferencia/inf_9_0009_01.bmp
+[INFERÊNCIA] Caixa prevista: ( 0 0 0 0 ) para imagem: DATASET/train/n000002/0010_01.bmp
 Salvo: validacao_inferencia/inf_10_0010_01.bmp
 Inferência concluída. Imagens salvas em validacao_inferencia

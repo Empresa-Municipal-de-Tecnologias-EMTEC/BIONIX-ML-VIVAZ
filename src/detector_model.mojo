@@ -1,3 +1,176 @@
+fn treinar_detector_bbox_com_saida(
+    mut bloco: cnn_pkg.BlocoCNN,
+    entradas: tensor_defs.Tensor,
+    alvos: tensor_defs.Tensor,
+    var taxa_aprendizado: Float32 = 0.01,
+    var epocas: Int = 100,
+    var imprimir_cada: Int = 10,
+    var model_dir: String = "",
+    var dataset_root: String = "",
+    var tolerancia: Float32 = 0.1,
+    var early_stop: Bool = False,
+) raises -> (Float32, List[Int], String):
+    # Igual a treinar_detector_bbox, mas retorna também a última predição e imagem de validação
+    debug_assert(len(alvos.formato) == 2 and alvos.formato[1] == 4, "alvos deve ser [N,4]")
+    debug_assert(entradas.formato[0] == alvos.formato[0], "N de entradas e alvos deve bater")
+
+    var loss_final: Float32 = 0.0
+    var ultima_pred: List[Int] = List[Int]()
+    var ultima_img: String = ""
+
+    var head_w: tensor_defs.Tensor = tensor_defs.Tensor(List[Int](), bloco.tipo_computacao)
+    var head_b: tensor_defs.Tensor = tensor_defs.Tensor(List[Int](), bloco.tipo_computacao)
+    var head_initialized = False
+
+    for epoca in range(epocas):
+        var feats = tensor_defs.Tensor(List[Int](), bloco.tipo_computacao)
+        try:
+            feats = cnn_pkg.extrair_features(bloco, entradas)
+        except _:
+            print("Erro ao extrair features; pulando epoca", epoca)
+            continue
+
+        if not head_initialized:
+            var feat_dim = feats.formato[1]
+            var shape_w = List[Int]()
+            shape_w.append(feat_dim); shape_w.append(4)
+            head_w = tensor_defs.Tensor(shape_w^, bloco.tipo_computacao)
+            var shape_b = List[Int]()
+            shape_b.append(1); shape_b.append(4)
+            head_b = tensor_defs.Tensor(shape_b^, bloco.tipo_computacao)
+            for i in range(len(head_w.dados)):
+                head_w.dados[i] = 0.001
+            for j in range(len(head_b.dados)):
+                head_b.dados[j] = 0.0
+            head_initialized = True
+
+        var preds = tensor_defs.Tensor(List[Int](), bloco.tipo_computacao)
+        try:
+            preds = dispatcher.multiplicar_matrizes(feats, head_w)
+            preds = dispatcher.adicionar_bias_coluna(preds, head_b)
+        except _:
+            print("Erro ao calcular preds; pulando epoca", epoca)
+            continue
+
+        var loss = dispatcher.erro_quadratico_medio_escalar(preds, alvos)
+        var grad_pred = dispatcher.gradiente_mse(preds, alvos)
+
+        var ft = dispatcher.transpor(feats)
+        var grad_w = dispatcher.multiplicar_matrizes(ft, grad_pred)
+
+        var cols = grad_pred.formato[1]
+        var rows = grad_pred.formato[0]
+        var grad_b_vals = List[Float32]()
+        for j in range(cols):
+            grad_b_vals.append(0.0)
+        for i in range(rows):
+            for j in range(cols):
+                grad_b_vals[j] = grad_b_vals[j] + grad_pred.dados[i * cols + j]
+
+        for i in range(len(head_w.dados)):
+            head_w.dados[i] = head_w.dados[i] - taxa_aprendizado * grad_w.dados[i]
+        for j in range(cols):
+            head_b.dados[j] = head_b.dados[j] - taxa_aprendizado * grad_b_vals[j]
+
+        loss_final = loss
+
+        if imprimir_cada > 0 and (epoca % imprimir_cada == 0 or epoca == epocas - 1):
+            print("Epoca", epoca, "| L1-like MSE loss:", loss_final)
+
+        # Exportar pesos em formato binário ao final de cada época
+        import bionix_ml.uteis.arquivo as arquivo_io
+        import os
+        var export_dir = "detector_modelo"
+        if not os.path.exists(export_dir):
+            os.mkdir(export_dir)
+        var export_path = os.path.join(export_dir, "detector_pesos.bin")
+        var ok = arquivo_io.gravar_arquivo_binario(export_path, head_w.dados_bytes())
+        if not ok:
+            print("[ERRO] Falha ao exportar pesos binários na época", epoca, "em", export_path)
+
+        # Após cada época, tenta obter uma predição e imagem de validação
+        try:
+            if len(dataset_root) > 0:
+                var found = False
+                var candidate_path = ""
+                var orig_info = bmpmod.zero_bmp()
+                try:
+                    for ident in os.listdir(dataset_root):
+                        var p_ident = os.path.join(dataset_root, ident)
+                        if not os.path.isdir(p_ident):
+                            continue
+                        for f in os.listdir(p_ident):
+                            if not f.endswith(".bmp"):
+                                continue
+                            var candidate = os.path.join(p_ident, f)
+                            try:
+                                var res = detect_pkg.detect_and_align_bbox(candidate)
+                                var info = res[0].copy()
+                                if info.width > 0 and info.height > 0:
+                                    orig_info = info^
+                                    candidate_path = candidate
+                                    found = True
+                                    break
+                            except _:
+                                continue
+                        if found:
+                            break
+                except _:
+                    found = False
+
+                if found and orig_info.width > 0 and orig_info.height > 0:
+                    var W = orig_info.width
+                    var H = orig_info.height
+                    # resize grayscale orig_info para bloco.altura x bloco.largura
+                    var resized = graficos_pkg.redimensionar_matriz_grayscale_nearest(orig_info.grayscale.copy()^, bloco.altura, bloco.largura)
+                    var flat = List[Float32]()
+                    for ry in range(len(resized)):
+                        for rx in range(len(resized[0])):
+                            flat.append(resized[ry][rx])
+                    var in_shape = List[Int]()
+                    in_shape.append(1); in_shape.append(bloco.altura * bloco.largura)
+                    var input_tensor = tensor_defs.Tensor(in_shape^, bloco.tipo_computacao)
+                    for i in range(len(flat)):
+                        input_tensor.dados[i] = flat[i]
+
+                    var feats_single = cnn_pkg.extrair_features(bloco, input_tensor)
+                    var preds_single = dispatcher.multiplicar_matrizes(feats_single, head_w)
+                    preds_single = dispatcher.adicionar_bias_coluna(preds_single, head_b)
+                    if len(preds_single.dados) >= 4:
+                        var px0 = Int(preds_single.dados[0] * Float32(W))
+                        var py0 = Int(preds_single.dados[1] * Float32(H))
+                        var px1 = Int(preds_single.dados[2] * Float32(W))
+                        var py1 = Int(preds_single.dados[3] * Float32(H))
+                        if px0 < 0: px0 = 0
+                        if py0 < 0: py0 = 0
+                        if px1 >= W: px1 = W - 1
+                        if py1 >= H: py1 = H - 1
+                        ultima_pred = List[Int]()
+                        ultima_pred.append(px0); ultima_pred.append(py0); ultima_pred.append(px1); ultima_pred.append(py1)
+                        ultima_img = candidate_path
+        except _:
+            pass
+
+    # save head se solicitado
+    try:
+        if len(model_dir) > 0:
+            var meta = "feat_shape=" + String(head_w.formato[0]) + "," + String(head_w.formato[1]) + "\n"
+            meta = meta + "weights="
+            for i in range(len(head_w.dados)):
+                if i != 0:
+                    meta = meta + ","
+                meta = meta + String(Float64(head_w.dados[i]))
+            meta = meta + "\n"
+            meta = meta + "bias="
+            for j in range(len(head_b.dados)):
+                if j != 0:
+                    meta = meta + ","
+                meta = meta + String(Float64(head_b.dados[j]))
+            _ = io_modelo.save_metadata(os.path.join(model_dir, "bbox_head.txt"), meta)
+    except _:
+        pass
+
+    return (loss_final, ultima_pred, ultima_img)
 import bionix_ml.camadas.cnn as cnn_pkg
 import bionix_ml.computacao.dispatcher_tensor as dispatcher
 import bionix_ml.nucleo.Tensor as tensor_defs

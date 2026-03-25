@@ -65,8 +65,12 @@ fn main() raises -> None:
             print("Treinando detector (bbox regression)")
             # Pass dataset path so trainer can save per-epoch comparison images.
             # Enable early_stop with a small tolerance on center distance.
-            var loss = model_pkg.treinar_detector_bbox(bloco, x_det, y_det, 0.01, cfg.EPOCHS, 1, cfg.MODEL_DIR, dataset_path, 0.05, True)
+            var loss, pred_coords, img_path = model_pkg.treinar_detector_bbox_com_saida(bloco, x_det, y_det, 0.01, cfg.EPOCHS, 1, cfg.MODEL_DIR, dataset_path, 0.05, True)
+            pred_coords = pred_coords.copy()
             print("Treino bbox finalizado. Loss final:", loss)
+            # Imprime as coordenadas da caixa prevista para a última imagem de validação
+            if len(pred_coords) >= 4 and len(img_path) > 0:
+                print("[TREINO] Caixa prevista: (", pred_coords[0], pred_coords[1], pred_coords[2], pred_coords[3], ") para imagem:", img_path)
         else:
             print("Treinando detector com BCEWithLogits (PoC)")
             var loss = model_pkg.treinar_detector_bce(bloco, x_det, y_det, 0.01, cfg.EPOCHS, 10, dataset_path)
