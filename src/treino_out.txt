@@ -2,29 +2,40 @@
 /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/treino_detector.mojo:24:11: warning: if statement with constant condition 'if False'
     if cfg.GERAR_RETANGULOS_FACE:
           ^
-/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/treino_detector.mojo:162:106: warning: transfer from an owned value has no effect and can be removed
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/treino_detector.mojo:68:21: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+            var loss, pred_coords, img_path = model_pkg.treinar_detector_bbox_com_saida(bloco, x_det, y_det, 0.01, cfg.EPOCHS, 1, cfg.MODEL_DIR, dataset_path, 0.05, True)
+                ~~~~^
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/treino_detector.mojo:68:21: note: consider transferring the value with '^'
+            var loss, pred_coords, img_path = model_pkg.treinar_detector_bbox_com_saida(bloco, x_det, y_det, 0.01, cfg.EPOCHS, 1, cfg.MODEL_DIR, dataset_path, 0.05, True)
+                    ^
+                     ^
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/treino_detector.mojo:68:21: note: you can copy it explicitly with '.copy()'
+            var loss, pred_coords, img_path = model_pkg.treinar_detector_bbox_com_saida(bloco, x_det, y_det, 0.01, cfg.EPOCHS, 1, cfg.MODEL_DIR, dataset_path, 0.05, True)
+                    ^
+                     .copy()
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/treino_detector.mojo:166:106: warning: transfer from an owned value has no effect and can be removed
                         var resized = graficos_pkg.redimensionar_matriz_grayscale_nearest(img_gray.copy()^, altura, largura)
                                                                                                          ^
                                                                                                          
-/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/treino_detector.mojo:202:65: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/treino_detector.mojo:207:65: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
                                         var px = info.pixels[ry][rx]
                                                  ~~~~~~~~~~~~~~~^~~~
-/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/treino_detector.mojo:202:65: note: consider transferring the value with '^'
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/treino_detector.mojo:207:65: note: consider transferring the value with '^'
                                         var px = info.pixels[ry][rx]
                                                                 ^
                                                                     ^
-/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/treino_detector.mojo:202:65: note: you can copy it explicitly with '.copy()'
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/treino_detector.mojo:207:65: note: you can copy it explicitly with '.copy()'
                                         var px = info.pixels[ry][rx]
                                                                 ^
                                                                     .copy()
-/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/treino_detector.mojo:240:86: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/treino_detector.mojo:245:86: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
                             var bmp_bytes = graficos_pkg.bmp.gerar_bmp_24bits_de_rgb(img_rgb, W, H)
                                                                                      ^~~~~~~
-/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/treino_detector.mojo:240:86: note: consider transferring the value with '^'
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/treino_detector.mojo:245:86: note: consider transferring the value with '^'
                             var bmp_bytes = graficos_pkg.bmp.gerar_bmp_24bits_de_rgb(img_rgb, W, H)
                                                                                      ^
                                                                                             ^
-/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/treino_detector.mojo:240:86: note: you can copy it explicitly with '.copy()'
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/treino_detector.mojo:245:86: note: you can copy it explicitly with '.copy()'
                             var bmp_bytes = graficos_pkg.bmp.gerar_bmp_24bits_de_rgb(img_rgb, W, H)
                                                                                      ^
                                                                                             .copy()
@@ -66,108 +77,66 @@ Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/treino_detector.mojo:8:
                             ^
                                  .copy()
 Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/treino_detector.mojo:9:
-/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/detector_model.mojo:143:66: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/detector_model.mojo:125:113: warning: transfer from an owned value has no effect and can be removed
+                    var resized = graficos_pkg.redimensionar_matriz_grayscale_nearest(orig_info.grayscale.copy()^, bloco.altura, bloco.largura)
+                                                                                                                ^
+                                                                                                                
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/treino_detector.mojo:9:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/detector_model.mojo:173:25: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+    return (loss_final, ultima_pred, ultima_img)
+                        ^~~~~~~~~~~
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/treino_detector.mojo:9:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/detector_model.mojo:173:25: note: consider transferring the value with '^'
+    return (loss_final, ultima_pred, ultima_img)
+                        ^
+                                   ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/treino_detector.mojo:9:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/detector_model.mojo:173:25: note: you can copy it explicitly with '.copy()'
+    return (loss_final, ultima_pred, ultima_img)
+                        ^
+                                   .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/treino_detector.mojo:9:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/detector_model.mojo:319:66: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
                                     var px = orig_info.pixels[ry][rx]
                                              ~~~~~~~~~~~~~~~~~~~~^~~~
 Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/treino_detector.mojo:9:
-/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/detector_model.mojo:143:66: note: consider transferring the value with '^'
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/detector_model.mojo:319:66: note: consider transferring the value with '^'
                                     var px = orig_info.pixels[ry][rx]
                                                                  ^
                                                                      ^
 Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/treino_detector.mojo:9:
-/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/detector_model.mojo:143:66: note: you can copy it explicitly with '.copy()'
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/detector_model.mojo:319:66: note: you can copy it explicitly with '.copy()'
                                     var px = orig_info.pixels[ry][rx]
                                                                  ^
                                                                      .copy()
 Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/treino_detector.mojo:9:
-/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/detector_model.mojo:264:82: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/detector_model.mojo:440:82: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
                         var bmp_bytes = graficos_pkg.bmp.gerar_bmp_24bits_de_rgb(img_rgb, W, H)
                                                                                  ^~~~~~~
 Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/treino_detector.mojo:9:
-/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/detector_model.mojo:264:82: note: consider transferring the value with '^'
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/detector_model.mojo:440:82: note: consider transferring the value with '^'
                         var bmp_bytes = graficos_pkg.bmp.gerar_bmp_24bits_de_rgb(img_rgb, W, H)
                                                                                  ^
                                                                                         ^
 Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/treino_detector.mojo:9:
-/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/detector_model.mojo:264:82: note: you can copy it explicitly with '.copy()'
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/detector_model.mojo:440:82: note: you can copy it explicitly with '.copy()'
                         var bmp_bytes = graficos_pkg.bmp.gerar_bmp_24bits_de_rgb(img_rgb, W, H)
                                                                                  ^
                                                                                         .copy()
 Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/treino_detector.mojo:9:
-/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/detector_model.mojo:284:82: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/detector_model.mojo:460:82: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
                         var bmp_bytes = graficos_pkg.bmp.gerar_bmp_24bits_de_rgb(img_rgb, w, h)
                                                                                  ^~~~~~~
 Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/treino_detector.mojo:9:
-/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/detector_model.mojo:284:82: note: consider transferring the value with '^'
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/detector_model.mojo:460:82: note: consider transferring the value with '^'
                         var bmp_bytes = graficos_pkg.bmp.gerar_bmp_24bits_de_rgb(img_rgb, w, h)
                                                                                  ^
                                                                                         ^
 Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/treino_detector.mojo:9:
-/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/detector_model.mojo:284:82: note: you can copy it explicitly with '.copy()'
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/detector_model.mojo:460:82: note: you can copy it explicitly with '.copy()'
                         var bmp_bytes = graficos_pkg.bmp.gerar_bmp_24bits_de_rgb(img_rgb, w, h)
                                                                                  ^
                                                                                         .copy()
-Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/treino_detector.mojo:9:
-/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/detector_model.mojo:458:66: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
-                                    var px = orig_info.pixels[ry][rx]
-                                             ~~~~~~~~~~~~~~~~~~~~^~~~
-Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/treino_detector.mojo:9:
-/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/detector_model.mojo:458:66: note: consider transferring the value with '^'
-                                    var px = orig_info.pixels[ry][rx]
-                                                                 ^
-                                                                     ^
-Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/treino_detector.mojo:9:
-/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/detector_model.mojo:458:66: note: you can copy it explicitly with '.copy()'
-                                    var px = orig_info.pixels[ry][rx]
-                                                                 ^
-                                                                     .copy()
-Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/treino_detector.mojo:9:
-/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/detector_model.mojo:475:49: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
-                                img_gray.append(row)
-                                                ^~~
-Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/treino_detector.mojo:9:
-/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/detector_model.mojo:475:49: note: consider transferring the value with '^'
-                                img_gray.append(row)
-                                                ^
-                                                   ^
-Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/treino_detector.mojo:9:
-/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/detector_model.mojo:475:49: note: you can copy it explicitly with '.copy()'
-                                img_gray.append(row)
-                                                ^
-                                                   .copy()
-Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/treino_detector.mojo:9:
-/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/detector_model.mojo:560:125: warning: transfer from an owned value has no effect and can be removed
-                                var resized = graficos_pkg.redimensionar_matriz_grayscale_nearest(orig_info.grayscale.copy()^, bloco.altura, bloco.largura)
-                                                                                                                            ^
-                                                                                                                            
-Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/treino_detector.mojo:9:
-/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/detector_model.mojo:610:84: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
-                            var bmp_box = graficos_pkg.bmp.gerar_bmp_24bits_de_rgb(rgb_box, W, H)
-                                                                                   ^~~~~~~
-Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/treino_detector.mojo:9:
-/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/detector_model.mojo:610:84: note: consider transferring the value with '^'
-                            var bmp_box = graficos_pkg.bmp.gerar_bmp_24bits_de_rgb(rgb_box, W, H)
-                                                                                   ^
-                                                                                          ^
-Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/treino_detector.mojo:9:
-/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/detector_model.mojo:610:84: note: you can copy it explicitly with '.copy()'
-                            var bmp_box = graficos_pkg.bmp.gerar_bmp_24bits_de_rgb(rgb_box, W, H)
-                                                                                   ^
-                                                                                          .copy()
-Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/treino_detector.mojo:9:
-/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/detector_model.mojo:611:87: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
-                            var bmp_detect = graficos_pkg.bmp.gerar_bmp_24bits_de_rgb(rgb_detect, W, H)
-                                                                                      ^~~~~~~~~~
-Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/treino_detector.mojo:9:
-/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/detector_model.mojo:611:87: note: consider transferring the value with '^'
-                            var bmp_detect = graficos_pkg.bmp.gerar_bmp_24bits_de_rgb(rgb_detect, W, H)
-                                                                                      ^
-                                                                                                ^
-Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/treino_detector.mojo:9:
-/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/detector_model.mojo:611:87: note: you can copy it explicitly with '.copy()'
-                            var bmp_detect = graficos_pkg.bmp.gerar_bmp_24bits_de_rgb(rgb_detect, W, H)
-                                                                                      ^
-                                                                                                .copy()
 Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/treino_detector.mojo:13:
 /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/bmp.mojo:44:126: warning: transfer from an owned value has no effect and can be removed
     return BMPInfo(0, 0, 0, 0, BMP_MODO_GRAYSCALE, List[List[List[Float32]]](), List[List[Float32]](), List[List[Float32]]())^
@@ -359,21 +328,27 @@ Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/treino_detector.mojo:8:
                                 target_box.append(0.0)
                                                   ^
 Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/treino_detector.mojo:9:
-/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/detector_model.mojo:93:19: warning: 'except' logic is unreachable, try doesn't raise an exception
-            print("[WARN] Falha ao exportar pesos binários na época", epoca)
-Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/treino_detector.mojo:9:
-/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/detector_model.mojo:383:19: warning: 'except' logic is unreachable, try doesn't raise an exception
-            print("[WARN] Falha ao exportar pesos binários na época", epoca)
-Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/treino_detector.mojo:9:
-/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/detector_model.mojo:633:5: warning: try body doesn't raise an exception
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/detector_model.mojo:155:5: warning: try body doesn't raise an exception
     try:
     ^
 Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/treino_detector.mojo:9:
-/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/detector_model.mojo:661:16: warning: 'except' logic is unreachable, try doesn't raise an exception
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/detector_model.mojo:450:37: warning: 'except' logic is unreachable, try doesn't raise an exception
+                                v = 0.0
+                                    ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/treino_detector.mojo:9:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/detector_model.mojo:341:41: warning: 'except' logic is unreachable, try doesn't raise an exception
+                                    v = 0.0
+                                        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/treino_detector.mojo:9:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/detector_model.mojo:377:65: warning: 'except' logic is unreachable, try doesn't raise an exception
+                                                file_box.append(0)
+                                                                ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/treino_detector.mojo:9:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/detector_model.mojo:839:16: warning: 'except' logic is unreachable, try doesn't raise an exception
         return False
                ^
 Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/treino_detector.mojo:9:
-/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/detector_model.mojo:673:16: warning: 'except' logic is unreachable, try doesn't raise an exception
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/detector_model.mojo:851:16: warning: 'except' logic is unreachable, try doesn't raise an exception
         return False
                ^
 Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/treino_detector.mojo:17:
@@ -387,12 +362,12 @@ Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_
         return
         ^
 Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/treino_detector.mojo:9:
-Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/detector_model.mojo:12:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/detector_model.mojo:185:
 /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/computacao/storage_sessao.mojo:70:16: warning: 'except' logic is unreachable, try doesn't raise an exception
         return False
                ^
-Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/treino_detector.mojo:7:
-Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/gerar_retangulos_face.mojo:8:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/treino_detector.mojo:9:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/detector_model.mojo:81:
 /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/uteis/arquivo.mojo:50:20: warning: 'except' logic is unreachable, try doesn't raise an exception
             return ""
                    ^
@@ -400,16 +375,16 @@ Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/treino_detector.mojo:12
 /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/adaptadores/detectar_face.mojo:83:15: warning: 'except' logic is unreachable, try doesn't raise an exception
         print("[adaptadores.detectar_face] crop falhou")
               ^
-/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/treino_detector.mojo:214:47: warning: assignment to 'i' was never used; assign to '_' instead?
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/treino_detector.mojo:219:47: warning: assignment to 'i' was never used; assign to '_' instead?
                                 for i in range(W * H):
                                               ^
-/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/treino_detector.mojo:109:48: warning: assignment to 'feat_shape_line' was never used; assign to '_' instead?
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/treino_detector.mojo:113:48: warning: assignment to 'feat_shape_line' was never used; assign to '_' instead?
                     feat_shape_line = L.replace("feat_shape=", "")
                                                ^
-/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/treino_detector.mojo:102:35: warning: assignment to 'feat_shape_line' was never used; assign to '_' instead?
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/treino_detector.mojo:106:35: warning: assignment to 'feat_shape_line' was never used; assign to '_' instead?
             var feat_shape_line = ""
                                   ^
-/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/treino_detector.mojo:156:55: warning: assignment to 'img_gray' was never used; assign to '_' instead?
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/treino_detector.mojo:160:55: warning: assignment to 'img_gray' was never used; assign to '_' instead?
                     var img_gray = List[List[Float32]]()
                                                       ^
 Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/treino_detector.mojo:8:
@@ -429,19 +404,27 @@ Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/treino_detector.mojo:8:
     var classes = List[String]()
                               ^
 Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/treino_detector.mojo:9:
-/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/detector_model.mojo:60:39: warning: assignment to 'feats' was never used; assign to '_' instead?
-        var feats = tensor_defs.Tensor(List[Int](), bloco.tipo_computacao)
-                                      ^
-Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/treino_detector.mojo:9:
-/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/detector_model.mojo:357:23: warning: assignment to 'j' was never used; assign to '_' instead?
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/detector_model.mojo:64:23: warning: assignment to 'j' was never used; assign to '_' instead?
         for j in range(cols):
                       ^
 Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/treino_detector.mojo:9:
-/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/detector_model.mojo:338:39: warning: assignment to 'preds' was never used; assign to '_' instead?
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/detector_model.mojo:47:39: warning: assignment to 'preds' was never used; assign to '_' instead?
         var preds = tensor_defs.Tensor(List[Int](), bloco.tipo_computacao)
                                       ^
 Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/treino_detector.mojo:9:
-/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/detector_model.mojo:316:39: warning: assignment to 'feats' was never used; assign to '_' instead?
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/detector_model.mojo:26:39: warning: assignment to 'feats' was never used; assign to '_' instead?
+        var feats = tensor_defs.Tensor(List[Int](), bloco.tipo_computacao)
+                                      ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/treino_detector.mojo:9:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/detector_model.mojo:446:46: warning: assignment to 'v' was never used; assign to '_' instead?
+                            var v: Float32 = 0.0
+                                             ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/treino_detector.mojo:9:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/detector_model.mojo:337:50: warning: assignment to 'v' was never used; assign to '_' instead?
+                                var v: Float32 = 0.0
+                                                 ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/treino_detector.mojo:9:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/detector_model.mojo:235:39: warning: assignment to 'feats' was never used; assign to '_' instead?
         var feats = tensor_defs.Tensor(List[Int](), bloco.tipo_computacao)
                                       ^
 Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/treino_detector.mojo:12:
@@ -492,6 +475,8 @@ Epoca 27 | L1-like MSE loss: 9.3341565e-05
 Epoca 28 | L1-like MSE loss: 9.212782e-05
 Epoca 29 | L1-like MSE loss: 9.095759e-05
 Treino bbox finalizado. Loss final: 9.095759e-05
+[TREINO] Caixa prevista: ( 0 0 -3 -3 ) para imagem: DATASET/train/n000002/0001_01.bmp
 Checkpoint salvo em MODELO
 Encontrado bbox_head.txt, gerando imagem de validação com previsão do modelo...
+[TREINO] Caixa prevista: ( 0 0 -7 -8 ) para imagem: DATASET/train/n000002/0001_01.bmp
 Treino detector concluído.
