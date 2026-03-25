@@ -10,11 +10,11 @@ alias INPUT_SHORT_SIDE = 112
 alias MAX_INPUT_RESOLUTION = 1024
 
 # Número de identidades/amostras por época (ajustável)
-alias IDENTITIES_PER_EPOCH = 50
-alias IMAGES_PER_IDENTITY = 5
+alias IDENTITIES_PER_EPOCH = 5
+alias IMAGES_PER_IDENTITY = 2
 
 # Treino
-alias EPOCHS = 3
+alias EPOCHS = 30
 alias MATCH_THRESHOLD = 0.5
 
 # Se True, gera arquivos de retângulos de face (um arquivo por imagem,

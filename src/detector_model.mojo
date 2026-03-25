@@ -13,6 +13,8 @@ import bionix_ml.computacao.storage_sessao as storage_sessao
 import os
 import adaptadores.detectar_face as detect_pkg
 import bionix_ml.dados.bmp as bmpmod
+import bionix_ml.uteis as uteis
+import io_modelo
 
 # Wrapper utilities for detector model training using BCEWithLogits
 
@@ -92,6 +94,7 @@ fn treinar_detector_bce(
                     var found = False
                     var orig_info = bmpmod.zero_bmp()
                     var bbox = List[Int]()
+                    var candidate_path = ""
                     if len(dataset_root) > 0:
                         try:
                             for ident in os.listdir(dataset_root):
@@ -109,6 +112,7 @@ fn treinar_detector_bce(
                                         if info.width > 0 and info.height > 0:
                                             orig_info = info^
                                             bbox = bb^
+                                            candidate_path = candidate
                                             found = True
                                             break
                                     except _:
@@ -159,10 +163,30 @@ fn treinar_detector_bce(
                                 img_rgb.append(p); img_rgb.append(p); img_rgb.append(p)
                             W = w; H = h
 
-                        # draw rectangle border (2 px) in red
-                        var color_r = 255
-                        var color_g = 0
-                        var color_b = 0
+                        # parse .txt box if present (baseline) and draw it in green;
+                        # adapter bbox will be drawn in red
+                        var file_box = List[Int]()
+                        try:
+                            var txt_path = candidate_path.replace('.bmp', '.txt')
+                            if os.path.exists(txt_path):
+                                var linhas = dados_pkg.carregar_txt_linhas(txt_path)
+                                if len(linhas) > 0:
+                                    var parts = linhas[0].replace("\t", " ").replace(",", " ").split(" ")
+                                    var campos = List[String]()
+                                    for p in parts:
+                                        var ps = p.strip()
+                                        if len(ps) != 0:
+                                            campos.append(String(ps))
+                                    if len(campos) >= 4:
+                                        for i in range(4):
+                                            try:
+                                                var v = Float32(uteis.parse_float_ascii(String(campos[i])))
+                                                file_box.append(Int(v))
+                                            except _:
+                                                file_box.append(0)
+                        except _:
+                            file_box = List[Int]()
+
                         var thickness = 2
                         var x0 = bbox[0]
                         var y0 = bbox[1]
@@ -175,22 +199,52 @@ fn treinar_detector_bce(
                         for t in range(thickness):
                             for x in range(x0 + t, x1 - t + 1):
                                 var ti_top = ((y0 + t) * W + x) * 3
-                                img_rgb[ti_top + 0] = color_r
-                                img_rgb[ti_top + 1] = color_g
-                                img_rgb[ti_top + 2] = color_b
+                                img_rgb[ti_top + 0] = 255
+                                img_rgb[ti_top + 1] = 0
+                                img_rgb[ti_top + 2] = 0
                                 var ti_bot = ((y1 - t) * W + x) * 3
-                                img_rgb[ti_bot + 0] = color_r
-                                img_rgb[ti_bot + 1] = color_g
-                                img_rgb[ti_bot + 2] = color_b
+                                img_rgb[ti_bot + 0] = 255
+                                img_rgb[ti_bot + 1] = 0
+                                img_rgb[ti_bot + 2] = 0
                             for y in range(y0 + t, y1 - t + 1):
                                 var ti_l = (y * W + (x0 + t)) * 3
-                                img_rgb[ti_l + 0] = color_r
-                                img_rgb[ti_l + 1] = color_g
-                                img_rgb[ti_l + 2] = color_b
+                                img_rgb[ti_l + 0] = 255
+                                img_rgb[ti_l + 1] = 0
+                                img_rgb[ti_l + 2] = 0
                                 var ti_r = (y * W + (x1 - t)) * 3
-                                img_rgb[ti_r + 0] = color_r
-                                img_rgb[ti_r + 1] = color_g
-                                img_rgb[ti_r + 2] = color_b
+                                img_rgb[ti_r + 0] = 255
+                                img_rgb[ti_r + 1] = 0
+                                img_rgb[ti_r + 2] = 0
+
+                        # draw file_box if available (green)
+                        if len(file_box) >= 4:
+                            var fx0 = file_box[0]
+                            var fy0 = file_box[1]
+                            var fx1 = file_box[2]
+                            var fy1 = file_box[3]
+                            if fx0 < 0: fx0 = 0
+                            if fy0 < 0: fy0 = 0
+                            if fx1 >= W: fx1 = W - 1
+                            if fy1 >= H: fy1 = H - 1
+                            for t in range(thickness):
+                                for x in range(fx0 + t, fx1 - t + 1):
+                                    var ti_topf = ((fy0 + t) * W + x) * 3
+                                    img_rgb[ti_topf + 0] = 0
+                                    img_rgb[ti_topf + 1] = 255
+                                    img_rgb[ti_topf + 2] = 0
+                                    var ti_botf = ((fy1 - t) * W + x) * 3
+                                    img_rgb[ti_botf + 0] = 0
+                                    img_rgb[ti_botf + 1] = 255
+                                    img_rgb[ti_botf + 2] = 0
+                                for y in range(fy0 + t, fy1 - t + 1):
+                                    var ti_lf = (y * W + (fx0 + t)) * 3
+                                    img_rgb[ti_lf + 0] = 0
+                                    img_rgb[ti_lf + 1] = 255
+                                    img_rgb[ti_lf + 2] = 0
+                                    var ti_rf = (y * W + (fx1 - t)) * 3
+                                    img_rgb[ti_rf + 0] = 0
+                                    img_rgb[ti_rf + 1] = 255
+                                    img_rgb[ti_rf + 2] = 0
 
                         var bmp_bytes = graficos_pkg.bmp.gerar_bmp_24bits_de_rgb(img_rgb, W, H)
                         _ = dados_pkg.gravar_arquivo_binario(os.path.join(out_dir, "validacao.bmp"), bmp_bytes^)
@@ -216,6 +270,353 @@ fn treinar_detector_bce(
                         _ = dados_pkg.gravar_arquivo_binario(os.path.join(out_dir, "validacao.bmp"), bmp_bytes^)
             except _:
                 pass
+
+    return loss_final
+
+
+fn treinar_detector_bbox(
+    mut bloco: cnn_pkg.BlocoCNN,
+    entradas: tensor_defs.Tensor,
+    alvos: tensor_defs.Tensor,
+    var taxa_aprendizado: Float32 = 0.01,
+    var epocas: Int = 100,
+    var imprimir_cada: Int = 10,
+    var model_dir: String = "",
+    var dataset_root: String = "",
+    var tolerancia: Float32 = 0.1,
+    var early_stop: Bool = False,
+) raises -> Float32:
+    # Expect alvos shape [N,4]
+    debug_assert(len(alvos.formato) == 2 and alvos.formato[1] == 4, "alvos deve ser [N,4]")
+    debug_assert(entradas.formato[0] == alvos.formato[0], "N de entradas e alvos deve bater")
+
+    var loss_final: Float32 = 0.0
+
+    # Build a small linear head for bbox: weights [feat_dim,4], bias [1,4]
+    var head_w: tensor_defs.Tensor = tensor_defs.Tensor(List[Int](), bloco.tipo_computacao)
+    var head_b: tensor_defs.Tensor = tensor_defs.Tensor(List[Int](), bloco.tipo_computacao)
+    var head_initialized = False
+
+    for epoca in range(epocas):
+        var feats = tensor_defs.Tensor(List[Int](), bloco.tipo_computacao)
+        try:
+            feats = cnn_pkg.extrair_features(bloco, entradas)
+        except _:
+            print("Erro ao extrair features; pulando epoca", epoca)
+            continue
+
+        if not head_initialized:
+            var feat_dim = feats.formato[1]
+            var shape_w = List[Int]()
+            shape_w.append(feat_dim); shape_w.append(4)
+            head_w = tensor_defs.Tensor(shape_w^, bloco.tipo_computacao)
+            var shape_b = List[Int]()
+            shape_b.append(1); shape_b.append(4)
+            head_b = tensor_defs.Tensor(shape_b^, bloco.tipo_computacao)
+            # small init
+            for i in range(len(head_w.dados)):
+                head_w.dados[i] = 0.001
+            for j in range(len(head_b.dados)):
+                head_b.dados[j] = 0.0
+            head_initialized = True
+
+        var preds = tensor_defs.Tensor(List[Int](), bloco.tipo_computacao)
+        try:
+            preds = dispatcher.multiplicar_matrizes(feats, head_w)
+            preds = dispatcher.adicionar_bias_coluna(preds, head_b)
+        except _:
+            print("Erro ao calcular preds; pulando epoca", epoca)
+            continue
+
+        var loss = dispatcher.erro_quadratico_medio_escalar(preds, alvos)
+        var grad_pred = dispatcher.gradiente_mse(preds, alvos)
+
+        # weight gradient
+        var ft = dispatcher.transpor(feats)
+        var grad_w = dispatcher.multiplicar_matrizes(ft, grad_pred)
+
+        # bias gradient: sum grad_pred across batch for each column
+        var cols = grad_pred.formato[1]
+        var rows = grad_pred.formato[0]
+        var grad_b_vals = List[Float32]()
+        for j in range(cols):
+            grad_b_vals.append(0.0)
+        for i in range(rows):
+            for j in range(cols):
+                grad_b_vals[j] = grad_b_vals[j] + grad_pred.dados[i * cols + j]
+
+        # apply gradients
+        for i in range(len(head_w.dados)):
+            head_w.dados[i] = head_w.dados[i] - taxa_aprendizado * grad_w.dados[i]
+        # bias dims: head_b.dados length == cols
+        for j in range(cols):
+            head_b.dados[j] = head_b.dados[j] - taxa_aprendizado * grad_b_vals[j]
+
+        loss_final = loss
+
+        if imprimir_cada > 0 and (epoca % imprimir_cada == 0 or epoca == epocas - 1):
+            print("Epoca", epoca, "| L1-like MSE loss:", loss_final)
+
+            # Visual validation: save two images for comparison
+            try:
+                if len(dataset_root) > 0:
+                    var out_dir = os.path.join("..", "validacao")
+                    if not os.path.isdir(out_dir):
+                        os.makedirs(out_dir)
+
+                    # find a candidate image with .bmp and .txt
+                    var found = False
+                    var candidate_path = ""
+                    var orig_info = bmpmod.zero_bmp()
+                    var file_box = List[Int]()
+                    try:
+                        for ident in os.listdir(dataset_root):
+                            var p_ident = os.path.join(dataset_root, ident)
+                            if not os.path.isdir(p_ident):
+                                continue
+                            for f in os.listdir(p_ident):
+                                if not f.endswith(".bmp"):
+                                    continue
+                                var candidate = os.path.join(p_ident, f)
+                                try:
+                                    var res = detect_pkg.detect_and_align_bbox(candidate)
+                                    var info = res[0].copy()
+                                    if info.width > 0 and info.height > 0:
+                                        orig_info = info^
+                                        candidate_path = candidate
+                                        found = True
+                                        break
+                                except _:
+                                    continue
+                            if found:
+                                break
+                    except _:
+                        found = False
+
+                    if found and orig_info.width > 0 and orig_info.height > 0:
+                        # parse .txt box if present (baseline)
+                        try:
+                            var txt_path = candidate_path.replace('.bmp', '.txt')
+                            if os.path.exists(txt_path):
+                                var linhas = dados_pkg.carregar_txt_linhas(txt_path)
+                                if len(linhas) > 0:
+                                    var parts = linhas[0].replace("\t", " ").replace(",", " ").split(" ")
+                                    var campos = List[String]()
+                                    for p in parts:
+                                        var ps = p.strip()
+                                        if len(ps) != 0:
+                                            campos.append(String(ps))
+                                    if len(campos) >= 4:
+                                        for i in range(4):
+                                            try:
+                                                var v = Float32(uteis.parse_float_ascii(String(campos[i])))
+                                                file_box.append(Int(v))
+                                            except _:
+                                                file_box.append(0)
+                        except _:
+                            file_box = List[Int]()
+
+                        # Build RGB flat list and also grayscale input for model prediction
+                        var W = orig_info.width
+                        var H = orig_info.height
+                        var img_rgb = List[Int](capacity=W * H * 3)
+                        var img_gray = List[List[Float32]]()
+                        if len(orig_info.pixels) > 0:
+                            for ry in range(H):
+                                var row = List[Float32]()
+                                for rx in range(W):
+                                    var px = orig_info.pixels[ry][rx]
+                                    var r_f = px[0] * 255.0
+                                    var g_f = px[1] * 255.0
+                                    var b_f = px[2] * 255.0
+                                    var r = Int(r_f)
+                                    var g = Int(g_f)
+                                    var b = Int(b_f)
+                                    if r < 0: r = 0
+                                    if g < 0: g = 0
+                                    if b < 0: b = 0
+                                    if r > 255: r = 255
+                                    if g > 255: g = 255
+                                    if b > 255: b = 255
+                                    img_rgb.append(r); img_rgb.append(g); img_rgb.append(b)
+                                    # grayscale normalized 0..1
+                                    var gray = (px[0] + px[1] + px[2]) / 3.0
+                                    row.append(gray)
+                                img_gray.append(row)
+
+                        # Create baseline image (file_box) and detected image (adapter bbox) separately
+                        # baseline image: draw file_box in green
+                        if len(img_rgb) == 0:
+                            # fallback: nothing to draw
+                            pass
+                        else:
+                            # Copy rgb list for two images
+                            var rgb_box = img_rgb.copy()
+                            var rgb_detect = img_rgb.copy()
+
+                            # draw file_box if available (green) on rgb_box
+                            if len(file_box) >= 4:
+                                var fx0 = file_box[0]
+                                var fy0 = file_box[1]
+                                var fx1 = file_box[2]
+                                var fy1 = file_box[3]
+                                if fx0 < 0: fx0 = 0
+                                if fy0 < 0: fy0 = 0
+                                if fx1 >= W: fx1 = W - 1
+                                if fy1 >= H: fy1 = H - 1
+                                var thickness = 2
+                                for t in range(thickness):
+                                    for x in range(fx0 + t, fx1 - t + 1):
+                                        var ti_topf = ((fy0 + t) * W + x) * 3
+                                        rgb_box[ti_topf + 0] = 0
+                                        rgb_box[ti_topf + 1] = 255
+                                        rgb_box[ti_topf + 2] = 0
+                                        var ti_botf = ((fy1 - t) * W + x) * 3
+                                        rgb_box[ti_botf + 0] = 0
+                                        rgb_box[ti_botf + 1] = 255
+                                        rgb_box[ti_botf + 2] = 0
+                                    for y in range(fy0 + t, fy1 - t + 1):
+                                        var ti_lf = (y * W + (fx0 + t)) * 3
+                                        rgb_box[ti_lf + 0] = 0
+                                        rgb_box[ti_lf + 1] = 255
+                                        rgb_box[ti_lf + 2] = 0
+                                        var ti_rf = (y * W + (fx1 - t)) * 3
+                                        rgb_box[ti_rf + 0] = 0
+                                        rgb_box[ti_rf + 1] = 255
+                                        rgb_box[ti_rf + 2] = 0
+
+                            # adapter detected bbox: use adapter result (red) on rgb_detect
+                            var det_bbox = List[Int]()
+                            try:
+                                var res2 = detect_pkg.detect_and_align_bbox(candidate_path)
+                                det_bbox = res2[1].copy()
+                            except _:
+                                det_bbox = List[Int]()
+
+                            if len(det_bbox) >= 4:
+                                var x0 = det_bbox[0]
+                                var y0 = det_bbox[1]
+                                var x1 = det_bbox[2]
+                                var y1 = det_bbox[3]
+                                if x0 < 0: x0 = 0
+                                if y0 < 0: y0 = 0
+                                if x1 >= W: x1 = W - 1
+                                if y1 >= H: y1 = H - 1
+                                var thickness = 2
+                                for t in range(thickness):
+                                    for x in range(x0 + t, x1 - t + 1):
+                                        var ti_top = ((y0 + t) * W + x) * 3
+                                        rgb_detect[ti_top + 0] = 255
+                                        rgb_detect[ti_top + 1] = 0
+                                        rgb_detect[ti_top + 2] = 0
+                                        var ti_bot = ((y1 - t) * W + x) * 3
+                                        rgb_detect[ti_bot + 0] = 255
+                                        rgb_detect[ti_bot + 1] = 0
+                                        rgb_detect[ti_bot + 2] = 0
+                                    for y in range(y0 + t, y1 - t + 1):
+                                        var ti_l = (y * W + (x0 + t)) * 3
+                                        rgb_detect[ti_l + 0] = 255
+                                        rgb_detect[ti_l + 1] = 0
+                                        rgb_detect[ti_l + 2] = 0
+                                        var ti_r = (y * W + (x1 - t)) * 3
+                                        rgb_detect[ti_r + 0] = 255
+                                        rgb_detect[ti_r + 1] = 0
+                                        rgb_detect[ti_r + 2] = 0
+
+                            # model prediction: run the head on the candidate image converted to input
+                            var model_pred_box = List[Int]()
+                            try:
+                                # resize grayscale orig_info to bloco.altura x bloco.largura
+                                var resized = graficos_pkg.redimensionar_matriz_grayscale_nearest(orig_info.grayscale.copy()^, bloco.altura, bloco.largura)
+                                var flat = List[Float32]()
+                                for ry in range(len(resized)):
+                                    for rx in range(len(resized[0])):
+                                        flat.append(resized[ry][rx])
+                                var in_shape = List[Int]()
+                                in_shape.append(1); in_shape.append(bloco.altura * bloco.largura)
+                                var input_tensor = tensor_defs.Tensor(in_shape^, bloco.tipo_computacao)
+                                for i in range(len(flat)):
+                                    input_tensor.dados[i] = flat[i]
+
+                                var feats_single = cnn_pkg.extrair_features(bloco, input_tensor)
+                                var preds_single = dispatcher.multiplicar_matrizes(feats_single, head_w)
+                                preds_single = dispatcher.adicionar_bias_coluna(preds_single, head_b)
+                                # read first row
+                                if len(preds_single.dados) >= 4:
+                                    var px0 = Int(preds_single.dados[0] * Float32(W))
+                                    var py0 = Int(preds_single.dados[1] * Float32(H))
+                                    var px1 = Int(preds_single.dados[2] * Float32(W))
+                                    var py1 = Int(preds_single.dados[3] * Float32(H))
+                                    if px0 < 0: px0 = 0
+                                    if py0 < 0: py0 = 0
+                                    if px1 >= W: px1 = W - 1
+                                    if py1 >= H: py1 = H - 1
+                                    model_pred_box.append(px0); model_pred_box.append(py0); model_pred_box.append(px1); model_pred_box.append(py1)
+                                    # draw model prediction on rgb_detect (blue)
+                                    var thickness = 2
+                                    for t in range(thickness):
+                                        for x in range(px0 + t, px1 - t + 1):
+                                            var ti_topm = ((py0 + t) * W + x) * 3
+                                            rgb_detect[ti_topm + 0] = 0
+                                            rgb_detect[ti_topm + 1] = 0
+                                            rgb_detect[ti_topm + 2] = 255
+                                            var ti_botm = ((py1 - t) * W + x) * 3
+                                            rgb_detect[ti_botm + 0] = 0
+                                            rgb_detect[ti_botm + 1] = 0
+                                            rgb_detect[ti_botm + 2] = 255
+                                        for y in range(py0 + t, py1 - t + 1):
+                                            var ti_lm = (y * W + (px0 + t)) * 3
+                                            rgb_detect[ti_lm + 0] = 0
+                                            rgb_detect[ti_lm + 1] = 0
+                                            rgb_detect[ti_lm + 2] = 255
+                                            var ti_rm = (y * W + (px1 - t)) * 3
+                                            rgb_detect[ti_rm + 0] = 0
+                                            rgb_detect[ti_rm + 1] = 0
+                                            rgb_detect[ti_rm + 2] = 255
+                            except _:
+                                pass
+
+                            # write the two images
+                            var bmp_box = graficos_pkg.bmp.gerar_bmp_24bits_de_rgb(rgb_box, W, H)
+                            var bmp_detect = graficos_pkg.bmp.gerar_bmp_24bits_de_rgb(rgb_detect, W, H)
+                            _ = dados_pkg.gravar_arquivo_binario(os.path.join(out_dir, "validacao_box.bmp"), bmp_box^)
+                            _ = dados_pkg.gravar_arquivo_binario(os.path.join(out_dir, "validacao_detected.bmp"), bmp_detect^)
+
+                            # tolerance check between file_box center and model_pred_box center
+                            if len(file_box) >= 4 and len(model_pred_box) >= 4:
+                                var cfx = (Float32(file_box[0]) + Float32(file_box[2])) / 2.0
+                                var cfy = (Float32(file_box[1]) + Float32(file_box[3])) / 2.0
+                                var cmx = (Float32(model_pred_box[0]) + Float32(model_pred_box[2])) / 2.0
+                                var cmy = (Float32(model_pred_box[1]) + Float32(model_pred_box[3])) / 2.0
+                                var dx = abs(cfx - cmx) / Float32(W)
+                                var dy = abs(cfy - cmy) / Float32(H)
+                                if dx <= tolerancia and dy <= tolerancia:
+                                    print("Predição dentro da tolerância (dx=", dx, "dy=", dy, ")")
+                                    if early_stop:
+                                        print("Early stop: predição aceitável; terminando treinamento.")
+                                        return loss_final
+                    # end found
+            except _:
+                pass
+
+    # save head if requested
+    try:
+        if len(model_dir) > 0:
+            var meta = "feat_shape=" + String(head_w.formato[0]) + "," + String(head_w.formato[1]) + "\n"
+            meta = meta + "weights="
+            for i in range(len(head_w.dados)):
+                if i != 0:
+                    meta = meta + ","
+                meta = meta + String(Float64(head_w.dados[i]))
+            meta = meta + "\n"
+            meta = meta + "bias="
+            for j in range(len(head_b.dados)):
+                if j != 0:
+                    meta = meta + ","
+                meta = meta + String(Float64(head_b.dados[j]))
+            _ = io_modelo.save_metadata(os.path.join(model_dir, "bbox_head.txt"), meta)
+    except _:
+        pass
 
     return loss_final
 
