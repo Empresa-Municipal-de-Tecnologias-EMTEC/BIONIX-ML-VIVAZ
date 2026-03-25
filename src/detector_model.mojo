@@ -1,3 +1,27 @@
+fn _clamp01(x: Float32) -> Float32:
+    var y = x
+    if y < 0.0:
+        y = 0.0
+    if y > 1.0:
+        y = 1.0
+    return y
+fn calcular_iou_bbox(pred: List[Int], alvo: List[Int]) -> Float32:
+    # pred e alvo: [x0, y0, x1, y1] em pixels
+    if len(pred) < 4 or len(alvo) < 4:
+        return 0.0
+    var xA = max(pred[0], alvo[0])
+    var yA = max(pred[1], alvo[1])
+    var xB = min(pred[2], alvo[2])
+    var yB = min(pred[3], alvo[3])
+    var interW = xB - xA + 1
+    var interH = yB - yA + 1
+    if interW <= 0 or interH <= 0:
+        return 0.0
+    var interArea = Float32(interW * interH)
+    var boxAArea = Float32((pred[2] - pred[0] + 1) * (pred[3] - pred[1] + 1))
+    var boxBArea = Float32((alvo[2] - alvo[0] + 1) * (alvo[3] - alvo[1] + 1))
+    return interArea / (boxAArea + boxBArea - interArea)
+
 fn treinar_detector_bbox_com_saida(
     mut bloco: cnn_pkg.BlocoCNN,
     entradas: tensor_defs.Tensor,
@@ -76,6 +100,59 @@ fn treinar_detector_bbox_com_saida(
 
         if imprimir_cada > 0 and (epoca % imprimir_cada == 0 or epoca == epocas - 1):
             print("Epoca", epoca, "| L1-like MSE loss:", loss_final)
+            # Calcular IoU e acurácia de bounding box para uma amostra de validação
+            try:
+                if len(dataset_root) > 0:
+                    var found = False
+                    var candidate_path = ""
+                    var orig_info = bmpmod.zero_bmp()
+                    var gt_box = List[Int]()
+                    try:
+                        for ident in os.listdir(dataset_root):
+                            var p_ident = os.path.join(dataset_root, ident)
+                            if not os.path.isdir(p_ident):
+                                continue
+                            for f in os.listdir(p_ident):
+                                if not f.endswith(".bmp"):
+                                    continue
+                                var candidate = os.path.join(p_ident, f)
+                                var txt_path = candidate.replace('.bmp', '.txt')
+                                var gt = List[Int]()
+                                try:
+                                    var linhas = dados_pkg.carregar_txt_linhas(txt_path)
+                                    if len(linhas) > 0:
+                                        var parts = linhas[0].replace("\t", " ").replace(",", " ").split(" ")
+                                        var campos = List[String]()
+                                        for p in parts:
+                                            var ps = p.strip()
+                                            if len(ps) != 0:
+                                                campos.append(String(ps))
+                                        if len(campos) >= 4:
+                                            for i in range(4):
+                                                try:
+                                                    gt.append(Int(Float32(campos[i])))
+                                                except _:
+                                                    gt.append(0)
+                                except _:
+                                    gt = List[Int]()
+                                if len(gt) >= 4:
+                                    gt_box = gt.copy()
+                                    orig_info = dados_pkg.carregar_bmp_rgb(candidate)^ 
+                                    candidate_path = candidate
+                                    found = True
+                                    break
+                            if found:
+                                break
+                    except _:
+                        found = False
+                    if found and orig_info.width > 0 and orig_info.height > 0 and len(gt_box) >= 4 and len(ultima_pred) >= 4:
+                        var iou = calcular_iou_bbox(ultima_pred, gt_box)
+                        print("[MÉTRICA] IoU da predição na validação:", iou)
+                        # Acurácia: considera acerto se IoU > 0.5
+                        var acuracia = 1.0 if iou > 0.5 else 0.0
+                        print("[MÉTRICA] Acurácia bbox (IoU>0.5):", acuracia)
+            except _:
+                pass
 
         # Exportar pesos em formato binário ao final de cada época
         import bionix_ml.uteis.arquivo as arquivo_io
@@ -137,10 +214,14 @@ fn treinar_detector_bbox_com_saida(
                     var preds_single = dispatcher.multiplicar_matrizes(feats_single, head_w)
                     preds_single = dispatcher.adicionar_bias_coluna(preds_single, head_b)
                     if len(preds_single.dados) >= 4:
-                        var px0 = Int(preds_single.dados[0] * Float32(W))
-                        var py0 = Int(preds_single.dados[1] * Float32(H))
-                        var px1 = Int(preds_single.dados[2] * Float32(W))
-                        var py1 = Int(preds_single.dados[3] * Float32(H))
+                        var cx0 = _clamp01(preds_single.dados[0])
+                        var cy0 = _clamp01(preds_single.dados[1])
+                        var cx1 = _clamp01(preds_single.dados[2])
+                        var cy1 = _clamp01(preds_single.dados[3])
+                        var px0 = Int(cx0 * Float32(W))
+                        var py0 = Int(cy0 * Float32(H))
+                        var px1 = Int(cx1 * Float32(W))
+                        var py1 = Int(cy1 * Float32(H))
                         if px0 < 0: px0 = 0
                         if py0 < 0: py0 = 0
                         if px1 >= W: px1 = W - 1
