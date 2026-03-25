@@ -39,9 +39,7 @@ fn load_metadata(var path: String) -> String:
         if not os.path.exists(path):
             return ""
         var f = open(path, "r")
-        var content = ""
-        for line in f:
-            content = content + line
+        var content = f.read()
         f.close()
         return content
     except _:
