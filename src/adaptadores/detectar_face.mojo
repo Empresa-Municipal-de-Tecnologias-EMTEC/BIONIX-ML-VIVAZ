@@ -55,8 +55,8 @@ def _center_crop_bmpinfo(var info: bmpmod.BMPInfo, frac: Float32 = 0.7) -> bmpmo
             for ry in range(y0, y1):
                 var row = List[List[Float32]]()
                 for rx in range(x0, x1):
-                    row.append(info.pixels[ry][rx])
-                new_pixels.append(row)
+                    row.append(info.pixels[ry][rx].copy())
+                new_pixels.append(row^)
 
         # Extrai grayscale se presente
         var new_gray = List[List[Float32]]()
@@ -65,7 +65,7 @@ def _center_crop_bmpinfo(var info: bmpmod.BMPInfo, frac: Float32 = 0.7) -> bmpmo
                 var rowg = List[Float32]()
                 for rx in range(x0, x1):
                     rowg.append(info.grayscale[ry][rx])
-                new_gray.append(rowg)
+                new_gray.append(rowg^)
 
         # Extrai preto_branco se presente
         var new_pb = List[List[Float32]]()
@@ -74,7 +74,7 @@ def _center_crop_bmpinfo(var info: bmpmod.BMPInfo, frac: Float32 = 0.7) -> bmpmo
                 var rowpb = List[Float32]()
                 for rx in range(x0, x1):
                     rowpb.append(info.preto_branco[ry][rx])
-                new_pb.append(rowpb)
+                new_pb.append(rowpb^)
 
         # Cropping logic disabled in this adapter to avoid referencing
         # `BMPInfo` constructor directly; return the original info as fallback.

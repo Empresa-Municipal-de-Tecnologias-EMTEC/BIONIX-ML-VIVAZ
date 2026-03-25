@@ -6,23 +6,30 @@ import bionix_ml.nucleo.Tensor as tensor_defs
 import os
 
 # Dataset loader: reads dataset tree with .bmp + .txt (.box) files and yields crops as tensors
-fn carregar_dataset_detector_pouro(var dir_dataset: String, var altura: Int, var largura: Int, var tipo: String) -> (tensor_defs.Tensor, tensor_defs.Tensor):
-    # Simple loader adapted from examples: returns (X, Y) tensors or empty tensors on failure
+fn carregar_dataset_detector_pouro(var dir_dataset: String, var altura: Int, var largura: Int, var tipo: String, var max_classes: Int = 100000) -> List[tensor_defs.Tensor]:
+    # Simple loader adapted from examples: returns [X, Y] tensors or empty tensors on failure
     var det = List[tensor_defs.Tensor]()
+    var classes = List[String]()
     try:
         det = List[tensor_defs.Tensor]()
         # reuse example loader in a minimal form
-        var classes = List[String]()
         classes = os.listdir(dir_dataset)
     except _:
-        return tensor_defs.Tensor(List[Int]() , tipo), tensor_defs.Tensor(List[Int](), tipo)
+        var out_fail = List[tensor_defs.Tensor]()
+        out_fail.append(tensor_defs.Tensor(List[Int]() , tipo))
+        out_fail.append(tensor_defs.Tensor(List[Int](), tipo))
+        return out_fail^
 
     # Delegate to example-like construction but keep small and safe
     var positivos = List[List[List[Float32]]]()
     var negativos = List[List[List[Float32]]]()
 
+    var seen = 0
     for nome in classes:
+        if seen >= max_classes:
+            break
         var caminho = os.path.join(dir_dataset, nome)
+        seen = seen + 1
         if not os.path.isdir(caminho):
             continue
         var arquivos = List[String]()
@@ -47,8 +54,9 @@ fn carregar_dataset_detector_pouro(var dir_dataset: String, var altura: Int, var
                     var parts = l.replace("\t", " ").replace(",", " ").split(" ")
                     var campos = List[String]()
                     for p in parts:
-                        if p.strip() != "":
-                            campos.append(p.strip())
+                        var ps = p.strip()
+                        if len(ps) != 0:
+                            campos.append(String(ps))
                     if len(campos) >= 4:
                         var b = List[Int]()
                         for i in range(4):
@@ -64,7 +72,7 @@ fn carregar_dataset_detector_pouro(var dir_dataset: String, var altura: Int, var
                 var crop = _crop_matrix(img, b[0], b[1], b[2], b[3])
                 if len(crop) == 0:
                     continue
-                var resized = graficos_pkg.redimensionar_matriz_grayscale_nearest(crop, altura, largura)
+                var resized = graficos_pkg.redimensionar_matriz_grayscale_nearest(crop^, altura, largura)
                 positivos.append(resized^)
             # negatives: simple random windows
             var h = len(img)
@@ -89,13 +97,16 @@ fn carregar_dataset_detector_pouro(var dir_dataset: String, var altura: Int, var
                 var cropn = _crop_matrix(img, box[0], box[1], box[2], box[3])
                 if len(cropn) == 0:
                     continue
-                var resizedn = graficos_pkg.redimensionar_matriz_grayscale_nearest(cropn, altura, largura)
+                var resizedn = graficos_pkg.redimensionar_matriz_grayscale_nearest(cropn^, altura, largura)
                 negativos.append(resizedn^)
                 created = created + 1
 
     var total = len(positivos) + len(negativos)
     if total == 0:
-        return tensor_defs.Tensor(List[Int](), tipo), tensor_defs.Tensor(List[Int](), tipo)
+        var out_fail2 = List[tensor_defs.Tensor]()
+        out_fail2.append(tensor_defs.Tensor(List[Int](), tipo))
+        out_fail2.append(tensor_defs.Tensor(List[Int](), tipo))
+        return out_fail2^
 
     var features = altura * largura
     var formato_x = List[Int]()
@@ -121,7 +132,10 @@ fn carregar_dataset_detector_pouro(var dir_dataset: String, var altura: Int, var
         y_t.dados[idx] = 0.0
         idx = idx + 1
 
-    return x_t.copy(), y_t.copy()
+    var out_list = List[tensor_defs.Tensor]()
+    out_list.append(x_t.copy())
+    out_list.append(y_t.copy())
+    return out_list^
 
 
 # Reuse IO helpers from example: IoU and bbox parsing small helpers

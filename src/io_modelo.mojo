@@ -1,54 +1,60 @@
-# Helpers para salvar/ler metadados e pesos (txt + binário)
 import os
 
 
-def _ensure_parent_dir(path: String):
+fn _ensure_parent_dir(var path: String) -> None:
     try:
         var d = os.path.dirname(path)
         if d and not os.path.exists(d):
             os.makedirs(d)
-    except Exception:
+    except _:
         pass
 
 
-def save_metadata(path: String, meta: Any):
+# Recebe metadados pré-formatados em texto e grava no arquivo.
+fn save_metadata(var path: String, var meta_text: String) -> Bool:
     _ensure_parent_dir(path)
-    var f = open(path, 'w')
-    for k in meta:
-        try:
-            var v = meta[k]
-        except Exception:
-            var v = ""
-        f.write(String(k) + ": " + String(v) + "\n")
-    f.close()
+    try:
+        var f = open(path, "w")
+        f.write(meta_text)
+        f.close()
+        return True
+    except _:
+        return False
 
 
-def save_weights(path: String, data: Any):
+# Grava um blob binário (passar uma String/bytes ou List[Int] convertido para String)
+fn save_weights(var path: String, var data: String) -> Bool:
     _ensure_parent_dir(path)
-    var f = open(path, 'wb')
-    f.write(data)
-    f.close()
+    try:
+        var f = open(path, "wb")
+        f.write(data)
+        f.close()
+        return True
+    except _:
+        return False
 
 
-def load_metadata(path: String):
-    if not os.path.exists(path):
-        return {}
-    var meta = {}
-    var f = open(path, 'r')
-    for line in f:
-        if ':' in line:
-            var parts = line.split(':', 1)
-            var k = parts[0].strip()
-            var v = parts[1].strip()
-            meta[k] = v
-    f.close()
-    return meta
+fn load_metadata(var path: String) -> String:
+    try:
+        if not os.path.exists(path):
+            return ""
+        var f = open(path, "r")
+        var content = ""
+        for line in f:
+            content = content + line
+        f.close()
+        return content
+    except _:
+        return ""
 
 
-def load_weights(path: String):
-    if not os.path.exists(path):
-        return None
-    var f = open(path, 'rb')
-    var data = f.read()
-    f.close()
-    return data
+fn load_weights(var path: String) -> String:
+    try:
+        if not os.path.exists(path):
+            return ""
+        var f = open(path, "rb")
+        var data = f.read()
+        f.close()
+        return data
+    except _:
+        return ""
