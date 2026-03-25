@@ -1,3 +1,24 @@
+import bionix_ml.camadas.cnn as cnn_pkg
+import bionix_ml.computacao.dispatcher_tensor as dispatcher
+import bionix_ml.nucleo.Tensor as tensor_defs
+import bionix_ml.dados as dados_pkg
+import bionix_ml.graficos as graficos_pkg
+import math
+import bionix_ml.computacao.adaptadores.contexto as contexto_defs
+import bionix_ml.camadas.cnn.cnn as cnn_impl
+import bionix_ml.autograd.tipos_mlp as tipos_mlp
+import bionix_ml.perdas.bce as bce_perdas
+import bionix_ml.computacao.sessao as sessao_driver
+import bionix_ml.computacao.storage_sessao as storage_sessao
+import os
+import adaptadores.detectar_face as detect_pkg
+import bionix_ml.dados.bmp as bmpmod
+import bionix_ml.uteis as uteis
+import io_modelo
+
+import bionix_ml.uteis.arquivo as arquivo_io
+import os
+
 fn _clamp01(x: Float32) -> Float32:
     var y = x
     if y < 0.0:
@@ -155,8 +176,7 @@ fn treinar_detector_bbox_com_saida(
                 pass
 
         # Exportar pesos em formato binário ao final de cada época
-        import bionix_ml.uteis.arquivo as arquivo_io
-        import os
+
         var export_dir = "detector_modelo"
         if not os.path.exists(export_dir):
             os.mkdir(export_dir)
@@ -252,25 +272,7 @@ fn treinar_detector_bbox_com_saida(
         pass
 
     return (loss_final, ultima_pred, ultima_img)
-import bionix_ml.camadas.cnn as cnn_pkg
-import bionix_ml.computacao.dispatcher_tensor as dispatcher
-import bionix_ml.nucleo.Tensor as tensor_defs
-import bionix_ml.dados as dados_pkg
-import bionix_ml.graficos as graficos_pkg
-import math
-import bionix_ml.computacao.adaptadores.contexto as contexto_defs
-import bionix_ml.camadas.cnn.cnn as cnn_impl
-import bionix_ml.autograd.tipos_mlp as tipos_mlp
-import bionix_ml.perdas.bce as bce_perdas
-import bionix_ml.computacao.sessao as sessao_driver
-import bionix_ml.computacao.storage_sessao as storage_sessao
-import os
-import adaptadores.detectar_face as detect_pkg
-import bionix_ml.dados.bmp as bmpmod
-import bionix_ml.uteis as uteis
-import io_modelo
 
-import bionix_ml.uteis.arquivo as arquivo_io
 
 # Wrapper utilities for detector model training using BCEWithLogits
 
@@ -339,7 +341,6 @@ fn treinar_detector_bce(
             print("Epoca", epoca, "| BCE loss:", loss_final)
 
         # Exportar pesos em formato binário ao final de cada época
-        import os
         var export_dir = "detector_modelo"
         if not os.path.exists(export_dir):
             os.mkdir(export_dir)
@@ -630,8 +631,7 @@ fn treinar_detector_bbox(
             print("Epoca", epoca, "| L1-like MSE loss:", loss_final)
 
         # Exportar pesos em formato binário ao final de cada época
-        import bionix_ml.uteis.arquivo as arquivo_io
-        import os
+
         var export_dir = "detector_modelo"
         if not os.path.exists(export_dir):
             os.mkdir(export_dir)
