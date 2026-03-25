@@ -192,6 +192,7 @@ fn main() raises -> None:
                             if py0 < 0: py0 = 0
                             if px1 >= info.width: px1 = info.width - 1
                             if py1 >= info.height: py1 = info.height - 1
+                            print("[TREINO] Caixa prevista: (", px0, py0, px1, py1, ") para imagem:", cand)
                             # build RGB and draw predicted box in blue
                             var W = info.width
                             var H = info.height

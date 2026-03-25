@@ -1,0 +1,244 @@
+import config as cfg
+import os
+import io_modelo
+import detector_model as model_pkg
+import bionix_ml.dados as dados_pkg
+import bionix_ml.graficos as graficos_pkg
+import bionix_ml.dados.bmp as bmpmod
+import adaptadores.detectar_face as detect_pkg
+import bionix_ml.camadas.cnn as cnn_pkg
+import bionix_ml.nucleo.Tensor as tensor_defs_local
+import bionix_ml.computacao.dispatcher_tensor as dispatcher
+
+
+fn main() -> None:
+    print("Inferência do detector — valida 10 imagens e salva em validacao_inferencia")
+
+    # determine dataset path
+    var dataset_path = cfg.DATASET_ROOT + "/treino"
+    if not os.path.isdir(dataset_path):
+        dataset_path = cfg.DATASET_ROOT + "/train"
+
+    # try to read model metadata to get input size
+    var altura: Int = 100
+    var largura: Int = 64
+    try:
+        var meta = io_modelo.load_metadata(os.path.join(cfg.MODEL_DIR, "metadata_detector.txt"))
+        if len(meta) > 0:
+            for L in meta.split("\n"):
+                if L.startswith("input_h:"):
+                    try:
+                        altura = Int(L.replace("input_h:", "").strip())
+                    except _:
+                        pass
+                elif L.startswith("input_w:"):
+                    try:
+                        largura = Int(L.replace("input_w:", "").strip())
+                    except _:
+                        pass
+    except _:
+        pass
+
+    # create block and load checkpoint if available
+    import bionix_ml.computacao.adaptadores.contexto as contexto_defs
+    var ctx = contexto_defs.criar_contexto_padrao("cpu")
+    var bloco = model_pkg.criar_bloco_detector(altura, largura, 6, 3, 3, ctx)
+    var carregado = model_pkg.carregar_checkpoint(bloco, cfg.MODEL_DIR)
+    if carregado:
+        print("Checkpoint carregado de", cfg.MODEL_DIR)
+    else:
+        print("Nenhum checkpoint encontrado — a inferência continuará mas pode falhar")
+
+    # load bbox head metadata
+    var w_vals = List[Float32]()
+    var b_vals = List[Float32]()
+    try:
+        var bbox_meta = io_modelo.load_metadata(os.path.join(cfg.MODEL_DIR, "bbox_head.txt"))
+        if len(bbox_meta) > 0:
+            var weights_line = ""
+            var bias_line = ""
+            for L in bbox_meta.split("\n"):
+                if L.startswith("weights="):
+                    weights_line = L.replace("weights=", "")
+                elif L.startswith("bias="):
+                    bias_line = L.replace("bias=", "")
+            if len(weights_line) > 0:
+                for p in weights_line.split(","):
+                    try:
+                        w_vals.append(Float32(Float64(p)))
+                    except _:
+                        pass
+            if len(bias_line) > 0:
+                for p in bias_line.split(","):
+                    try:
+                        b_vals.append(Float32(Float64(p)))
+                    except _:
+                        pass
+    except _:
+        pass
+
+    # collect first 10 bmp files from dataset
+    var candidates = List[String]()
+    try:
+        for ident in os.listdir(dataset_path):
+            var p_ident = os.path.join(dataset_path, ident)
+            if not os.path.isdir(p_ident):
+                continue
+            for f in os.listdir(p_ident):
+                if f.lower().endswith('.bmp'):
+                    candidates.append(os.path.join(p_ident, f))
+                if len(candidates) >= 10:
+                    break
+            if len(candidates) >= 10:
+                break
+    except _:
+        pass
+
+    if len(candidates) == 0:
+        print("Nenhuma imagem .bmp encontrada em", dataset_path)
+        return
+
+    # prepare output dir
+    var out_dir = "validacao_inferencia"
+    try:
+        if not os.path.isdir(out_dir):
+            os.makedirs(out_dir)
+    except _:
+        pass
+
+    var idx = 0
+    for path in candidates:
+        if idx >= 10:
+            break
+        idx = idx + 1
+        var info = bmpmod.zero_bmp()
+        try:
+            info = dados_pkg.carregar_bmp_rgb(path)^
+        except _:
+            print("Falha ao carregar imagem", path)
+            continue
+
+        # build grayscale resized input same as training
+        var img_gray = List[List[Float32]]()
+        try:
+            img_gray = dados_pkg.carregar_bmp_grayscale_matriz(path)
+        except _:
+            img_gray = List[List[Float32]]()
+
+        if len(img_gray) == 0:
+            print("Falha ao gerar matriz grayscale para", path)
+            continue
+
+        var resized = graficos_pkg.redimensionar_matriz_grayscale_nearest(img_gray.copy()^, altura, largura)
+        var features = altura * largura
+        var shape_x = List[Int]()
+        shape_x.append(1); shape_x.append(features)
+        var x_s = tensor_defs_local.Tensor(shape_x^, bloco.tipo_computacao)
+        for i in range(features):
+            x_s.dados[i] = resized[i // largura][i % largura]
+
+        # extract features and apply head if present
+        var pred_box = List[Float32]()
+        try:
+            var feats = cnn_pkg.extrair_features(bloco, x_s)
+            if len(w_vals) > 0 and len(b_vals) > 0:
+                var feat_dim = feats.formato[1]
+                var shape_hw = List[Int]()
+                shape_hw.append(feat_dim); shape_hw.append(4)
+                var head_w = tensor_defs_local.Tensor(shape_hw^, bloco.tipo_computacao)
+                var shape_hb = List[Int]()
+                shape_hb.append(1); shape_hb.append(4)
+                var head_b = tensor_defs_local.Tensor(shape_hb^, bloco.tipo_computacao)
+                for i in range(min(len(head_w.dados), len(w_vals))):
+                    head_w.dados[i] = w_vals[i]
+                for j in range(min(len(head_b.dados), len(b_vals))):
+                    head_b.dados[j] = b_vals[j]
+                var pred = dispatcher.multiplicar_matrizes(feats, head_w)
+                pred = dispatcher.adicionar_bias_coluna(pred, head_b)
+                # collect normalized prediction
+                for v in pred.dados:
+                    pred_box.append(v)
+        except _:
+            pass
+
+        # if no pred, try adapter detection as fallback
+        var box_pixels = List[Int]()
+        try:
+            if len(pred_box) >= 4:
+                var px0 = Int(pred_box[0] * Float32(info.width - 1))
+                var py0 = Int(pred_box[1] * Float32(info.height - 1))
+                var px1 = Int(pred_box[2] * Float32(info.width - 1))
+                var py1 = Int(pred_box[3] * Float32(info.height - 1))
+                if px0 < 0: px0 = 0
+                if py0 < 0: py0 = 0
+                if px1 >= info.width: px1 = info.width - 1
+                if py1 >= info.height: py1 = info.height - 1
+                box_pixels.append(px0); box_pixels.append(py0); box_pixels.append(px1); box_pixels.append(py1)
+            else:
+                var res = detect_pkg.detect_and_align_bbox(path)
+                var info2 = res[0].copy()
+                var bb = res[1].copy()
+                if len(bb) >= 4:
+                    box_pixels.append(bb[0]); box_pixels.append(bb[1]); box_pixels.append(bb[2]); box_pixels.append(bb[3])
+        except _:
+            pass
+
+        # build RGB flat list and draw predicted box (blue) if we have coordinates
+        if len(box_pixels) == 4:
+            print("[INFERÊNCIA] Caixa prevista: (", box_pixels[0], box_pixels[1], box_pixels[2], box_pixels[3], ") para imagem:", path)
+        var W = info.width
+        var H = info.height
+        var img_rgb = List[Int](capacity=W * H * 3)
+        if len(info.pixels) > 0:
+            for ry in range(H):
+                for rx in range(W):
+                    var px = info.pixels[ry][rx]
+                    var r = Int(px[0] * 255.0)
+                    var g = Int(px[1] * 255.0)
+                    var b = Int(px[2] * 255.0)
+                    if r < 0: r = 0
+                    if g < 0: g = 0
+                    if b < 0: b = 0
+                    if r > 255: r = 255
+                    if g > 255: g = 255
+                    if b > 255: b = 255
+                    img_rgb.append(r); img_rgb.append(g); img_rgb.append(b)
+        else:
+            for i in range(W * H):
+                img_rgb.append(0); img_rgb.append(0); img_rgb.append(0)
+
+        if len(box_pixels) >= 4:
+            var px0 = box_pixels[0]
+            var py0 = box_pixels[1]
+            var px1 = box_pixels[2]
+            var py1 = box_pixels[3]
+            var thickness = 2
+            for t in range(thickness):
+                for x in range(px0 + t, px1 - t + 1):
+                    var ti_top = ((py0 + t) * W + x) * 3
+                    img_rgb[ti_top + 0] = 0
+                    img_rgb[ti_top + 1] = 0
+                    img_rgb[ti_top + 2] = 255
+                for x in range(px0 + t, px1 - t + 1):
+                    var ti_bot = ((py1 - t) * W + x) * 3
+                    img_rgb[ti_bot + 0] = 0
+                    img_rgb[ti_bot + 1] = 0
+                    img_rgb[ti_bot + 2] = 255
+                for y in range(py0 + t, py1 - t + 1):
+                    var ti_l = (y * W + (px0 + t)) * 3
+                    img_rgb[ti_l + 0] = 0
+                    img_rgb[ti_l + 1] = 0
+                    img_rgb[ti_l + 2] = 255
+                for y in range(py0 + t, py1 - t + 1):
+                    var ti_r = (y * W + (px1 - t)) * 3
+                    img_rgb[ti_r + 0] = 0
+                    img_rgb[ti_r + 1] = 0
+                    img_rgb[ti_r + 2] = 255
+
+        var bmp_bytes = graficos_pkg.bmp.gerar_bmp_24bits_de_rgb(img_rgb, W, H)
+        var base = os.path.basename(path)
+        var out_name = "inf_" + String(idx) + "_" + base
+        _ = dados_pkg.gravar_arquivo_binario(os.path.join(out_dir, out_name), bmp_bytes^)
+        print("Salvo:", os.path.join(out_dir, out_name))
+
+    print("Inferência concluída. Imagens salvas em", out_dir)
