@@ -222,7 +222,7 @@ Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_
     try:
     ^
 Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/inferir_detector.mojo:4:
-/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/detector_model.mojo:653:16: warning: 'except' logic is unreachable, try doesn't raise an exception
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/detector_model.mojo:678:16: warning: 'except' logic is unreachable, try doesn't raise an exception
         return False
                ^
 Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/inferir_detector.mojo:11:

@@ -16,6 +16,8 @@ import bionix_ml.dados.bmp as bmpmod
 import bionix_ml.uteis as uteis
 import io_modelo
 
+import bionix_ml.uteis.arquivo as arquivo_io
+
 # Wrapper utilities for detector model training using BCEWithLogits
 
 fn criar_bloco_detector(
@@ -81,6 +83,17 @@ fn treinar_detector_bce(
 
         if imprimir_cada > 0 and (epoca % imprimir_cada == 0 or epoca == epocas - 1):
             print("Epoca", epoca, "| BCE loss:", loss_final)
+
+        # Exportar pesos em formato binário ao final de cada época
+        import os
+        var export_dir = "detector_modelo"
+        if not os.path.exists(export_dir):
+            os.mkdir(export_dir)
+        var export_path = os.path.join(export_dir, "detector_pesos.bin")
+        # Exportar pesos em formato binário usando dados_bytes(), padrão do framework
+        var ok = arquivo_io.gravar_arquivo_binario(export_path, bloco.peso_saida.dados_bytes())
+        if not ok:
+            print("[ERRO] Falha ao exportar pesos binários na época", epoca, "em", export_path)
             # Visual validation: save a color BMP with bbox overlay for the first sample
             try:
                 var out_dir = os.path.join("..", "validacao")
@@ -361,6 +374,18 @@ fn treinar_detector_bbox(
 
         if imprimir_cada > 0 and (epoca % imprimir_cada == 0 or epoca == epocas - 1):
             print("Epoca", epoca, "| L1-like MSE loss:", loss_final)
+
+        # Exportar pesos em formato binário ao final de cada época
+        import bionix_ml.uteis.arquivo as arquivo_io
+        import os
+        var export_dir = "detector_modelo"
+        if not os.path.exists(export_dir):
+            os.mkdir(export_dir)
+        var export_path = os.path.join(export_dir, "detector_pesos.bin")
+        # Exportar pesos em formato binário usando dados_bytes(), padrão do framework
+        var ok = arquivo_io.gravar_arquivo_binario(export_path, head_w.dados_bytes())
+        if not ok:
+            print("[ERRO] Falha ao exportar pesos binários na época", epoca, "em", export_path)
 
             # Visual validation: save two images for comparison
             try:
