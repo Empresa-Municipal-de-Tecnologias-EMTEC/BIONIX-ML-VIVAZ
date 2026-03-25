@@ -167,7 +167,12 @@ fn treinar_detector_bce(
                         # adapter bbox will be drawn in red
                         var file_box = List[Int]()
                         try:
+                            # accept either .txt or legacy .box files
                             var txt_path = candidate_path.replace('.bmp', '.txt')
+                            if not os.path.exists(txt_path):
+                                var txt_path_box = candidate_path.replace('.bmp', '.box')
+                                if os.path.exists(txt_path_box):
+                                    txt_path = txt_path_box
                             if os.path.exists(txt_path):
                                 var linhas = dados_pkg.carregar_txt_linhas(txt_path)
                                 if len(linhas) > 0:
@@ -396,7 +401,12 @@ fn treinar_detector_bbox(
                     if found and orig_info.width > 0 and orig_info.height > 0:
                         # parse .txt box if present (baseline)
                         try:
+                            # accept either .txt or legacy .box files
                             var txt_path = candidate_path.replace('.bmp', '.txt')
+                            if not os.path.exists(txt_path):
+                                var txt_path_box = candidate_path.replace('.bmp', '.box')
+                                if os.path.exists(txt_path_box):
+                                    txt_path = txt_path_box
                             if os.path.exists(txt_path):
                                 var linhas = dados_pkg.carregar_txt_linhas(txt_path)
                                 if len(linhas) > 0:
