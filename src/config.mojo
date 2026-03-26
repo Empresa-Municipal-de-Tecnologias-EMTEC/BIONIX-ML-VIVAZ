@@ -25,4 +25,4 @@ alias GERAR_RETANGULOS_FACE = False
 # If True, when model prediction is missing, call the simple adapter heuristic
 # `adaptadores.detectar_face.detect_and_align_bbox` as a fallback. Set to False
 # to never use the heuristic and rely only on model predictions / ground-truth.
-alias USE_DETECTOR_HEURISTIC = True
+alias USE_DETECTOR_HEURISTIC = False
