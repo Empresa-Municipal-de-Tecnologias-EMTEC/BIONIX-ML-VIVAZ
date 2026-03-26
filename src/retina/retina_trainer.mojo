@@ -1,4 +1,5 @@
 import bionix_ml.camadas.cnn as cnn_pkg
+import model_detector as model_pkg
 import bionix_ml.dados as dados_pkg
 import detector_dataset as dataset_pkg
 import bionix_ml.graficos as graficos_pkg
@@ -56,6 +57,9 @@ fn treinar_retina_minimal(mut bloco: cnn_pkg.BlocoCNN, var dataset_dir: String, 
 
     # Gera anchors uma vez no tamanho de entrada
     var anchors = anchor_gen.gerar_anchors(altura)
+
+    # manter a taxa de aprendizado atual separada (para possível ajuste fino)
+    var lr_atual: Float32 = taxa_aprendizado
 
     # Inicializa cabeça se necessário: peso_reg [feat_dim,4], bias_reg [1,4]
     var head_initialized = False
@@ -348,12 +352,12 @@ fn treinar_retina_minimal(mut bloco: cnn_pkg.BlocoCNN, var dataset_dir: String, 
                         if err > 100.0: err = 100.0
                         if err < -100.0: err = -100.0
                         for d in range(D):
-                            var grad_w = feats.dados[d] * err
+                                var grad_w = feats.dados[d] * err
                             # clip gradient magnitude
                             if grad_w > 100.0: grad_w = 100.0
                             if grad_w < -100.0: grad_w = -100.0
-                            bloco.peso_saida.dados[d * 4 + j] = bloco.peso_saida.dados[d * 4 + j] - taxa_aprendizado * grad_w
-                        bloco.bias_saida.dados[j] = bloco.bias_saida.dados[j] - taxa_aprendizado * err
+                                bloco.peso_saida.dados[d * 4 + j] = bloco.peso_saida.dados[d * 4 + j] - lr_atual * grad_w
+                            bloco.bias_saida.dados[j] = bloco.bias_saida.dados[j] - lr_atual * err
         var avg_loss: Float32 = 0.0
         if count_pos > 0:
             # guard against NaN soma_loss
@@ -391,6 +395,7 @@ fn treinar_retina_minimal(mut bloco: cnn_pkg.BlocoCNN, var dataset_dir: String, 
             meta_lines.append("epoch:" + String(ep))
             meta_lines.append("avg_loss:" + String(avg_loss))
             meta_lines.append("positives:" + String(count_pos))
+            meta_lines.append("lr:" + String(lr_atual))
             var meta_text = String("\n").join(meta_lines^)
             uteis.gravar_texto_seguro(meta_path, meta_text)
         except _:
@@ -408,6 +413,21 @@ fn treinar_retina_minimal(mut bloco: cnn_pkg.BlocoCNN, var dataset_dir: String, 
         var ok = dados_pkg.gravar_arquivo_binario(path_w, bloco.peso_saida.dados_bytes_bin())
     except _:
         ok = False
+    # salvar metadados finais com a última taxa de aprendizado
+    try:
+        var final_meta = os.path.join(export_dir, "metadata.txt")
+        var lines = List[String]()
+        lines.append("epoch:final")
+        lines.append("lr:" + String(lr_atual))
+        uteis.gravar_texto_seguro(final_meta, String("\n").join(lines^))
+    except _:
+        pass
+
+    # salvar checkpoint completo do bloco para inferência (backbone + cabeças)
+    try:
+        _ = model_pkg.salvar_checkpoint(bloco, export_dir)
+    except _:
+        pass
     return "Treino finalizado"
 
 

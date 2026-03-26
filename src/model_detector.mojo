@@ -219,7 +219,7 @@ fn treinar_detector_color_com_saida(
                             for rx in range(orig_info.width):
                                 var p = orig_info.pixels[ry][rx]
                                 flat_rgb.append(Int(p[0]*255.0)); flat_rgb.append(Int(p[1]*255.0)); flat_rgb.append(Int(p[2]*255.0))
-                        graficos_pkg.draw_bbox_on_flat_rgb(mut flat_rgb, orig_info.width, orig_info.height, ultima_pred, 0, 0, 255)
+                        graficos_pkg.draw_bbox_on_flat_rgb(flat_rgb, orig_info.width, orig_info.height, ultima_pred, 0, 0, 255)
                         var bmp_bytes = graficos_pkg.bmp.gerar_bmp_24bits_de_rgb(flat_rgb, orig_info.width, orig_info.height)
                         _ = dados_pkg.gravar_arquivo_binario(os.path.join("detector_modelo", "validacao_color.bmp"), bmp_bytes^)
         except _:
