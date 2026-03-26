@@ -1,6 +1,4 @@
 epoch:0
-avg_loss:8.267358
-positives:340
+avg_loss:0.5466616
+positives:336
 lr:0.0001
-best_loss:1e+30
-scheduler_wait:0

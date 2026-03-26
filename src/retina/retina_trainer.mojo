@@ -269,6 +269,7 @@ fn treinar_retina_minimal(mut bloco: cnn_pkg.BlocoCNN, var dataset_dir: String, 
 
         # save epoch state
         try:
+            print("DBG: about to salvar_estado_modelo for epoch", ep)
             var meta_lines = List[String]()
             meta_lines.append("epoch:" + String(ep))
             meta_lines.append("avg_loss:" + String(avg_loss))
@@ -277,6 +278,107 @@ fn treinar_retina_minimal(mut bloco: cnn_pkg.BlocoCNN, var dataset_dir: String, 
             meta_lines.append("best_loss:" + String(best_loss))
             meta_lines.append("scheduler_wait:" + String(scheduler_wait))
             model_utils.salvar_estado_modelo(bloco, head_peso_cls, head_bias_cls, export_dir, meta_lines)
+            print("DBG: returned from salvar_estado_modelo for epoch", ep)
+        except _:
+            pass
+
+        # End-of-epoch: save one sample inference (pred vs GT) for up to first 10 classes
+        try:
+            try:
+                var samples_dir = os.path.join(export_dir, "epoch_samples")
+                if not os.path.exists(samples_dir):
+                    os.mkdir(samples_dir)
+            except _:
+                pass
+
+            var max_sample_classes = 10
+            var limit = max_sample_classes if max_sample_classes < len(class_names) else len(class_names)
+            for c in range(limit):
+                try:
+                    print("DBG: epoch_samples: processing class", c, "name", class_names[c])
+                    var imgs = class_images[c]
+                    if len(imgs) == 0:
+                        continue
+                    # pick first available image for the class
+                    var img_path = imgs[0]
+                    var bmp = dados_pkg.carregar_bmp_rgb(img_path, largura, altura)
+                    if bmp.width == 0:
+                        continue
+
+                    # load GT box for this sample
+                    var s_tx0: Float32 = 0.0; var s_ty0: Float32 = 0.0; var s_tx1: Float32 = 0.0; var s_ty1: Float32 = 0.0
+                    var s_parsed: Bool = False
+                    try:
+                        var box_path = img_path.replace('.bmp', '.box')
+                        var lines = dados_pkg.carregar_txt_linhas(box_path)
+                        if len(lines) > 0:
+                            var parts = _split_fields(lines[0])
+                            if len(parts) >= 4:
+                                s_tx0 = Float32(uteis.parse_float_ascii(String(parts[0])))
+                                s_ty0 = Float32(uteis.parse_float_ascii(String(parts[1])))
+                                s_tx1 = Float32(uteis.parse_float_ascii(String(parts[2])))
+                                s_ty1 = Float32(uteis.parse_float_ascii(String(parts[3])))
+                                s_parsed = True
+                    except _:
+                        pass
+
+                    var s_gt_x0: Int; var s_gt_y0: Int; var s_gt_x1: Int; var s_gt_y1: Int
+                    if s_parsed:
+                        if s_tx0 > 1.5 or s_ty0 > 1.5 or s_tx1 > 1.5 or s_ty1 > 1.5:
+                            s_gt_x0 = Int(s_tx0); s_gt_y0 = Int(s_ty0); s_gt_x1 = Int(s_tx1); s_gt_y1 = Int(s_ty1)
+                        else:
+                            s_gt_x0 = Int(s_tx0 * Float32(max(1, largura - 1)))
+                            s_gt_y0 = Int(s_ty0 * Float32(max(1, altura - 1)))
+                            s_gt_x1 = Int(s_tx1 * Float32(max(1, largura - 1)))
+                            s_gt_y1 = Int(s_ty1 * Float32(max(1, altura - 1)))
+                    else:
+                        s_gt_x0 = 0; s_gt_y0 = 0; s_gt_x1 = 0; s_gt_y1 = 0
+
+                    # prepare head bytes
+                    var raw_w_bytes = List[Int]()
+                    var raw_b_bytes = List[Int]()
+                    try:
+                        if head_initialized:
+                            raw_w_bytes = head_peso_cls.dados_bytes_bin()
+                            raw_b_bytes = head_bias_cls.dados_bytes_bin()
+                        else:
+                            var hb = model_utils.carregar_head_bytes(export_dir)
+                            if len(hb) >= 2:
+                                raw_w_bytes = hb[0]
+                                raw_b_bytes = hb[1]
+                    except _:
+                        pass
+
+                    var boxes = List[List[Int]]()
+                    try:
+                        print("DBG: calling inferir_com_bloco for epoch sample class", class_names[c])
+                        boxes = model_utils.inferir_com_bloco(bloco, raw_w_bytes, raw_b_bytes, bmp.pixels, largura, 1)
+                        print("DBG: returned from inferir_com_bloco for epoch sample class", class_names[c])
+                    except _:
+                        print("DBG: inferir_com_bloco raised for epoch sample class", class_names[c])
+                        boxes = List[List[Int]]()
+
+                    if len(boxes) == 0:
+                        print("Epoch sample", ep, "class", class_names[c], "NO_PRED_BOX gt_box", s_gt_x0, s_gt_y0, s_gt_x1, s_gt_y1)
+                    else:
+                        var pb = boxes[0]
+                        print("Epoch sample", ep, "class", class_names[c], "pred_box", pb[0], pb[1], pb[2], pb[3], "gt_box", s_gt_x0, s_gt_y0, s_gt_x1, s_gt_y1)
+
+                    # write sample file
+                    try:
+                        var sample_path = os.path.join(export_dir, "epoch_samples", "epoch_" + String(ep) + "_class_" + class_names[c] + ".txt")
+                        var lines_out = List[String]()
+                        if len(boxes) > 0:
+                            var pb2 = boxes[0]
+                            lines_out.append("pred_box: " + String(pb2[0]) + " " + String(pb2[1]) + " " + String(pb2[2]) + " " + String(pb2[3]))
+                        else:
+                            lines_out.append("pred_box: none")
+                        lines_out.append("gt_box: " + String(s_gt_x0) + " " + String(s_gt_y0) + " " + String(s_gt_x1) + " " + String(s_gt_y1))
+                        uteis.gravar_texto_seguro(sample_path, String("\n").join(lines_out.copy()^))
+                    except _:
+                        pass
+                except _:
+                    pass
         except _:
             pass
 
@@ -302,6 +404,7 @@ fn treinar_retina_minimal(mut bloco: cnn_pkg.BlocoCNN, var dataset_dir: String, 
                                 continue
                             var img_path = os.path.join(pcls, f)
                             try:
+                                print("DBG: validation: processing image", img_path)
                                 var bmp = dados_pkg.carregar_bmp_rgb(img_path, largura, altura)
                                 if bmp.width == 0:
                                     continue
@@ -332,8 +435,11 @@ fn treinar_retina_minimal(mut bloco: cnn_pkg.BlocoCNN, var dataset_dir: String, 
                                 var raw_b_bytes = head_bias_cls.dados_bytes_bin() if head_initialized else List[Int]()
                                 var boxes = List[List[Int]]()
                                 try:
+                                    print("DBG: calling inferir_com_bloco for validation image", img_path)
                                     boxes = model_utils.inferir_com_bloco(bloco, raw_w_bytes, raw_b_bytes, bmp.pixels, largura, 16)
+                                    print("DBG: returned from inferir_com_bloco for validation image", img_path)
                                 except _:
+                                    print("DBG: inferir_com_bloco raised for validation image", img_path)
                                     boxes = List[List[Int]]()
 
                                 # print detailed per-image diagnostics (only during validation)
