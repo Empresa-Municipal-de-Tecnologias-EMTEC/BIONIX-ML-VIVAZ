@@ -3,12 +3,14 @@ import os
 import io_modelo
 import detector_model as model_pkg
 import bionix_ml.dados as dados_pkg
+import bionix_ml.dados.arquivo as dados_arquivo
 import bionix_ml.graficos as graficos_pkg
 import bionix_ml.dados.bmp as bmpmod
 import adaptadores.detectar_face as detect_pkg
 import bionix_ml.camadas.cnn as cnn_pkg
 import bionix_ml.nucleo.Tensor as tensor_defs_local
 import bionix_ml.computacao.dispatcher_tensor as dispatcher
+import bionix_ml.uteis.arquivo as arquivo_io
 
 
 fn main() -> None:
@@ -49,31 +51,68 @@ fn main() -> None:
     else:
         print("Nenhum checkpoint encontrado — a inferência continuará mas pode falhar")
 
-    # load bbox head metadata
+    # load bbox head binary metadata (prefer binary weights saved by framework)
     var w_vals = List[Float32]()
     var b_vals = List[Float32]()
     try:
-        var bbox_meta = io_modelo.load_metadata(os.path.join(cfg.MODEL_DIR, "bbox_head.txt"))
-        if len(bbox_meta) > 0:
-            var weights_line = ""
-            var bias_line = ""
-            for L in bbox_meta.split("\n"):
-                if L.startswith("weights="):
-                    weights_line = L.replace("weights=", "")
-                elif L.startswith("bias="):
-                    bias_line = L.replace("bias=", "")
-            if len(weights_line) > 0:
-                for p in weights_line.split(","):
-                    try:
-                        w_vals.append(Float32(Float64(p)))
-                    except _:
-                        pass
-            if len(bias_line) > 0:
-                for p in bias_line.split(","):
-                    try:
-                        b_vals.append(Float32(Float64(p)))
-                    except _:
-                        pass
+        var meta = io_modelo.load_metadata(os.path.join(cfg.MODEL_DIR, "metadata_detector.txt"))
+        var weights_bin = ""
+        var bias_bin = ""
+        if len(meta) > 0:
+            for L in meta.split("\n"):
+                if L.startswith("weights_bin="):
+                    weights_bin = String(L.replace("weights_bin=", "").strip())
+                elif L.startswith("bias_bin="):
+                    bias_bin = String(L.replace("bias_bin=", "").strip())
+        if len(weights_bin) > 0:
+            try:
+                var raw_w = dados_arquivo.ler_arquivo_binario(os.path.join(cfg.MODEL_DIR, weights_bin))
+                # try to load into the bloco.peso_saida if present
+                if len(raw_w) > 0 and bloco.peso_saida.formato and len(bloco.peso_saida.formato) > 0:
+                    bloco.peso_saida.carregar_dados_bytes_bin(raw_w)
+            except _:
+                pass
+        if len(bias_bin) > 0:
+            try:
+                var raw_b = dados_arquivo.ler_arquivo_binario(os.path.join(cfg.MODEL_DIR, bias_bin))
+                if len(raw_b) > 0 and bloco.bias_saida.formato and len(bloco.bias_saida.formato) > 0:
+                    bloco.bias_saida.carregar_dados_bytes_bin(raw_b)
+            except _:
+                pass
+        # Fallback: if binary files not present or failed, try legacy bbox_head.txt (text weights)
+        try:
+            if not bloco.peso_saida.formato or len(bloco.peso_saida.dados) == 0 or bloco.peso_saida.dados[0] == 0.0:
+                var bbox_txt = io_modelo.load_metadata(os.path.join(cfg.MODEL_DIR, "bbox_head.txt"))
+                if len(bbox_txt) > 0:
+                    var w_line = ""
+                    var b_line = ""
+                    for LL in bbox_txt.split("\n"):
+                        if LL.startswith("weights="):
+                            w_line = String(LL.replace("weights=", ""))
+                        elif LL.startswith("bias="):
+                            b_line = String(LL.replace("bias=", ""))
+                    if len(w_line) > 0:
+                        var toksw = w_line.split(",")
+                        for t in toksw:
+                            try:
+                                w_vals.append(Float32(Float64(String(t))))
+                            except _:
+                                w_vals.append(0.0)
+                    if len(b_line) > 0:
+                        var toksb = b_line.split(",")
+                        for t in toksb:
+                            try:
+                                b_vals.append(Float32(Float64(String(t))))
+                            except _:
+                                b_vals.append(0.0)
+                    if bloco.peso_saida.formato and len(w_vals) >= len(bloco.peso_saida.dados):
+                        for i in range(len(bloco.peso_saida.dados)):
+                            bloco.peso_saida.dados[i] = w_vals[i]
+                    if bloco.bias_saida.formato and len(b_vals) >= len(bloco.bias_saida.dados):
+                        for j in range(len(bloco.bias_saida.dados)):
+                            bloco.bias_saida.dados[j] = b_vals[j]
+        except _:
+            pass
     except _:
         pass
 
