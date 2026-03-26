@@ -263,11 +263,16 @@ fn main() -> None:
                     var acuracia = 1.0 if iou > 0.5 else 0.0
                     print("[MÉTRICA] Acurácia bbox (IoU>0.5):", acuracia)
             else:
-                var res = detect_pkg.detect_and_align_bbox(path)
-                var info2 = res[0].copy()
-                var bb = res[1].copy()
-                if len(bb) >= 4:
-                    box_pixels.append(bb[0]); box_pixels.append(bb[1]); box_pixels.append(bb[2]); box_pixels.append(bb[3])
+                if cfg.USE_DETECTOR_HEURISTIC:
+                    print("O modelo não produziu predição válida para", path, "- usando heurística de fallback do adaptador")
+                    var res = detect_pkg.detect_and_align_bbox(path)
+                    var info2 = res[0].copy()
+                    var bb = res[1].copy()
+                    if len(bb) >= 4:
+                        box_pixels.append(bb[0]); box_pixels.append(bb[1]); box_pixels.append(bb[2]); box_pixels.append(bb[3])
+                else:
+                    # Heuristic disabled by config: do not produce fallback bbox
+                    pass
         except _:
             pass
 
