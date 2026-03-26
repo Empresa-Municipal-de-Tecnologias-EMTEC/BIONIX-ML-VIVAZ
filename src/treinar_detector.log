@@ -1,0 +1,1129 @@
+✨ Pixi task (run_retina_train): mojo -I ../../BIONIX-ML run_retina_train.mojo
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:114:67: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+                        bloco.peso_saida.carregar_dados_bytes_bin(raw_w)
+                                                                  ^~~~~
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:114:67: note: consider transferring the value with '^'
+                        bloco.peso_saida.carregar_dados_bytes_bin(raw_w)
+                                                                  ^
+                                                                       ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:114:67: note: you can copy it explicitly with '.copy()'
+                        bloco.peso_saida.carregar_dados_bytes_bin(raw_w)
+                                                                  ^
+                                                                       .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:114:66: warning: 'Bool' value is unused
+                        bloco.peso_saida.carregar_dados_bytes_bin(raw_w)
+                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~
+                        _ = 
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:120:67: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+                        bloco.bias_saida.carregar_dados_bytes_bin(raw_b)
+                                                                  ^~~~~
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:120:67: note: consider transferring the value with '^'
+                        bloco.bias_saida.carregar_dados_bytes_bin(raw_b)
+                                                                  ^
+                                                                       ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:120:67: note: you can copy it explicitly with '.copy()'
+                        bloco.bias_saida.carregar_dados_bytes_bin(raw_b)
+                                                                  ^
+                                                                       .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:120:66: warning: 'Bool' value is unused
+                        bloco.bias_saida.carregar_dados_bytes_bin(raw_b)
+                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~
+                        _ = 
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:140:64: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+                        head_peso_cls.carregar_dados_bytes_bin(raw_cw)
+                                                               ^~~~~~
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:140:64: note: consider transferring the value with '^'
+                        head_peso_cls.carregar_dados_bytes_bin(raw_cw)
+                                                               ^
+                                                                     ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:140:64: note: you can copy it explicitly with '.copy()'
+                        head_peso_cls.carregar_dados_bytes_bin(raw_cw)
+                                                               ^
+                                                                     .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:140:63: warning: 'Bool' value is unused
+                        head_peso_cls.carregar_dados_bytes_bin(raw_cw)
+                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~
+                        _ = 
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:149:60: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+                    head_bias_cls.carregar_dados_bytes_bin(raw_cb)
+                                                           ^~~~~~
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:149:60: note: consider transferring the value with '^'
+                    head_bias_cls.carregar_dados_bytes_bin(raw_cb)
+                                                           ^
+                                                                 ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:149:60: note: you can copy it explicitly with '.copy()'
+                    head_bias_cls.carregar_dados_bytes_bin(raw_cb)
+                                                           ^
+                                                                 .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:149:59: warning: 'Bool' value is unused
+                    head_bias_cls.carregar_dados_bytes_bin(raw_cb)
+                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~
+                    _ = 
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:163:36: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+            var imgs = class_images[c]
+                       ~~~~~~~~~~~~^~~
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:163:36: note: consider transferring the value with '^'
+            var imgs = class_images[c]
+                                   ^
+                                      ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:163:36: note: you can copy it explicitly with '.copy()'
+            var imgs = class_images[c]
+                                   ^
+                                      .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:247:28: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+                var (labels, targets) = assigner.assignar_anchors(anchors, gt_list^)
+                     ~~~~~~^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:247:28: note: consider transferring the value with '^'
+                var (labels, targets) = assigner.assignar_anchors(anchors, gt_list^)
+                           ^
+                            ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:247:28: note: you can copy it explicitly with '.copy()'
+                var (labels, targets) = assigner.assignar_anchors(anchors, gt_list^)
+                           ^
+                            .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:247:28: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+                var (labels, targets) = assigner.assignar_anchors(anchors, gt_list^)
+                     ~~~~~~^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:247:28: note: consider transferring the value with '^'
+                var (labels, targets) = assigner.assignar_anchors(anchors, gt_list^)
+                           ^
+                            ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:247:28: note: you can copy it explicitly with '.copy()'
+                var (labels, targets) = assigner.assignar_anchors(anchors, gt_list^)
+                           ^
+                            .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:432:38: warning: 'Bool' value is unused
+            uteis.gravar_texto_seguro(meta_path, meta_text)
+            ~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~
+            _ = 
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:461:83: warning: transfer from an owned value has no effect and can be removed
+                        var orig_info = dados_pkg.carregar_bmp_rgb(candidate_path)^
+                                                                                  ^
+                                                                                  
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:463:112: warning: transfer from an owned value has no effect and can be removed
+                            var resized = graficos_pkg.redimensionar_matriz_rgb_nearest(orig_info.pixels.copy()^, bloco.altura, bloco.largura)
+                                                                                                               ^
+                                                                                                               
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:467:58: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+                                    var pix = resized[ry][rx]
+                                              ~~~~~~~~~~~^~~~
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:467:58: note: consider transferring the value with '^'
+                                    var pix = resized[ry][rx]
+                                                         ^
+                                                             ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:467:58: note: you can copy it explicitly with '.copy()'
+                                    var pix = resized[ry][rx]
+                                                         ^
+                                                             .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:585:34: warning: 'Bool' value is unused
+        uteis.gravar_texto_seguro(final_meta, String("\n").join(lines^))
+        ~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        _ = 
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:40:52: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+    return arquivo.gravar_arquivo_binario(caminho, dados)
+                                                   ^~~~~
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:40:52: note: consider transferring the value with '^'
+    return arquivo.gravar_arquivo_binario(caminho, dados)
+                                                   ^
+                                                        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:40:52: note: you can copy it explicitly with '.copy()'
+    return arquivo.gravar_arquivo_binario(caminho, dados)
+                                                   ^
+                                                        .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:53:48: warning: transfer from an owned value has no effect and can be removed
+    return bmp.parse_bmp(caminho, BMP_MODO_RGB)^
+                                               ^
+                                               
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:57:75: warning: transfer from an owned value has no effect and can be removed
+    return bmp.parse_bmp(caminho, BMP_MODO_RGB, altura_alvo, largura_alvo)^
+                                                                          ^
+                                                                          
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:15:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_assigner.mojo:41:17: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+        return (labels, targets)
+                ^~~~~~
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:15:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_assigner.mojo:41:17: note: consider transferring the value with '^'
+        return (labels, targets)
+                ^
+                      ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:15:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_assigner.mojo:41:17: note: you can copy it explicitly with '.copy()'
+        return (labels, targets)
+                ^
+                      .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:15:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_assigner.mojo:41:25: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+        return (labels, targets)
+                        ^~~~~~~
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:15:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_assigner.mojo:41:25: note: consider transferring the value with '^'
+        return (labels, targets)
+                        ^
+                               ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:15:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_assigner.mojo:41:25: note: you can copy it explicitly with '.copy()'
+        return (labels, targets)
+                        ^
+                               .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:15:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_assigner.mojo:59:30: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+            var gt = gt_boxes[best_gt_idx]
+                     ~~~~~~~~^~~~~~~~~~~~~
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:15:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_assigner.mojo:59:30: note: consider transferring the value with '^'
+            var gt = gt_boxes[best_gt_idx]
+                             ^
+                                          ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:15:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_assigner.mojo:59:30: note: you can copy it explicitly with '.copy()'
+            var gt = gt_boxes[best_gt_idx]
+                             ^
+                                          .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:6:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/bmp.mojo:120:116: warning: transfer from an owned value has no effect and can be removed
+        return BMPInfo(0, 0, 0, 0, modo, List[List[List[Float32]]](), List[List[Float32]](), List[List[Float32]]())^
+                                                                                                                   ^
+                                                                                                                   
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:6:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/bmp.mojo:137:116: warning: transfer from an owned value has no effect and can be removed
+        return BMPInfo(0, 0, 0, 0, modo, List[List[List[Float32]]](), List[List[Float32]](), List[List[Float32]]())^
+                                                                                                                   ^
+                                                                                                                   
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:6:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/bmp.mojo:140:116: warning: transfer from an owned value has no effect and can be removed
+        return BMPInfo(0, 0, 0, 0, modo, List[List[List[Float32]]](), List[List[Float32]](), List[List[Float32]]())^
+                                                                                                                   ^
+                                                                                                                   
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:6:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/bmp.mojo:194:77: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+    return BMPInfo(width, height, bits_per_pixel, pixel_array_offset, modo, pixels, grayscale, preto_branco)^
+                                                                            ^~~~~~
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:6:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/bmp.mojo:194:77: note: consider transferring the value with '^'
+    return BMPInfo(width, height, bits_per_pixel, pixel_array_offset, modo, pixels, grayscale, preto_branco)^
+                                                                            ^
+                                                                                  ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:6:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/bmp.mojo:194:77: note: you can copy it explicitly with '.copy()'
+    return BMPInfo(width, height, bits_per_pixel, pixel_array_offset, modo, pixels, grayscale, preto_branco)^
+                                                                            ^
+                                                                                  .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:6:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/bmp.mojo:194:85: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+    return BMPInfo(width, height, bits_per_pixel, pixel_array_offset, modo, pixels, grayscale, preto_branco)^
+                                                                                    ^~~~~~~~~
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:6:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/bmp.mojo:194:85: note: consider transferring the value with '^'
+    return BMPInfo(width, height, bits_per_pixel, pixel_array_offset, modo, pixels, grayscale, preto_branco)^
+                                                                                    ^
+                                                                                             ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:6:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/bmp.mojo:194:85: note: you can copy it explicitly with '.copy()'
+    return BMPInfo(width, height, bits_per_pixel, pixel_array_offset, modo, pixels, grayscale, preto_branco)^
+                                                                                    ^
+                                                                                             .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:6:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/bmp.mojo:194:96: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+    return BMPInfo(width, height, bits_per_pixel, pixel_array_offset, modo, pixels, grayscale, preto_branco)^
+                                                                                               ^~~~~~~~~~~~
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:6:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/bmp.mojo:194:96: note: consider transferring the value with '^'
+    return BMPInfo(width, height, bits_per_pixel, pixel_array_offset, modo, pixels, grayscale, preto_branco)^
+                                                                                               ^
+                                                                                                           ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:6:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/bmp.mojo:194:96: note: you can copy it explicitly with '.copy()'
+    return BMPInfo(width, height, bits_per_pixel, pixel_array_offset, modo, pixels, grayscale, preto_branco)^
+                                                                                               ^
+                                                                                                           .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:6:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/bmp.mojo:194:109: warning: transfer from an owned value has no effect and can be removed
+    return BMPInfo(width, height, bits_per_pixel, pixel_array_offset, modo, pixels, grayscale, preto_branco)^
+                                                                                                            ^
+                                                                                                            
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:6:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/bmp.mojo:205:70: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+        var px_redim = graficos.redimensionar_matriz_rgb_nearest(info.pixels, altura_alvo, largura_alvo)
+                                                                 ~~~~^~~~~~~
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:6:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/bmp.mojo:205:70: note: consider transferring the value with '^'
+        var px_redim = graficos.redimensionar_matriz_rgb_nearest(info.pixels, altura_alvo, largura_alvo)
+                                                                     ^
+                                                                            ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:6:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/bmp.mojo:205:70: note: you can copy it explicitly with '.copy()'
+        var px_redim = graficos.redimensionar_matriz_rgb_nearest(info.pixels, altura_alvo, largura_alvo)
+                                                                     ^
+                                                                            .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:6:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/bmp.mojo:206:164: warning: transfer from an owned value has no effect and can be removed
+        return BMPInfo(largura_alvo, altura_alvo, info.bits_per_pixel, info.pixel_array_offset, info.modo, px_redim^, List[List[Float32]](), List[List[Float32]]())^
+                                                                                                                                                                   ^
+                                                                                                                                                                   
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:6:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/bmp.mojo:209:79: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+        var pb_redim = graficos.redimensionar_matriz_preto_branco_nearest(info.preto_branco, altura_alvo, largura_alvo)
+                                                                          ~~~~^~~~~~~~~~~~~
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:6:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/bmp.mojo:209:79: note: consider transferring the value with '^'
+        var pb_redim = graficos.redimensionar_matriz_preto_branco_nearest(info.preto_branco, altura_alvo, largura_alvo)
+                                                                              ^
+                                                                                           ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:6:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/bmp.mojo:209:79: note: you can copy it explicitly with '.copy()'
+        var pb_redim = graficos.redimensionar_matriz_preto_branco_nearest(info.preto_branco, altura_alvo, largura_alvo)
+                                                                              ^
+                                                                                           .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:6:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/bmp.mojo:210:170: warning: transfer from an owned value has no effect and can be removed
+        return BMPInfo(largura_alvo, altura_alvo, info.bits_per_pixel, info.pixel_array_offset, info.modo, List[List[List[Float32]]](), List[List[Float32]](), pb_redim^)^
+                                                                                                                                                                         ^
+                                                                                                                                                                         
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:6:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/bmp.mojo:212:72: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+    var gs_redim = graficos.redimensionar_matriz_grayscale_nearest(info.grayscale, altura_alvo, largura_alvo)
+                                                                   ~~~~^~~~~~~~~~
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:6:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/bmp.mojo:212:72: note: consider transferring the value with '^'
+    var gs_redim = graficos.redimensionar_matriz_grayscale_nearest(info.grayscale, altura_alvo, largura_alvo)
+                                                                       ^
+                                                                                 ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:6:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/bmp.mojo:212:72: note: you can copy it explicitly with '.copy()'
+    var gs_redim = graficos.redimensionar_matriz_grayscale_nearest(info.grayscale, altura_alvo, largura_alvo)
+                                                                       ^
+                                                                                 .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:6:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/bmp.mojo:213:166: warning: transfer from an owned value has no effect and can be removed
+    return BMPInfo(largura_alvo, altura_alvo, info.bits_per_pixel, info.pixel_array_offset, info.modo, List[List[List[Float32]]](), gs_redim^, List[List[Float32]]())^
+                                                                                                                                                                     ^
+                                                                                                                                                                     
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/graficos/__init__.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/graficos/__init__.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/graficos/bmp.mojo:82:39: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+            var src_px = origem[src_y][src_x]
+                         ~~~~~~~~~~~~~^~~~~~~
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/graficos/__init__.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/graficos/__init__.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/graficos/bmp.mojo:82:39: note: consider transferring the value with '^'
+            var src_px = origem[src_y][src_x]
+                                      ^
+                                             ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/graficos/__init__.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/graficos/__init__.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/graficos/bmp.mojo:82:39: note: you can copy it explicitly with '.copy()'
+            var src_px = origem[src_y][src_x]
+                                      ^
+                                             .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:23:15: warning: Use `str.codepoints()` or `str.codepoint_slices()` instead.
+    for ch in line:
+              ^~~~
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:1: note: '__iter__' declared here
+import model_detector as model_pkg
+^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:32:12: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+    return fields
+           ^~~~~~
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:32:12: note: consider transferring the value with '^'
+    return fields
+           ^
+                 ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:32:12: note: you can copy it explicitly with '.copy()'
+    return fields
+           ^
+                 .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/graficos/__init__.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/graficos/__init__.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/graficos/bmp.mojo:52:51: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+    return redimensionar_matriz_grayscale_nearest(origem, altura_alvo, largura_alvo)
+                                                  ^~~~~~
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/graficos/__init__.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/graficos/__init__.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/graficos/bmp.mojo:52:51: note: consider transferring the value with '^'
+    return redimensionar_matriz_grayscale_nearest(origem, altura_alvo, largura_alvo)
+                                                  ^
+                                                        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/graficos/__init__.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/graficos/__init__.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/graficos/bmp.mojo:52:51: note: you can copy it explicitly with '.copy()'
+    return redimensionar_matriz_grayscale_nearest(origem, altura_alvo, largura_alvo)
+                                                  ^
+                                                        .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/model_detector.mojo:238:16: warning: 'except' logic is unreachable, try doesn't raise an exception
+        return False
+               ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/model_detector.mojo:250:16: warning: 'except' logic is unreachable, try doesn't raise an exception
+        return False
+               ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:2:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/computacao/adaptadores/contexto.mojo:2:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/computacao/adaptadores/adaptador_dispositivo.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/computacao/cuda/conjunto_de_buffers_dispositivo.mojo:29:9: warning: unreachable code after return statement
+        return
+        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/model_detector.mojo:13:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/computacao/storage_sessao.mojo:70:16: warning: 'except' logic is unreachable, try doesn't raise an exception
+        return False
+               ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/camadas/cnn/__init__.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/camadas/cnn/__init__.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/camadas/cnn/cnn.mojo:2:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/computacao/dispatcher_tensor.mojo:48:9: warning: try body doesn't raise an exception
+        try:
+        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:106:33: warning: 'except' logic is unreachable, try doesn't raise an exception
+            restored_block_ok = False
+                                ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:112:17: warning: try body doesn't raise an exception
+                try:
+                ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:118:17: warning: try body doesn't raise an exception
+                try:
+                ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:108:9: warning: try body doesn't raise an exception
+        try:
+        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:135:29: warning: 'except' logic is unreachable, try doesn't raise an exception
+                        D = 0
+                            ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:130:17: warning: try body doesn't raise an exception
+                try:
+                ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:145:17: warning: try body doesn't raise an exception
+                try:
+                ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:126:9: warning: try body doesn't raise an exception
+        try:
+        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:101:5: warning: try body doesn't raise an exception
+    try:
+    ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:191:21: warning: 'except' logic is unreachable, try doesn't raise an exception
+                    continue
+                    ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:412:9: warning: try body doesn't raise an exception
+        try:
+        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:424:9: warning: try body doesn't raise an exception
+        try:
+        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:483:38: warning: 'except' logic is unreachable, try doesn't raise an exception
+                                Df = 0
+                                     ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:437:9: warning: try body doesn't raise an exception
+        try:
+        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:563:9: warning: try body doesn't raise an exception
+        try:
+        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:579:14: warning: 'except' logic is unreachable, try doesn't raise an exception
+        ok = False
+             ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:580:5: warning: try body doesn't raise an exception
+    try:
+    ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:589:5: warning: try body doesn't raise an exception
+    try:
+    ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:386:39: warning: assignment to 'cls_err' was never used; assign to '_' instead?
+                    var cls_err = sig - cls_target
+                                      ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:376:40: warning: assignment to 'sig' was never used; assign to '_' instead?
+                    var sig: Float32 = 0.0
+                                       ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:186:74: warning: assignment to 'img_matrix' was never used; assign to '_' instead?
+                var img_matrix: List[List[Float32]] = List[List[Float32]]()
+                                                                         ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:181:46: warning: assignment to 'img' was never used; assign to '_' instead?
+                var img = List[List[Float32]]()
+                                             ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:479:38: warning: assignment to 'Df' was never used; assign to '_' instead?
+                            var Df = 0
+                                     ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:420:57: warning: assignment to 'ok_cb' was never used; assign to '_' instead?
+            var ok_cb = dados_pkg.gravar_arquivo_binario(cb_path, head_bias_cls.dados_bytes_bin())
+                                                        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:419:57: warning: assignment to 'ok_cw' was never used; assign to '_' instead?
+            var ok_cw = dados_pkg.gravar_arquivo_binario(cw_path, head_peso_cls.dados_bytes_bin())
+                                                        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:416:56: warning: assignment to 'ok_b' was never used; assign to '_' instead?
+            var ok_b = dados_pkg.gravar_arquivo_binario(bb_path, bloco.bias_saida.dados_bytes_bin())
+                                                       ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:415:56: warning: assignment to 'ok_w' was never used; assign to '_' instead?
+            var ok_w = dados_pkg.gravar_arquivo_binario(wb_path, bloco.peso_saida.dados_bytes_bin())
+                                                       ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:55:33: warning: assignment to 'files' was never used; assign to '_' instead?
+        var files = List[String]()
+                                ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:38:33: warning: assignment to 'img_paths' was never used; assign to '_' instead?
+    var img_paths = List[String]()
+                                ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:41:30: warning: assignment to 'labels' was never used; assign to '_' instead?
+    var labels = List[String]()
+                             ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:42:28: warning: assignment to 'train_root' was never used; assign to '_' instead?
+    var train_root = String("")
+                           ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:102:33: warning: assignment to 'restored_block_ok' was never used; assign to '_' instead?
+        var restored_block_ok = False
+                                ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:104:62: warning: assignment to 'restored_block_ok' was never used; assign to '_' instead?
+            restored_block_ok = model_pkg.carregar_checkpoint(bloco, model_dir)
+                                                             ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:131:29: warning: assignment to 'D' was never used; assign to '_' instead?
+                    var D = 0
+                            ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:577:50: warning: assignment to 'ok' was never used; assign to '_' instead?
+        var ok = dados_pkg.gravar_arquivo_binario(path_w, bloco.peso_saida.dados_bytes_bin())
+                                                 ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:579:9: warning: variable 'ok' was never used, remove it?
+        ok = False
+        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:615:28: warning: assignment to 'xx' was never used; assign to '_' instead?
+            for xx in range(out_w):
+                           ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:613:24: warning: assignment to 'yy' was never used; assign to '_' instead?
+        for yy in range(out_h):
+                       ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:14:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_anchor_generator.mojo:32:32: warning: assignment to 'scales_local' was never used; assign to '_' instead?
+    scales_local = scales_local^
+                               ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:15:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_assigner.mojo:36:19: warning: assignment to 'i' was never used; assign to '_' instead?
+    for i in range(N):
+                  ^
+Iniciando treino Retina minimal...
+Img DATASET/train/n000003/0001_01.bmp AnchorIdx 25267 pred_box -2814225 -2814225 2824550 2824550 gt_box 80 54 332 306 center_dist 7027.942 w_ratio 22376.092 h_ratio 22376.092
+Img DATASET/train/n000003/0001_01.bmp AnchorIdx 25268 pred_box -3974489 -1987167 3999942 2000049 gt_box 80 54 332 306 center_dist 13998.406 w_ratio 31644.572 h_ratio 15822.286
+Img DATASET/train/n000003/0001_01.bmp AnchorIdx 25269 pred_box -185616 -398664 188870 404570 gt_box 80 54 332 306 center_dist 3116.0469 w_ratio 1486.0608 h_ratio 3187.4368
+Img DATASET/train/n000003/0001_01.bmp AnchorIdx 25270 pred_box -1988 -3811 4232 5928 gt_box 80 54 332 306 center_dist 1268.8293 w_ratio 24.687529 h_ratio 38.65332
+Img DATASET/train/n000003/0001_01.bmp AnchorIdx 25271 pred_box -18477 -7146 22275 9155 gt_box 80 54 332 306 center_dist 1883.1737 w_ratio 161.721 h_ratio 64.68846
+Img DATASET/train/n000003/0001_01.bmp AnchorIdx 25297 pred_box 78 126 350 493 gt_box 80 54 332 306 center_dist 130.17494 w_ratio 1.0794164 h_ratio 1.4590209
+Img DATASET/train/n000003/0001_01.bmp AnchorIdx 25298 pred_box -2937 -1447 5582 3068 gt_box 80 54 332 306 center_dist 1281.9851 w_ratio 33.80692 h_ratio 17.920092
+Img DATASET/train/n000003/0001_01.bmp AnchorIdx 25299 pred_box 189 24 421 521 gt_box 80 54 332 306 center_dist 136.43985 w_ratio 0.9205894 h_ratio 1.9721419
+Img DATASET/train/n000003/0001_01.bmp AnchorIdx 25300 pred_box -59 -265 1508 1672 gt_box 80 54 332 306 center_dist 737.07104 w_ratio 6.2206636 h_ratio 7.6894565
+Img DATASET/train/n000003/0001_01.bmp AnchorIdx 25301 pred_box -127 60 148 138 gt_box 80 54 332 306 center_dist 211.777 w_ratio 1.0953755 h_ratio 0.31085077
+Img DATASET/train/n000004/0001_01.bmp AnchorIdx 24126 pred_box 57 -19 173 285 gt_box 27 40 150 163 center_dist 41.465034 w_ratio 0.9431031 h_ratio 2.479609
+Img DATASET/train/n000004/0001_01.bmp AnchorIdx 24127 pred_box -611603 -975251 614172 977762 gt_box 27 40 150 163 center_dist 1662.0926 w_ratio 9965.656 h_ratio 15878.168
+Img DATASET/train/n000004/0001_01.bmp AnchorIdx 24130 pred_box -101 -121 -73 -101 gt_box 27 40 150 163 center_dist 276.43057 w_ratio 0.23301233 h_ratio 0.16511103
+Img DATASET/train/n000004/0001_01.bmp AnchorIdx 24186 pred_box -546 -1055 -546 -1055 gt_box 27 40 150 163 center_dist 1319.4596 w_ratio 0.00075283577 h_ratio 0.0011754344
+Img DATASET/train/n000004/0001_01.bmp AnchorIdx 24187 pred_box -139 15 751 659 gt_box 27 40 150 163 center_dist 321.18985 w_ratio 7.246228 h_ratio 5.2356276
+Img DATASET/train/n000004/0001_01.bmp AnchorIdx 24188 pred_box -9508 -1718 11300 2637 gt_box 27 40 150 163 center_dist 883.38806 w_ratio 169.17924 h_ratio 35.41723
+Img DATASET/train/n000004/0001_01.bmp AnchorIdx 24190 pred_box -28 -26 12 33 gt_box 27 40 150 163 center_dist 137.4517 w_ratio 0.3320549 h_ratio 0.48911062
+Img DATASET/train/n000004/0001_01.bmp AnchorIdx 24191 pred_box -924 -400 -924 -399 gt_box 27 40 150 163 center_dist 1130.3241 w_ratio 0.0032131036 h_ratio 0.003965293
+Img DATASET/train/n000005/0001_01.bmp AnchorIdx 25296 pred_box 71 51 253 445 gt_box 60 113 337 390 center_dist 36.248383 w_ratio 0.6593389 h_ratio 1.4199764
+Img DATASET/train/n000005/0001_01.bmp AnchorIdx 25297 pred_box 128 39 454 676 gt_box 60 113 337 390 center_dist 141.27138 w_ratio 1.1745787 h_ratio 2.3006337
+Img DATASET/train/n000005/0001_01.bmp AnchorIdx 25298 pred_box -46 120 270 279 gt_box 60 113 337 390 center_dist 100.72216 w_ratio 1.1435295 h_ratio 0.5727135
+Img DATASET/train/n000005/0001_01.bmp AnchorIdx 25299 pred_box 157 119 445 648 gt_box 60 113 337 390 center_dist 167.87262 w_ratio 1.0397948 h_ratio 1.9099895
+Img DATASET/train/n000005/0001_01.bmp AnchorIdx 25300 pred_box 174 118 594 639 gt_box 60 113 337 390 center_dist 225.70155 w_ratio 1.5151496 h_ratio 1.8810477
+Img DATASET/train/n000005/0001_01.bmp AnchorIdx 25301 pred_box 35 165 538 368 gt_box 60 113 337 390 center_dist 89.54035 w_ratio 1.8160952 h_ratio 0.73114115
+Img DATASET/train/n000005/0001_01.bmp AnchorIdx 25326 pred_box 36 73 181 396 gt_box 60 113 337 390 center_dist 90.84177 w_ratio 0.52486193 h_ratio 1.1663679
+Img DATASET/train/n000005/0001_01.bmp AnchorIdx 25327 pred_box 25 182 318 462 gt_box 60 113 337 390 center_dist 75.728676 w_ratio 1.0570594 h_ratio 1.0078583
+Img DATASET/train/n000005/0001_01.bmp AnchorIdx 25328 pred_box -47 186 371 328 gt_box 60 113 337 390 center_dist 37.36153 w_ratio 1.5131207 h_ratio 0.5104163
+Img DATASET/train/n000005/0001_01.bmp AnchorIdx 25329 pred_box 143 130 366 572 gt_box 60 113 337 390 center_dist 114.52112 w_ratio 0.80508375 h_ratio 1.59672
+Img DATASET/train/n000005/0001_01.bmp AnchorIdx 25330 pred_box 139 87 382 427 gt_box 60 113 337 390 center_dist 62.744682 w_ratio 0.87414223 h_ratio 1.2269908
+Img DATASET/train/n000005/0001_01.bmp AnchorIdx 25331 pred_box 28 213 524 423 gt_box 60 113 337 390 center_dist 102.8417 w_ratio 1.7896394 h_ratio 0.75623625
+Img DATASET/train/n000006/0001_01.bmp AnchorIdx 25237 pred_box -2846 -3197 4909 5137 gt_box 42 45 235 238 center_dist 1218.0708 w_ratio 40.189682 h_ratio 43.188263
+Img DATASET/train/n000006/0001_01.bmp AnchorIdx 25264 pred_box 16 -29 644 780 gt_box 42 45 235 238 center_dist 302.752 w_ratio 3.255602 h_ratio 4.200038
+Img DATASET/train/n000006/0001_01.bmp AnchorIdx 25267 pred_box -535 -569 2081 2136 gt_box 42 45 235 238 center_dist 902.7194 w_ratio 13.55694 h_ratio 14.022976
+Img DATASET/train/n000007/0001_01.bmp AnchorIdx 25270 pred_box -34 -98 84 19 gt_box 67 70 381 384 center_dist 332.94214 w_ratio 0.37831578 h_ratio 0.37507317
+Img DATASET/train/n000007/0001_01.bmp AnchorIdx 25271 pred_box -113 -45 21 18 gt_box 67 70 381 384 center_dist 361.51205 w_ratio 0.42928192 h_ratio 0.20578867
+Img DATASET/train/n000007/0001_01.bmp AnchorIdx 25296 pred_box -54 -185 15 -42 gt_box 67 70 381 384 center_dist 419.30887 w_ratio 0.22334273 h_ratio 0.45398018
+Img DATASET/train/n000007/0001_01.bmp AnchorIdx 25297 pred_box -110 -29 -23 108 gt_box 67 70 381 384 center_dist 346.07544 w_ratio 0.27868474 h_ratio 0.4411336
+Img DATASET/train/n000007/0001_01.bmp AnchorIdx 25299 pred_box 92 -31 231 212 gt_box 67 70 381 384 center_dist 150.3179 w_ratio 0.44319677 h_ratio 0.7756935
+Img DATASET/train/n000007/0001_01.bmp AnchorIdx 25300 pred_box 133 107 814 793 gt_box 67 70 381 384 center_dist 335.64188 w_ratio 2.1680124 h_ratio 2.185271
+Img DATASET/train/n000007/0001_01.bmp AnchorIdx 25301 pred_box -64 93 230 208 gt_box 67 70 381 384 center_dist 160.37927 w_ratio 0.9399576 h_ratio 0.36645305
+Img DATASET/train/n000007/0001_01.bmp AnchorIdx 25302 pred_box 166 -56 310 279 gt_box 67 70 381 384 center_dist 116.80886 w_ratio 0.45991853 h_ratio 1.0696235
+Img DATASET/train/n000007/0001_01.bmp AnchorIdx 25303 pred_box 119 64 363 290 gt_box 67 70 381 384 center_dist 52.587593 w_ratio 0.77610743 h_ratio 0.72176486
+Img DATASET/train/n000007/0001_01.bmp AnchorIdx 25330 pred_box -47 132 260 335 gt_box 67 70 381 384 center_dist 117.673706 w_ratio 0.9833724 h_ratio 0.64565986
+Img DATASET/train/n000007/0001_01.bmp AnchorIdx 25331 pred_box -61 156 242 300 gt_box 67 70 381 384 center_dist 133.7064 w_ratio 0.9672198 h_ratio 0.45883519
+Img DATASET/train/n000008/0001_01.bmp AnchorIdx 24190 pred_box -355 -412 1231 1294 gt_box 36 53 204 221 center_dist 439.81732 w_ratio 9.441826 h_ratio 10.158142
+Img DATASET/train/n000008/0001_01.bmp AnchorIdx 24191 pred_box -55 30 676 377 gt_box 36 53 204 221 center_dist 201.6497 w_ratio 4.3592978 h_ratio 2.0649448
+Img DATASET/train/n000008/0001_01.bmp AnchorIdx 24193 pred_box -55 -135 848 881 gt_box 36 53 204 221 center_dist 363.56796 w_ratio 5.37992 h_ratio 6.051188
+Img DATASET/train/n000008/0001_01.bmp AnchorIdx 24246 pred_box 42 26 164 414 gt_box 36 53 204 221 center_dist 85.25145 w_ratio 0.724553 h_ratio 2.311128
+Img DATASET/train/n000008/0001_01.bmp AnchorIdx 24249 pred_box 13 -41 500 936 gt_box 36 53 204 221 center_dist 338.99597 w_ratio 2.9002206 h_ratio 5.8192453
+Img DATASET/train/n000008/0001_01.bmp AnchorIdx 24250 pred_box 48 87 294 244 gt_box 36 53 204 221 center_dist 58.86899 w_ratio 1.4653208 h_ratio 0.9299448
+Img DATASET/train/n000008/0001_01.bmp AnchorIdx 24251 pred_box -40 91 727 435 gt_box 36 53 204 221 center_dist 256.63165 w_ratio 4.5735283 h_ratio 2.0431583
+Img DATASET/train/n000008/0001_01.bmp AnchorIdx 24252 pred_box 92 26 220 243 gt_box 36 53 204 221 center_dist 36.24542 w_ratio 0.7637168 h_ratio 1.2914674
+Img DATASET/train/n000008/0001_01.bmp AnchorIdx 24253 pred_box 70 70 478 485 gt_box 36 53 204 221 center_dist 208.82944 w_ratio 2.429576 h_ratio 2.4668622
+Img DATASET/train/n000008/0001_01.bmp AnchorIdx 24311 pred_box -75 105 139 177 gt_box 36 53 204 221 center_dist 88.390335 w_ratio 1.2783009 h_ratio 0.42808193
+Img DATASET/train/n000011/0001_01.bmp AnchorIdx 24250 pred_box -57 -68 -11 -10 gt_box 39 49 219 229 center_dist 242.18272 w_ratio 0.25529462 h_ratio 0.3238357
+Img DATASET/train/n000011/0001_01.bmp AnchorIdx 24253 pred_box -428825 -552026 431325 554486 gt_box 39 49 219 229 center_dist 1564.458 w_ratio 4778.616 h_ratio 6147.2915
+Img DATASET/train/n000012/0001_01.bmp AnchorIdx 25330 pred_box 62 105 710 791 gt_box 75 154 425 504 center_dist 181.46533 w_ratio 1.8501049 h_ratio 1.9618028
+Img DATASET/train/n000012/0001_01.bmp AnchorIdx 25333 pred_box -5084 -5350 7521 7815 gt_box 75 154 425 504 center_dist 1324.2961 w_ratio 36.017143 h_ratio 37.615887
+Img DATASET/train/n000012/0001_01.bmp AnchorIdx 25360 pred_box -21953 -23124 24897 26358 gt_box 75 154 425 504 center_dist 1775.4501 w_ratio 133.85931 h_ratio 141.3793
+Img DATASET/train/n000012/0001_01.bmp AnchorIdx 25363 pred_box -2811756 -2811678 2827018 2827097 gt_box 75 154 425 504 center_dist 10437.836 w_ratio 16110.786 h_ratio 16110.786
+Img DATASET/train/n000013/0001_01.bmp AnchorIdx 25300 pred_box -1841 -1820 -1841 -1820 gt_box 81 76 432 427 center_dist 2948.9558 w_ratio 0.00028475348 h_ratio 0.00026746615
+Img DATASET/train/n000013/0001_01.bmp AnchorIdx 25303 pred_box -1928 -2041 -1928 -2041 gt_box 81 76 432 427 center_dist 3167.029 w_ratio 0.0001570042 h_ratio 0.00016454369
+Img DATASET/train/n000013/0001_01.bmp AnchorIdx 25330 pred_box -1039 -952 -1037 -950 gt_box 81 76 432 427 center_dist 1767.3641 w_ratio 0.0066902936 h_ratio 0.006631582
+Img DATASET/train/n000013/0001_01.bmp AnchorIdx 25333 pred_box -250 -236 -201 -185 gt_box 81 76 432 427 center_dist 668.07355 w_ratio 0.14017573 h_ratio 0.1447175
+Img DATASET/train/n000014/0001_01.bmp AnchorIdx 24130 pred_box 17 -10 269 235 gt_box 32 44 179 191 center_dist 38.688877 w_ratio 1.7136111 h_ratio 1.678902
+Img DATASET/train/n000014/0001_01.bmp AnchorIdx 24186 pred_box -407 -868 -406 -867 gt_box 32 44 179 191 center_dist 1110.6245 w_ratio 0.0034495373 h_ratio 0.007052591
+Img DATASET/train/n000014/0001_01.bmp AnchorIdx 24187 pred_box -63 30 552 573 gt_box 32 44 179 191 center_dist 231.08409 w_ratio 4.1884747 h_ratio 3.6914153
+Img DATASET/train/n000014/0001_01.bmp AnchorIdx 24189 pred_box -244 -625 -242 -622 gt_box 32 44 179 191 center_dist 819.46545 w_ratio 0.014123917 h_ratio 0.024182342
+Img DATASET/train/n000014/0001_01.bmp AnchorIdx 24190 pred_box 44 65 439 418 gt_box 32 44 179 191 center_dist 184.49173 w_ratio 2.6867428 h_ratio 2.4049416
+Img DATASET/train/n000014/0001_01.bmp AnchorIdx 24191 pred_box -383 -140 -367 -134 gt_box 32 44 179 191 center_dist 544.0777 w_ratio 0.10892793 h_ratio 0.041007564
+Img DATASET/train/n000014/0001_01.bmp AnchorIdx 24193 pred_box 89 56 381 371 gt_box 32 44 179 191 center_dist 161.79494 w_ratio 1.9901731 h_ratio 2.14419
+Img DATASET/train/n000014/0001_01.bmp AnchorIdx 24250 pred_box -155 -121 -134 -101 gt_box 32 44 179 191 center_dist 339.42325 w_ratio 0.14110136 h_ratio 0.13634309
+Img DATASET/train/n000014/0001_01.bmp AnchorIdx 24251 pred_box -41 96 585 394 gt_box 32 44 179 191 center_dist 209.95499 w_ratio 4.269081 h_ratio 2.0312512
+Img DATASET/train/n000015/0001_01.bmp AnchorIdx 25269 pred_box 98 -184 234 231 gt_box 135 60 415 340 center_dist 206.71593 w_ratio 0.48542988 h_ratio 1.4862847
+Img DATASET/train/n000015/0001_01.bmp AnchorIdx 25270 pred_box -110 -179 -13 -91 gt_box 135 60 415 340 center_dist 475.7545 w_ratio 0.34586454 h_ratio 0.31619844
+Img DATASET/train/n000015/0001_01.bmp AnchorIdx 25271 pred_box -74 -5 153 88 gt_box 135 60 415 340 center_dist 283.8299 w_ratio 0.8143726 h_ratio 0.3363006
+Img DATASET/train/n000015/0001_01.bmp AnchorIdx 25272 pred_box 120 -182 218 14 gt_box 135 60 415 340 center_dist 303.11194 w_ratio 0.34982428 h_ratio 0.7030062
+Img DATASET/train/n000015/0001_01.bmp AnchorIdx 25273 pred_box 237 65 606 534 gt_box 135 60 415 340 center_dist 178.0947 w_ratio 1.3193163 h_ratio 1.6748936
+Img DATASET/train/n000015/0001_01.bmp AnchorIdx 25274 pred_box -32 19 222 124 gt_box 135 60 415 340 center_dist 220.77072 w_ratio 0.9140762 h_ratio 0.37515616
+Img DATASET/train/n000015/0001_01.bmp AnchorIdx 25299 pred_box 90 -22 201 264 gt_box 135 60 415 340 center_dist 151.50058 w_ratio 0.39718705 h_ratio 1.0233212
+Img DATASET/train/n000015/0001_01.bmp AnchorIdx 25300 pred_box 39 59 243 257 gt_box 135 60 415 340 center_dist 139.51508 w_ratio 0.72803783 h_ratio 0.70509625
+Img DATASET/train/n000015/0001_01.bmp AnchorIdx 25301 pred_box 68 148 577 325 gt_box 135 60 415 340 center_dist 60.728233 w_ratio 1.8176798 h_ratio 0.6317855
+Img DATASET/train/n000015/0001_01.bmp AnchorIdx 25302 pred_box 174 -24 318 280 gt_box 135 60 415 340 center_dist 77.27432 w_ratio 0.5164868 h_ratio 1.0908679
+Img DATASET/train/n000015/0001_01.bmp AnchorIdx 25303 pred_box 165 8 351 253 gt_box 135 60 415 340 center_dist 71.31474 w_ratio 0.6633738 h_ratio 0.87457633
+Img DATASET/train/n000015/0001_01.bmp AnchorIdx 25304 pred_box 52 118 423 276 gt_box 135 60 415 340 center_dist 37.325962 w_ratio 1.324375 h_ratio 0.563675
+Img DATASET/train/n000016/0001_02.bmp AnchorIdx 24190 pred_box -23 -28 37 35 gt_box 35 51 196 212 center_dist 167.56874 w_ratio 0.3806935 h_ratio 0.40307352
+Img DATASET/train/n000016/0001_02.bmp AnchorIdx 24191 pred_box -180 -39 -133 -15 gt_box 35 51 196 212 center_dist 315.81934 w_ratio 0.29225728 h_ratio 0.14720127
+Img DATASET/train/n000016/0001_02.bmp AnchorIdx 24193 pred_box 64 29 178 164 gt_box 35 51 196 212 center_dist 34.980022 w_ratio 0.71038276 h_ratio 0.8373435
+Img DATASET/train/n000016/0001_02.bmp AnchorIdx 24246 pred_box -84 -175 -66 -130 gt_box 35 51 196 212 center_dist 342.641 w_ratio 0.116799384 h_ratio 0.2767975
+Img DATASET/train/n000016/0001_02.bmp AnchorIdx 24249 pred_box 52 40 151 227 gt_box 35 51 196 212 center_dist 13.6424055 w_ratio 0.61284995 h_ratio 1.1656215
+Img DATASET/train/n000016/0001_02.bmp AnchorIdx 24250 pred_box -33 -10 31 42 gt_box 35 51 196 212 center_dist 163.90006 w_ratio 0.40819284 h_ratio 0.33035618
+Img DATASET/train/n000016/0001_02.bmp AnchorIdx 24251 pred_box -3 98 268 209 gt_box 35 51 196 212 center_dist 27.984577 w_ratio 1.6893761 h_ratio 0.6852733
+Img DATASET/train/n000016/0001_02.bmp AnchorIdx 24252 pred_box 68 -35 131 93 gt_box 35 51 196 212 center_dist 103.25196 w_ratio 0.39161053 h_ratio 0.80114615
+Img DATASET/train/n000016/0001_02.bmp AnchorIdx 24253 pred_box 65 75 287 284 gt_box 35 51 196 212 center_dist 77.73542 w_ratio 1.384245 h_ratio 1.2994232
+Img DATASET/train/n000017/0001_01.bmp AnchorIdx 25236 pred_box 35 -119 334 450 gt_box 45 67 252 274 center_dist 37.05303 w_ratio 1.4429888 h_ratio 2.7539723
+Img DATASET/train/n000017/0001_01.bmp AnchorIdx 25264 pred_box -477 -443 -448 -408 gt_box 45 67 252 274 center_dist 854.1772 w_ratio 0.13731246 h_ratio 0.167056
+Img DATASET/train/n000017/0001_01.bmp AnchorIdx 25265 pred_box -112 122 654 414 gt_box 45 67 252 274 center_dist 157.1713 w_ratio 3.7049787 h_ratio 1.4076097
+Img DATASET/train/n000017/0001_01.bmp AnchorIdx 25266 pred_box 79 -74 179 148 gt_box 45 67 252 274 center_dist 135.10912 w_ratio 0.48663688 h_ratio 1.0794025
+Img DATASET/train/n000017/0001_01.bmp AnchorIdx 25267 pred_box 53 78 372 387 gt_box 45 67 252 274 center_dist 90.07657 w_ratio 1.5411165 h_ratio 1.4880733
+Img DATASET/train/n000017/0001_01.bmp AnchorIdx 25268 pred_box 8 151 572 312 gt_box 45 67 252 274 center_dist 154.77358 w_ratio 2.728012 h_ratio 0.7797793
+Img DATASET/train/n000017/0001_01.bmp AnchorIdx 25271 pred_box 126 114 625 386 gt_box 45 67 252 274 center_dist 241.39285 w_ratio 2.4094706 h_ratio 1.315521
+Img DATASET/train/n000017/0001_01.bmp AnchorIdx 25296 pred_box 41 -26 115 218 gt_box 45 67 252 274 center_dist 102.354675 w_ratio 0.36136302 h_ratio 1.1839099
+Img DATASET/train/n000017/0001_01.bmp AnchorIdx 25297 pred_box 59 131 306 426 gt_box 45 67 252 274 center_dist 113.54468 w_ratio 1.1957245 h_ratio 1.4238232
+Img DATASET/train/n000018/0001_01.bmp AnchorIdx 25237 pred_box -30 -93 111 64 gt_box 42 46 235 239 center_dist 184.7495 w_ratio 0.7374265 h_ratio 0.8201698
+Img DATASET/train/n000018/0001_01.bmp AnchorIdx 25264 pred_box -225 -150 -130 -67 gt_box 42 46 235 239 center_dist 404.51083 w_ratio 0.49616972 h_ratio 0.43065906
+Img DATASET/train/n000018/0001_01.bmp AnchorIdx 25267 pred_box 54 61 242 267 gt_box 42 46 235 239 center_dist 24.100105 w_ratio 0.97175616 h_ratio 1.072077
+Img DATASET/train/n000019/0001_01.bmp AnchorIdx 24190 pred_box 89 88 247 259 gt_box 38 41 211 214 center_dist 64.29816 w_ratio 0.91167796 h_ratio 0.9888646
+Img DATASET/train/n000019/0001_01.bmp AnchorIdx 24193 pred_box 96 108 378 285 gt_box 38 41 211 214 center_dist 132.52734 w_ratio 1.6326411 h_ratio 1.0243193
+Img DATASET/train/n000019/0001_01.bmp AnchorIdx 24250 pred_box 71 103 234 282 gt_box 38 41 211 214 center_dist 71.675 w_ratio 0.9420341 h_ratio 1.0352484
+Img DATASET/train/n000019/0001_01.bmp AnchorIdx 24253 pred_box 57 94 312 314 gt_box 38 41 211 214 center_dist 98.13694 w_ratio 1.4709922 h_ratio 1.2716731
+Img DATASET/train/n000020/0001_01.bmp AnchorIdx 25264 pred_box 14 52 468 543 gt_box 39 52 221 234 center_dist 191.02824 w_ratio 2.494244 h_ratio 2.7000585
+Img DATASET/train/n000020/0001_01.bmp AnchorIdx 25267 pred_box -238 -145 1264 1188 gt_box 39 52 221 234 center_dist 538.05133 w_ratio 8.25991 h_ratio 7.329836
+Img DATASET/train/n000021/0001_01.bmp AnchorIdx 19570 pred_box 0 4 36 40 gt_box 18 27 104 113 center_dist 63.854225 w_ratio 0.41594997 h_ratio 0.41987684
+Img DATASET/train/n000021/0001_01.bmp AnchorIdx 19573 pred_box -90 -114 -85 -109 gt_box 18 27 104 113 center_dist 234.8739 w_ratio 0.060668603 h_ratio 0.056310452
+Img DATASET/train/n000021/0001_01.bmp AnchorIdx 19686 pred_box 14 35 78 164 gt_box 18 27 104 113 center_dist 33.081818 w_ratio 0.73911285 h_ratio 1.4951774
+Img DATASET/train/n000021/0001_01.bmp AnchorIdx 19689 pred_box -26 -95 -17 -78 gt_box 18 27 104 113 center_dist 177.57957 w_ratio 0.10617942 h_ratio 0.19018854
+Img DATASET/train/n000021/0001_01.bmp AnchorIdx 19690 pred_box 22 46 153 123 gt_box 18 27 104 113 center_dist 30.918215 w_ratio 1.5287956 h_ratio 0.8964708
+Img DATASET/train/n000021/0001_01.bmp AnchorIdx 19692 pred_box 7 -57 24 -30 gt_box 18 27 104 113 center_dist 122.41312 w_ratio 0.19572644 h_ratio 0.30826753
+Img DATASET/train/n000021/0001_01.bmp AnchorIdx 19693 pred_box 34 35 146 127 gt_box 18 27 104 113 center_dist 31.709555 w_ratio 1.3068268 h_ratio 1.0725967
+Img DATASET/train/n000022/0001_01.bmp AnchorIdx 25296 pred_box -560 -1192 -554 -1184 gt_box 66 98 373 405 center_dist 1636.6157 w_ratio 0.019115843 h_ratio 0.025177524
+Img DATASET/train/n000022/0001_01.bmp AnchorIdx 25297 pred_box -135 -79 3 68 gt_box 66 98 373 405 center_dist 384.1102 w_ratio 0.4535439 h_ratio 0.48038256
+Img DATASET/train/n000022/0001_01.bmp AnchorIdx 25299 pred_box 32 -138 152 4 gt_box 66 98 373 405 center_dist 342.96872 w_ratio 0.3920901 h_ratio 0.46606296
+Img DATASET/train/n000022/0001_01.bmp AnchorIdx 25300 pred_box -76 -36 1419 1340 gt_box 66 98 373 405 center_dist 603.3704 w_ratio 4.8718658 h_ratio 4.485477
+Img DATASET/train/n000022/0001_01.bmp AnchorIdx 25301 pred_box -179 57 93 134 gt_box 66 98 373 405 center_dist 305.01935 w_ratio 0.88698995 h_ratio 0.25157717
+Img DATASET/train/n000022/0001_01.bmp AnchorIdx 25302 pred_box 217 38 579 958 gt_box 66 98 373 405 center_dist 305.22168 w_ratio 1.1795474 h_ratio 2.996411
+Img DATASET/train/n000022/0001_01.bmp AnchorIdx 25303 pred_box 107 154 787 679 gt_box 66 98 373 405 center_dist 281.50555 w_ratio 2.2155864 h_ratio 1.7087191
+Img DATASET/train/n000022/0001_01.bmp AnchorIdx 25326 pred_box -318 -464 -283 -425 gt_box 66 98 373 405 center_dist 869.49255 w_ratio 0.1115121 h_ratio 0.12710261
+Img DATASET/train/n000022/0001_01.bmp AnchorIdx 25327 pred_box -283 -151 -216 -98 gt_box 66 98 373 405 center_dist 602.03204 w_ratio 0.21705948 h_ratio 0.17369151
+Img DATASET/train/n000022/0001_01.bmp AnchorIdx 25329 pred_box -339 -86 1621 1873 gt_box 66 98 373 405 center_dist 768.0655 w_ratio 6.388716 h_ratio 6.383484
+Img DATASET/train/n000022/0001_01.bmp AnchorIdx 25330 pred_box 87 174 515 549 gt_box 66 98 373 405 center_dist 137.4381 w_ratio 1.3927032 h_ratio 1.2217321
+Img DATASET/train/n000022/0001_01.bmp AnchorIdx 25331 pred_box -599 -120 -519 -99 gt_box 66 98 373 405 center_dist 859.11017 w_ratio 0.2603926 h_ratio 0.06574144
+Img DATASET/train/n000023/0001_01.bmp AnchorIdx 24126 pred_box -3 -89 43 4 gt_box 27 39 148 160 center_dist 156.98306 w_ratio 0.38251284 h_ratio 0.7775839
+Img DATASET/train/n000023/0001_01.bmp AnchorIdx 24127 pred_box 21 -17 188 199 gt_box 27 39 148 160 center_dist 19.28201 w_ratio 1.3796672 h_ratio 1.8008888
+Img DATASET/train/n000023/0001_01.bmp AnchorIdx 24128 pred_box -134 -51 989 552 gt_box 27 39 148 160 center_dist 371.9084 w_ratio 9.289852 h_ratio 4.995644
+Img DATASET/train/n000023/0001_01.bmp AnchorIdx 24130 pred_box 61 27 190 177 gt_box 27 39 148 160 center_dist 38.675697 w_ratio 1.0655629 h_ratio 1.2364117
+Img DATASET/train/n000023/0001_01.bmp AnchorIdx 24131 pred_box 77 25 607 377 gt_box 27 39 148 160 center_dist 274.59213 w_ratio 4.3857155 h_ratio 2.9139972
+Img DATASET/train/n000023/0001_01.bmp AnchorIdx 24186 pred_box -35 -90 -8 -16 gt_box 27 39 148 160 center_dist 188.35457 w_ratio 0.2235323 h_ratio 0.61367977
+Img DATASET/train/n000023/0001_01.bmp AnchorIdx 24187 pred_box 65 64 327 423 gt_box 27 39 148 160 center_dist 181.0099 w_ratio 2.1654506 h_ratio 2.9663003
+Img DATASET/train/n000023/0001_01.bmp AnchorIdx 24188 pred_box -43 50 89 115 gt_box 27 39 148 160 center_dist 66.439064 w_ratio 1.094202 h_ratio 0.54099226
+Img DATASET/train/n000023/0001_01.bmp AnchorIdx 24190 pred_box 48 85 282 214 gt_box 27 39 148 160 center_dist 93.007706 w_ratio 1.9331011 h_ratio 1.0638455
+Img DATASET/train/n000023/0001_01.bmp AnchorIdx 24191 pred_box 84 70 510 347 gt_box 27 39 148 160 center_dist 236.91213 w_ratio 3.5224276 h_ratio 2.2869442
+Img DATASET/train/n000024/0001_01.bmp AnchorIdx 25236 pred_box -436 -956 1583 2854 gt_box 45 61 255 271 center_dist 889.9155 w_ratio 9.618526 h_ratio 18.149809
+Img DATASET/train/n000024/0001_01.bmp AnchorIdx 25264 pred_box 58 70 514 653 gt_box 45 61 255 271 center_dist 238.96944 w_ratio 2.1724048 h_ratio 2.776562
+Img DATASET/train/n000024/0001_01.bmp AnchorIdx 25265 pred_box -116 159 457 309 gt_box 45 61 255 271 center_dist 71.08879 w_ratio 2.734613 h_ratio 0.71415633
+Img DATASET/train/n000024/0001_01.bmp AnchorIdx 25266 pred_box 132 24 326 544 gt_box 45 61 255 271 center_dist 142.55972 w_ratio 0.9225491 h_ratio 2.475962
+Img DATASET/train/n000024/0001_01.bmp AnchorIdx 25267 pred_box 138 108 387 404 gt_box 45 61 255 271 center_dist 144.62378 w_ratio 1.1844937 h_ratio 1.4093702
+Img DATASET/train/n000024/0001_01.bmp AnchorIdx 25268 pred_box 25 95 391 274 gt_box 45 61 255 271 center_dist 61.876488 w_ratio 1.7413889 h_ratio 0.8553347
+Img DATASET/train/n000024/0001_01.bmp AnchorIdx 25271 pred_box -37 28 122 124 gt_box 45 61 255 271 center_dist 139.80821 w_ratio 0.7627589 h_ratio 0.4585133
+Img DATASET/train/n000024/0001_01.bmp AnchorIdx 25296 pred_box 95 66 245 462 gt_box 45 61 255 271 center_dist 100.705925 w_ratio 0.7148792 h_ratio 1.8882998
+Img DATASET/train/n000024/0001_01.bmp AnchorIdx 25297 pred_box 0 92 155 306 gt_box 45 61 255 271 center_dist 79.23163 w_ratio 0.7382731 h_ratio 1.0188953
+Img DATASET/train/n000025/0001_01.bmp AnchorIdx 25296 pred_box -122 -414 -94 -334 gt_box 54 116 305 367 center_dist 680.1821 w_ratio 0.114367455 h_ratio 0.3208676
+Img DATASET/train/n000025/0001_01.bmp AnchorIdx 25297 pred_box -283 -224 -220 -175 gt_box 54 116 305 367 center_dist 617.5952 w_ratio 0.24953269 h_ratio 0.19689617
+Img DATASET/train/n000025/0001_01.bmp AnchorIdx 25298 pred_box -32 174 449 295 gt_box 54 116 305 367 center_dist 29.689552 w_ratio 1.9224371 h_ratio 0.4796364
+Img DATASET/train/n000025/0001_01.bmp AnchorIdx 25299 pred_box 132 16 301 406 gt_box 54 116 305 367 center_dist 48.128887 w_ratio 0.67376393 h_ratio 1.5552305
+Img DATASET/train/n000025/0001_01.bmp AnchorIdx 25300 pred_box 217 68 676 893 gt_box 54 116 305 367 center_dist 359.1445 w_ratio 1.8256456 h_ratio 3.2863371
+Img DATASET/train/n000025/0001_01.bmp AnchorIdx 25301 pred_box -224 31 -50 99 gt_box 54 116 305 367 center_dist 362.89703 w_ratio 0.6936324 h_ratio 0.27015597
+Img DATASET/train/n000025/0001_01.bmp AnchorIdx 25326 pred_box 41 104 181 457 gt_box 54 116 305 367 center_dist 78.53334 w_ratio 0.55948484 h_ratio 1.4062554
+Img DATASET/train/n000025/0001_01.bmp AnchorIdx 25327 pred_box -58 90 111 245 gt_box 54 116 305 367 center_dist 169.88162 w_ratio 0.67501914 h_ratio 0.6142416
+Img DATASET/train/n000025/0001_01.bmp AnchorIdx 25329 pred_box 123 223 597 711 gt_box 54 116 305 367 center_dist 289.52216 w_ratio 1.8880454 h_ratio 1.9417898
+Img DATASET/train/n000025/0001_01.bmp AnchorIdx 25330 pred_box 73 153 347 407 gt_box 54 116 305 367 center_dist 49.56477 w_ratio 1.091277 h_ratio 1.0104511
+Img DATASET/train/n000026/0001_01.bmp AnchorIdx 24066 pred_box -680 -1236 1384 2423 gt_box 23 34 130 141 center_dist 576.1806 w_ratio 19.300978 h_ratio 34.201233
+Img DATASET/train/n000026/0001_01.bmp AnchorIdx 24124 pred_box -6 50 145 169 gt_box 23 34 130 141 center_dist 23.442743 w_ratio 1.4229567 h_ratio 1.1103445
+Img DATASET/train/n000026/0001_01.bmp AnchorIdx 24125 pred_box -125 43 780 401 gt_box 23 34 130 141 center_dist 284.96835 w_ratio 8.46976 h_ratio 3.3492434
+Img DATASET/train/n000026/0001_01.bmp AnchorIdx 24126 pred_box 44 2 112 140 gt_box 23 34 130 141 center_dist 15.758759 w_ratio 0.6332883 h_ratio 1.2898322
+Img DATASET/train/n000026/0001_01.bmp AnchorIdx 24127 pred_box 33 53 441 426 gt_box 23 34 130 141 center_dist 221.36822 w_ratio 3.8110776 h_ratio 3.4847965
+Img DATASET/train/n000026/0001_01.bmp AnchorIdx 24128 pred_box -46 23 58 66 gt_box 23 34 130 141 center_dist 82.10407 w_ratio 0.97897404 h_ratio 0.40539807
+Img DATASET/train/n000026/0001_01.bmp AnchorIdx 24131 pred_box 87 61 435 257 gt_box 23 34 130 141 center_dist 198.7721 w_ratio 3.2564664 h_ratio 1.8310361
+Img DATASET/train/n000026/0001_01.bmp AnchorIdx 24186 pred_box 17 -4 61 103 gt_box 23 34 130 141 center_dist 53.024006 w_ratio 0.41020134 h_ratio 1.0097281
+Img DATASET/train/n000026/0001_01.bmp AnchorIdx 24187 pred_box -28 2 43 74 gt_box 23 34 130 141 center_dist 84.70851 w_ratio 0.67003435 h_ratio 0.67565054
+Img DATASET/train/n000027/0001_01.bmp AnchorIdx 25271 pred_box 158 119 890 530 gt_box 81 71 408 398 center_dist 293.98148 w_ratio 2.238731 h_ratio 1.2560876
+Img DATASET/train/n000027/0001_01.bmp AnchorIdx 25299 pred_box 69 -55 153 121 gt_box 81 71 408 398 center_dist 241.53993 w_ratio 0.25834873 h_ratio 0.54112655
+Img DATASET/train/n000027/0001_01.bmp AnchorIdx 25300 pred_box 146 141 682 752 gt_box 81 71 408 398 center_dist 272.28818 w_ratio 1.6374562 h_ratio 1.8700229
+Img DATASET/train/n000027/0001_01.bmp AnchorIdx 25301 pred_box -76 84 160 181 gt_box 81 71 408 398 center_dist 226.65494 w_ratio 0.72356284 h_ratio 0.29638514
+Img DATASET/train/n000027/0001_01.bmp AnchorIdx 25302 pred_box 191 -101 838 1518 gt_box 81 71 408 398 center_dist 545.51587 w_ratio 1.9782211 h_ratio 4.9548926
+Img DATASET/train/n000027/0001_01.bmp AnchorIdx 25303 pred_box 40 -5 196 136 gt_box 81 71 408 398 center_dist 210.89977 w_ratio 0.4790543 h_ratio 0.43332288
+Img DATASET/train/n000027/0001_01.bmp AnchorIdx 25330 pred_box 77 173 596 708 gt_box 81 71 408 398 center_dist 226.405 w_ratio 1.587532 h_ratio 1.6357844
+Img DATASET/train/n000027/0001_01.bmp AnchorIdx 25331 pred_box -56 153 263 302 gt_box 81 71 408 398 center_dist 141.29453 w_ratio 0.9785526 h_ratio 0.45476106
+Img DATASET/train/n000027/0001_01.bmp AnchorIdx 25333 pred_box 164 109 708 748 gt_box 81 71 408 398 center_dist 273.64087 w_ratio 1.6655319 h_ratio 1.9533896
+Img DATASET/train/n000028/0001_01.bmp AnchorIdx 24129 pred_box -345 -845 -345 -843 gt_box 51 29 185 163 center_dist 1048.4315 w_ratio 0.005464106 h_ratio 0.014906998
+Img DATASET/train/n000028/0001_01.bmp AnchorIdx 24130 pred_box -286 -321 -274 -316 gt_box 51 29 185 163 center_dist 575.4644 w_ratio 0.08885616 h_ratio 0.043007556
+Img DATASET/train/n000028/0001_01.bmp AnchorIdx 24131 pred_box -27 12 104 78 gt_box 51 29 185 163 center_dist 94.37113 w_ratio 0.9832267 h_ratio 0.49156132
+Img DATASET/train/n000028/0001_01.bmp AnchorIdx 24132 pred_box 126 -100 465 925 gt_box 51 29 185 163 center_dist 363.09332 w_ratio 2.5295055 h_ratio 7.66149
+Img DATASET/train/n000028/0001_01.bmp AnchorIdx 24133 pred_box 22 -42 84 20 gt_box 51 29 185 163 center_dist 124.96513 w_ratio 0.46564624 h_ratio 0.46844706
+Img DATASET/train/n000028/0001_01.bmp AnchorIdx 24134 pred_box -13 12 115 77 gt_box 51 29 185 163 center_dist 84.31446 w_ratio 0.9567108 h_ratio 0.48508483
+Img DATASET/train/n000028/0001_01.bmp AnchorIdx 24189 pred_box -3 38 112 144 gt_box 51 29 185 163 center_dist 63.440277 w_ratio 0.86609614 h_ratio 0.7906587
+Img DATASET/train/n000028/0001_01.bmp AnchorIdx 24190 pred_box -84 -86 -57 -48 gt_box 51 29 185 163 center_dist 249.74707 w_ratio 0.20308536 h_ratio 0.2823647
+Img DATASET/train/n000028/0001_01.bmp AnchorIdx 24191 pred_box 38 76 392 161 gt_box 51 29 185 163 center_dist 100.22804 w_ratio 2.6402884 h_ratio 0.63833726
+Img DATASET/train/n000028/0001_01.bmp AnchorIdx 24192 pred_box 90 -35 148 161 gt_box 51 29 185 163 center_dist 32.92075 w_ratio 0.43525204 h_ratio 1.470939
+Img DATASET/train/n000028/0001_01.bmp AnchorIdx 24193 pred_box 86 -8 181 201 gt_box 51 29 185 163 center_dist 15.914512 w_ratio 0.71239525 h_ratio 1.5677329
+Img DATASET/train/n000028/0001_01.bmp AnchorIdx 24194 pred_box -34 37 94 92 gt_box 51 29 185 163 center_dist 93.303375 w_ratio 0.9649042 h_ratio 0.40527117
+Img DATASET/train/n000030/0001_01.bmp AnchorIdx 24129 pred_box 44 0 330 502 gt_box 44 30 183 169 center_dist 169.29831 w_ratio 2.058626 h_ratio 3.6074214
+Img DATASET/train/n000030/0001_01.bmp AnchorIdx 24130 pred_box 31 -11 474 468 gt_box 44 30 183 169 center_dist 190.04599 w_ratio 3.1845171 h_ratio 3.4532528
+Img DATASET/train/n000030/0001_01.bmp AnchorIdx 24131 pred_box -35 74 548 250 gt_box 44 30 183 169 center_dist 156.47173 w_ratio 4.2008214 h_ratio 1.263651
+Img DATASET/train/n000030/0001_01.bmp AnchorIdx 24187 pred_box 38 48 279 359 gt_box 44 30 183 169 center_dist 114.20785 w_ratio 1.7330926 h_ratio 2.2366602
+Img DATASET/train/n000030/0001_01.bmp AnchorIdx 24189 pred_box 73 15 147 243 gt_box 44 30 183 169 center_dist 29.71064 w_ratio 0.53158814 h_ratio 1.6414249
+Img DATASET/train/n000030/0001_01.bmp AnchorIdx 24190 pred_box 63 55 278 267 gt_box 44 30 183 169 center_dist 84.58981 w_ratio 1.5445461 h_ratio 1.5219498
+Img DATASET/train/n000030/0001_01.bmp AnchorIdx 24191 pred_box -10 70 239 147 gt_box 44 30 183 169 center_dist 9.517658 w_ratio 1.8015132 h_ratio 0.5530713
+Img DATASET/train/n000030/0001_01.bmp AnchorIdx 24193 pred_box -124 -266 967 1022 gt_box 44 30 183 169 center_dist 415.06958 w_ratio 7.85805 h_ratio 9.27351
+Img DATASET/train/n000031/0001_01.bmp AnchorIdx 24130 pred_box -135 -184 -118 -156 gt_box 33 38 182 187 center_dist 367.55026 w_ratio 0.11731385 h_ratio 0.18429068
+Img DATASET/train/n000031/0001_01.bmp AnchorIdx 24131 pred_box -134 -45 -74 -11 gt_box 33 38 182 187 center_dist 254.70485 w_ratio 0.39869252 h_ratio 0.22746815
+Img DATASET/train/n000031/0001_01.bmp AnchorIdx 24186 pred_box 22 37 110 233 gt_box 33 38 182 187 center_dist 47.145256 w_ratio 0.59327596 h_ratio 1.3094925
+Img DATASET/train/n000031/0001_01.bmp AnchorIdx 24187 pred_box 15 67 237 188 gt_box 33 38 182 187 center_dist 24.149923 w_ratio 1.4900371 h_ratio 0.8096125
+Img DATASET/train/n000031/0001_01.bmp AnchorIdx 24189 pred_box 12 -84 48 14 gt_box 33 38 182 187 center_dist 166.5676 w_ratio 0.23765653 h_ratio 0.662666
+Img DATASET/train/n000031/0001_01.bmp AnchorIdx 24190 pred_box 44 58 224 181 gt_box 33 38 182 187 center_dist 27.9643 w_ratio 1.2054129 h_ratio 0.8281122
+Img DATASET/train/n000031/0001_01.bmp AnchorIdx 24191 pred_box -20 54 147 135 gt_box 33 38 182 187 center_dist 47.210045 w_ratio 1.125219 h_ratio 0.5441511
+Img DATASET/train/n000031/0001_01.bmp AnchorIdx 24193 pred_box 70 37 486 450 gt_box 33 38 182 187 center_dist 215.37494 w_ratio 2.7865925 h_ratio 2.772173
+Img DATASET/train/n000031/0001_01.bmp AnchorIdx 24250 pred_box 59 73 316 390 gt_box 33 38 182 187 center_dist 143.67046 w_ratio 1.7244402 h_ratio 2.1279042
+Img DATASET/train/n000031/0001_01.bmp AnchorIdx 24251 pred_box -8 99 308 255 gt_box 33 38 182 187 center_dist 77.86053 w_ratio 2.124687 h_ratio 1.0464938
+Img DATASET/train/n000032/0001_01.bmp AnchorIdx 25237 pred_box 3 -62 210 146 gt_box 42 46 235 239 center_dist 104.902626 w_ratio 1.0728854 h_ratio 1.081497
+Img DATASET/train/n000032/0001_01.bmp AnchorIdx 25264 pred_box -20 -43 720 845 gt_box 42 46 235 239 center_dist 334.04425 w_ratio 3.8394241 h_ratio 4.602874
+Img DATASET/train/n000032/0001_01.bmp AnchorIdx 25267 pred_box 83 -84 657 744 gt_box 42 46 235 239 center_dist 298.20257 w_ratio 2.9718518 h_ratio 4.2944374
+Img DATASET/train/n000033/0001_01.bmp AnchorIdx 24066 pred_box -132 -398 -124 -379 gt_box 23 35 131 143 center_dist 520.4722 w_ratio 0.072859034 h_ratio 0.17175041
+Img DATASET/train/n000033/0001_01.bmp AnchorIdx 24124 pred_box -291 -284 -284 -274 gt_box 23 35 131 143 center_dist 518.3111 w_ratio 0.061928622 h_ratio 0.09093927
+Img DATASET/train/n000033/0001_01.bmp AnchorIdx 24125 pred_box -112 15 -9 52 gt_box 23 35 131 143 center_dist 148.48662 w_ratio 0.95141286 h_ratio 0.34210604
+Img DATASET/train/n000033/0001_01.bmp AnchorIdx 24126 pred_box 86 49 189 277 gt_box 23 35 131 143 center_dist 96.17512 w_ratio 0.9537349 h_ratio 2.1096747
+Img DATASET/train/n000033/0001_01.bmp AnchorIdx 24127 pred_box 61 62 281 288 gt_box 23 35 131 143 center_dist 128.40341 w_ratio 2.0409236 h_ratio 2.0976286
+Img DATASET/train/n000033/0001_01.bmp AnchorIdx 24128 pred_box -56 50 142 96 gt_box 23 35 131 143 center_dist 37.40542 w_ratio 1.835894 h_ratio 0.4270862
+Img DATASET/train/n000033/0001_01.bmp AnchorIdx 24131 pred_box -6 20 80 78 gt_box 23 35 131 143 center_dist 56.18389 w_ratio 0.7991281 h_ratio 0.5342187
+Img DATASET/train/n000033/0001_01.bmp AnchorIdx 24186 pred_box 58 17 112 280 gt_box 23 35 131 143 center_dist 60.550438 w_ratio 0.49915493 h_ratio 2.4361897
+Img DATASET/train/n000033/0001_01.bmp AnchorIdx 24187 pred_box -26 16 28 87 gt_box 23 35 131 143 center_dist 84.39699 w_ratio 0.516672 h_ratio 0.6614506
+Img DATASET/train/n000034/0001_01.bmp AnchorIdx 25236 pred_box -2216 -1804 3698 4328 gt_box 45 47 250 252 center_dist 1260.8387 w_ratio 28.856855 h_ratio 29.921349
+Img DATASET/train/n000034/0001_01.bmp AnchorIdx 25237 pred_box -403 -528 1893 1897 gt_box 45 47 250 252 center_dist 802.1309 w_ratio 11.204531 h_ratio 11.835307
+Img DATASET/train/n000034/0001_01.bmp AnchorIdx 25264 pred_box -32 183 442 418 gt_box 45 47 250 252 center_dist 162.21367 w_ratio 2.3210309 h_ratio 1.1436871
+Img DATASET/train/n000034/0001_01.bmp AnchorIdx 25265 pred_box -2 74 1205 760 gt_box 45 47 250 252 center_dist 527.4503 w_ratio 5.8902884 h_ratio 3.3481581
+Img DATASET/train/n000034/0001_01.bmp AnchorIdx 25266 pred_box 112 24 267 305 gt_box 45 47 250 252 center_dist 45.369713 w_ratio 0.75886124 h_ratio 1.3674605
+Img DATASET/train/n000034/0001_01.bmp AnchorIdx 25267 pred_box 142 75 749 816 gt_box 45 47 250 252 center_dist 420.679 w_ratio 2.9617736 h_ratio 3.6147285
+Img DATASET/train/n000034/0001_01.bmp AnchorIdx 25268 pred_box -56 80 269 174 gt_box 45 47 250 252 center_dist 46.350014 w_ratio 1.5866144 h_ratio 0.45757762
+Img DATASET/train/n000034/0001_01.bmp AnchorIdx 25271 pred_box 198 103 662 419 gt_box 45 47 250 252 center_dist 304.65906 w_ratio 2.262644 h_ratio 1.5393887
+Img DATASET/train/n000034/0001_01.bmp AnchorIdx 25296 pred_box 66 -7 165 285 gt_box 45 47 250 252 center_dist 33.386044 w_ratio 0.4821737 h_ratio 1.4281077
+Img DATASET/train/n000035/0001_01.bmp AnchorIdx 25300 pred_box 23 8 127 153 gt_box 74 88 417 431 center_dist 246.42009 w_ratio 0.30500183 h_ratio 0.42459944
+Img DATASET/train/n000035/0001_01.bmp AnchorIdx 25303 pred_box -35 -112 70 -54 gt_box 74 88 417 431 center_dist 412.0771 w_ratio 0.31031302 h_ratio 0.169194
+Img DATASET/train/n000035/0001_01.bmp AnchorIdx 25330 pred_box 39 99 187 296 gt_box 74 88 417 431 center_dist 145.56273 w_ratio 0.43025625 h_ratio 0.5753558
+Img DATASET/train/n000035/0001_01.bmp AnchorIdx 25333 pred_box 51 114 310 336 gt_box 74 88 417 431 center_dist 73.01663 w_ratio 0.75620866 h_ratio 0.64850575
+Img DATASET/train/n000036/0001_01.bmp AnchorIdx 25266 pred_box 11 -89 255 369 gt_box 63 54 310 301 center_dist 64.66549 w_ratio 0.9886102 h_ratio 1.8610108
+Img DATASET/train/n000036/0001_01.bmp AnchorIdx 25267 pred_box 92 17 444 451 gt_box 63 54 310 301 center_dist 99.79161 w_ratio 1.4283306 h_ratio 1.757455
+Img DATASET/train/n000036/0001_01.bmp AnchorIdx 25268 pred_box -53 100 466 254 gt_box 63 54 310 301 center_dist 20.078568 w_ratio 2.1031463 h_ratio 0.62058413
+Img DATASET/train/n000036/0001_01.bmp AnchorIdx 25269 pred_box 180 -23 404 547 gt_box 63 54 310 301 center_dist 135.23526 w_ratio 0.9067487 h_ratio 2.310777
+Img DATASET/train/n000036/0001_01.bmp AnchorIdx 25270 pred_box 166 68 469 465 gt_box 63 54 310 301 center_dist 159.11449 w_ratio 1.2282931 h_ratio 1.6048244
+Img DATASET/train/n000036/0001_01.bmp AnchorIdx 25271 pred_box 54 84 500 296 gt_box 63 54 310 301 center_dist 92.14657 w_ratio 1.8043038 h_ratio 0.8585437
+Img DATASET/train/n000036/0001_01.bmp AnchorIdx 25296 pred_box 20 -13 130 244 gt_box 63 54 310 301 center_dist 126.82977 w_ratio 0.4468068 h_ratio 1.0459716
+Img DATASET/train/n000036/0001_01.bmp AnchorIdx 25297 pred_box 48 106 322 409 gt_box 63 54 310 301 center_dist 80.478935 w_ratio 1.1101573 h_ratio 1.2256548
+Img DATASET/train/n000036/0001_01.bmp AnchorIdx 25299 pred_box 142 112 433 470 gt_box 63 54 310 301 center_dist 152.67421 w_ratio 1.1789544 h_ratio 1.4505582
+Img DATASET/train/n000036/0001_01.bmp AnchorIdx 25300 pred_box 113 96 393 389 gt_box 63 54 310 301 center_dist 93.50223 w_ratio 1.1343677 h_ratio 1.1862323
+Img DATASET/train/n000037/0001_01.bmp AnchorIdx 24130 pred_box -42 67 576 419 gt_box 30 44 168 182 center_dist 213.03621 w_ratio 4.4845724 h_ratio 2.546317
+Img DATASET/train/n000037/0001_01.bmp AnchorIdx 24186 pred_box 51 40 200 359 gt_box 30 44 168 182 center_dist 91.02697 w_ratio 1.0832653 h_ratio 2.3049867
+Img DATASET/train/n000037/0001_01.bmp AnchorIdx 24187 pred_box 6 100 271 299 gt_box 30 44 168 182 center_dist 95.79548 w_ratio 1.9174599 h_ratio 1.4430437
+Img DATASET/train/n000037/0001_01.bmp AnchorIdx 24188 pred_box 15 78 300 206 gt_box 30 44 168 182 center_dist 65.52721 w_ratio 2.0649135 h_ratio 0.9277179
+Img DATASET/train/n000037/0001_01.bmp AnchorIdx 24189 pred_box 73 43 191 265 gt_box 30 44 168 182 center_dist 53.334545 w_ratio 0.85187614 h_ratio 1.6103892
+Img DATASET/train/n000037/0001_01.bmp AnchorIdx 24190 pred_box 67 52 236 229 gt_box 30 44 168 182 center_dist 59.922237 w_ratio 1.2209061 h_ratio 1.2800341
+Img DATASET/train/n000037/0001_01.bmp AnchorIdx 24191 pred_box -17 80 249 165 gt_box 30 44 168 182 center_dist 19.58077 w_ratio 1.9368023 h_ratio 0.6195298
+Img DATASET/train/n000037/0001_01.bmp AnchorIdx 24250 pred_box 61 79 214 252 gt_box 30 44 168 182 center_dist 65.705475 w_ratio 1.1110328 h_ratio 1.2517046
+Img DATASET/train/n000038/0001_01.bmp AnchorIdx 24124 pred_box -359 -333 -353 -326 gt_box 20 29 113 122 center_dist 586.021 w_ratio 0.06002606 h_ratio 0.0729251
+Img DATASET/train/n000038/0001_01.bmp AnchorIdx 24127 pred_box -14 -29 66 61 gt_box 20 29 113 122 center_dist 71.81015 w_ratio 0.8727353 h_ratio 0.9812311
+Img DATASET/train/n000039/0001_01.bmp AnchorIdx 25265 pred_box -1 83 277 214 gt_box 51 64 289 302 center_dist 46.286446 w_ratio 1.1739841 h_ratio 0.54941225
+Img DATASET/train/n000039/0001_01.bmp AnchorIdx 25266 pred_box -7 -192 72 -4 gt_box 51 64 289 302 center_dist 313.0432 w_ratio 0.33511478 h_ratio 0.79213095
+Img DATASET/train/n000039/0001_01.bmp AnchorIdx 25267 pred_box -100 -106 -32 -1 gt_box 51 64 289 302 center_dist 334.52914 w_ratio 0.28433094 h_ratio 0.4418852
+Img DATASET/train/n000039/0001_01.bmp AnchorIdx 25268 pred_box -75 56 222 175 gt_box 51 64 289 302 center_dist 117.65468 w_ratio 1.2538505 h_ratio 0.49989516
+Img DATASET/train/n000039/0001_01.bmp AnchorIdx 25270 pred_box 170 -78 1108 1211 gt_box 51 64 289 302 center_dist 605.80817 w_ratio 3.9441738 h_ratio 5.4203067
+Img DATASET/train/n000039/0001_01.bmp AnchorIdx 25271 pred_box 19 63 292 215 gt_box 51 64 289 302 center_dist 45.86567 w_ratio 1.149607 h_ratio 0.63980085
+Img DATASET/train/n000039/0001_01.bmp AnchorIdx 25296 pred_box 10 18 127 271 gt_box 51 64 289 302 center_dist 108.33023 w_ratio 0.49140734 h_ratio 1.0646135
+Img DATASET/train/n000039/0001_01.bmp AnchorIdx 25297 pred_box 7 72 174 290 gt_box 51 64 289 302 center_dist 78.92813 w_ratio 0.70355004 h_ratio 0.91278195
+Img DATASET/train/n000041/0001_01.bmp AnchorIdx 25269 pred_box 150 99 523 577 gt_box 101 62 390 351 center_dist 160.58357 w_ratio 1.2910014 h_ratio 1.65565
+Img DATASET/train/n000041/0001_01.bmp AnchorIdx 25270 pred_box 129 52 413 363 gt_box 101 62 390 351 center_dist 25.98384 w_ratio 0.98452455 h_ratio 1.0769814
+Img DATASET/train/n000041/0001_01.bmp AnchorIdx 25271 pred_box -82 67 294 164 gt_box 101 62 390 351 center_dist 166.50136 w_ratio 1.3022735 h_ratio 0.33331928
+Img DATASET/train/n000041/0001_01.bmp AnchorIdx 25272 pred_box 232 24 470 575 gt_box 101 62 390 351 center_dist 140.91345 w_ratio 0.82272315 h_ratio 1.9068097
+Img DATASET/train/n000041/0001_01.bmp AnchorIdx 25273 pred_box 165 15 983 975 gt_box 101 62 390 351 center_dist 437.72305 w_ratio 2.8306606 h_ratio 3.321189
+Img DATASET/train/n000041/0001_01.bmp AnchorIdx 25274 pred_box 75 93 520 293 gt_box 101 62 390 351 center_dist 54.11795 w_ratio 1.5397738 h_ratio 0.6922108
+Img DATASET/train/n000041/0001_01.bmp AnchorIdx 25299 pred_box 43 -26 157 223 gt_box 101 62 390 351 center_dist 180.51373 w_ratio 0.39499822 h_ratio 0.8658172
+Img DATASET/train/n000041/0001_01.bmp AnchorIdx 25300 pred_box 67 104 326 362 gt_box 101 62 390 351 center_dist 55.351417 w_ratio 0.8948326 h_ratio 0.8955947
+Img DATASET/train/n000041/0001_01.bmp AnchorIdx 25301 pred_box -46 97 349 209 gt_box 101 62 390 351 center_dist 107.62 w_ratio 1.3712871 h_ratio 0.38696125
+Img DATASET/train/n000041/0001_01.bmp AnchorIdx 25302 pred_box 209 39 419 551 gt_box 101 62 390 351 center_dist 112.52689 w_ratio 0.72624034 h_ratio 1.7744561
+Img DATASET/train/n000041/0001_01.bmp AnchorIdx 25303 pred_box 228 25 653 689 gt_box 101 62 390 351 center_dist 247.22244 w_ratio 1.4695155 h_ratio 2.2991693
+Img DATASET/train/n000041/0001_01.bmp AnchorIdx 25304 pred_box 17 122 395 290 gt_box 101 62 390 351 center_dist 38.759476 w_ratio 1.3086538 h_ratio 0.58224195
+Img DATASET/train/n000042/0001_01.bmp AnchorIdx 25236 pred_box 19 -209 155 87 gt_box 44 65 248 269 center_dist 235.23247 w_ratio 0.66978985 h_ratio 1.4582139
+Img DATASET/train/n000042/0001_01.bmp AnchorIdx 25264 pred_box -147 -56 9 112 gt_box 44 65 248 269 center_dist 255.58798 w_ratio 0.7705201 h_ratio 0.82870597
+Img DATASET/train/n000042/0001_01.bmp AnchorIdx 25265 pred_box -142 108 187 202 gt_box 44 65 248 269 center_dist 123.9471 w_ratio 1.617406 h_ratio 0.46362734
+Img DATASET/train/n000042/0001_01.bmp AnchorIdx 25266 pred_box 50 -80 174 213 gt_box 44 65 248 269 center_dist 105.91597 w_ratio 0.6073508 h_ratio 1.4413413
+Img DATASET/train/n000042/0001_01.bmp AnchorIdx 25267 pred_box 101 65 284 347 gt_box 44 65 248 269 center_dist 61.436027 w_ratio 0.8938222 h_ratio 1.3798547
+Img DATASET/train/n000042/0001_01.bmp AnchorIdx 25268 pred_box -53 70 258 203 gt_box 44 65 248 269 center_dist 52.700108 w_ratio 1.5289009 h_ratio 0.65188617
+Img DATASET/train/n000042/0001_01.bmp AnchorIdx 25271 pred_box -72 23 71 109 gt_box 44 65 248 269 center_dist 177.70805 w_ratio 0.70745915 h_ratio 0.4229381
+Img DATASET/train/n000042/0001_01.bmp AnchorIdx 25296 pred_box 76 52 219 393 gt_box 44 65 248 269 center_dist 56.05195 w_ratio 0.70280093 h_ratio 1.6677843
+Img DATASET/train/n000043/0001_01.bmp AnchorIdx 25236 pred_box 133 -27 294 468 gt_box 45 66 252 273 center_dist 83.11062 w_ratio 0.78052884 h_ratio 2.393798
+Img DATASET/train/n000043/0001_01.bmp AnchorIdx 25264 pred_box -36 77 234 281 gt_box 45 66 252 273 center_dist 50.356407 w_ratio 1.311899 h_ratio 0.98306704
+Img DATASET/train/n000043/0001_01.bmp AnchorIdx 25265 pred_box -167 99 106 175 gt_box 45 66 252 273 center_dist 181.90224 w_ratio 1.3283025 h_ratio 0.3678763
+Img DATASET/train/n000043/0001_01.bmp AnchorIdx 25266 pred_box 105 16 268 358 gt_box 45 66 252 273 center_dist 42.36755 w_ratio 0.78912175 h_ratio 1.6532822
+Img DATASET/train/n000043/0001_01.bmp AnchorIdx 25267 pred_box 123 44 282 329 gt_box 45 66 252 273 center_dist 57.282825 w_ratio 0.77024925 h_ratio 1.3778262
+Img DATASET/train/n000043/0001_01.bmp AnchorIdx 25268 pred_box -2 104 381 246 gt_box 45 66 252 273 center_dist 41.186245 w_ratio 1.8554901 h_ratio 0.6857479
+Img DATASET/train/n000043/0001_01.bmp AnchorIdx 25271 pred_box 116 127 519 368 gt_box 45 66 252 273 center_dist 186.92383 w_ratio 1.948248 h_ratio 1.1645591
+Img DATASET/train/n000043/0001_01.bmp AnchorIdx 25296 pred_box 88 81 240 413 gt_box 45 66 252 273 center_dist 79.75688 w_ratio 0.73415196 h_ratio 1.6002222
+Img DATASET/train/n000043/0001_01.bmp AnchorIdx 25297 pred_box 15 73 160 302 gt_box 45 66 252 273 center_dist 63.056454 w_ratio 0.6996872 h_ratio 1.1063902
+Img DATASET/train/n000044/0001_01.bmp AnchorIdx 24186 pred_box 14 -12 70 74 gt_box 34 50 190 206 center_dist 119.49006 w_ratio 0.36183164 h_ratio 0.5588073
+Img DATASET/train/n000044/0001_01.bmp AnchorIdx 24187 pred_box -18 -9 46 53 gt_box 34 50 190 206 center_dist 144.48209 w_ratio 0.42057222 h_ratio 0.40377504
+Img DATASET/train/n000044/0001_01.bmp AnchorIdx 24189 pred_box 62 24 155 145 gt_box 34 50 190 206 center_dist 42.9872 w_ratio 0.5963959 h_ratio 0.77431345
+Img DATASET/train/n000044/0001_01.bmp AnchorIdx 24190 pred_box 63 54 241 228 gt_box 34 50 190 206 center_dist 42.914978 w_ratio 1.1411933 h_ratio 1.1188956
+Img DATASET/train/n000044/0001_01.bmp AnchorIdx 24191 pred_box 5 85 287 170 gt_box 34 50 190 206 center_dist 34.620018 w_ratio 1.8054954 h_ratio 0.54709166
+Img DATASET/train/n000044/0001_01.bmp AnchorIdx 24192 pred_box 87 13 182 235 gt_box 34 50 190 206 center_dist 23.088165 w_ratio 0.61107296 h_ratio 1.4270847
+Img DATASET/train/n000044/0001_01.bmp AnchorIdx 24193 pred_box 58 47 194 164 gt_box 34 50 190 206 center_dist 26.1978 w_ratio 0.8677374 h_ratio 0.74758965
+Img DATASET/train/n000044/0001_01.bmp AnchorIdx 24246 pred_box -41 121 224 380 gt_box 34 50 190 206 center_dist 124.964966 w_ratio 1.7084558 h_ratio 1.6596115
+Img DATASET/train/n000044/0001_01.bmp AnchorIdx 24247 pred_box 0 84 156 225 gt_box 34 50 190 206 center_dist 43.558624 w_ratio 1.0068522 h_ratio 0.9013709
+Img DATASET/train/n000044/0001_01.bmp AnchorIdx 24249 pred_box 60 20 163 154 gt_box 34 50 190 206 center_dist 40.09189 w_ratio 0.6578918 h_ratio 0.8578656
+Img DATASET/train/n000044/0001_01.bmp AnchorIdx 24250 pred_box 40 71 199 217 gt_box 34 50 190 206 center_dist 18.050135 w_ratio 1.0190951 h_ratio 0.93473476
+Img DATASET/train/n000044/0001_01.bmp AnchorIdx 24251 pred_box -28 91 303 166 gt_box 34 50 190 206 center_dist 25.204233 w_ratio 2.1274328 h_ratio 0.47684556
+Img DATASET/train/n000044/0001_01.bmp AnchorIdx 24252 pred_box 91 14 186 228 gt_box 34 50 190 206 center_dist 27.621655 w_ratio 0.60626394 h_ratio 1.370674
+Img DATASET/train/n000044/0001_01.bmp AnchorIdx 24253 pred_box 84 16 200 234 gt_box 34 50 190 206 center_dist 30.418095 w_ratio 0.74021906 h_ratio 1.3950619
+Img DATASET/train/n000045/0001_01.bmp AnchorIdx 25303 pred_box 75 80 449 361 gt_box 132 76 483 427 center_dist 54.519592 w_ratio 1.064455 h_ratio 0.8023273
+Img DATASET/train/n000045/0001_01.bmp AnchorIdx 25306 pred_box 138 35 453 347 gt_box 132 76 483 427 center_dist 60.91945 w_ratio 0.89969087 h_ratio 0.8900051
+Img DATASET/train/n000045/0001_01.bmp AnchorIdx 25333 pred_box 100 148 468 463 gt_box 132 76 483 427 center_dist 59.13078 w_ratio 1.0482787 h_ratio 0.8971687
+Img DATASET/train/n000045/0001_01.bmp AnchorIdx 25336 pred_box 113 102 495 483 gt_box 132 76 483 427 center_dist 41.812508 w_ratio 1.0863825 h_ratio 1.0864291
+Img DATASET/train/n000046/0001_02.bmp AnchorIdx 25264 pred_box -103 -38 746 884 gt_box 39 58 221 240 center_dist 334.10522 w_ratio 4.6717377 h_ratio 5.074867
+Img DATASET/train/n000046/0001_02.bmp AnchorIdx 25267 pred_box -495 -504 -470 -480 gt_box 39 58 221 240 center_dist 887.17554 w_ratio 0.13348307 h_ratio 0.13024718
+Img DATASET/train/n000047/0001_01.bmp AnchorIdx 19570 pred_box 39 37 138 122 gt_box 19 27 104 112 center_dist 29.85209 w_ratio 1.1665493 h_ratio 1.0000875
+Img DATASET/train/n000047/0001_01.bmp AnchorIdx 19573 pred_box -91 -103 -85 -96 gt_box 19 27 104 112 center_dist 226.24971 w_ratio 0.074331924 h_ratio 0.0723628
+Img DATASET/train/n000047/0001_01.bmp AnchorIdx 19689 pred_box 38 44 109 197 gt_box 19 27 104 112 center_dist 52.582962 w_ratio 0.8365799 h_ratio 1.8008755
+Img DATASET/train/n000047/0001_01.bmp AnchorIdx 19690 pred_box -48 -24 -29 -6 gt_box 19 27 104 112 center_dist 131.70357 w_ratio 0.21996982 h_ratio 0.20892255
+Img DATASET/train/n000047/0001_01.bmp AnchorIdx 19692 pred_box 17 30 195 238 gt_box 19 27 104 112 center_dist 79.31316 w_ratio 2.1037426 h_ratio 2.4492133
+Img DATASET/train/n000047/0001_01.bmp AnchorIdx 19693 pred_box -27 -18 -4 2 gt_box 19 27 104 112 center_dist 109.56954 w_ratio 0.26285493 h_ratio 0.24651244
+Img DATASET/train/n000048/0001_01.bmp AnchorIdx 25239 pred_box -26 -294 110 -144 gt_box 103 47 323 267 center_dist 413.09424 w_ratio 0.6244168 h_ratio 0.68127364
+Img DATASET/train/n000048/0001_01.bmp AnchorIdx 25240 pred_box -114 -140 1336 1185 gt_box 103 47 323 267 center_dist 540.2973 w_ratio 6.5969295 h_ratio 6.027546
+Img DATASET/train/n000048/0001_01.bmp AnchorIdx 25267 pred_box -173 -80 -79 -22 gt_box 103 47 323 267 center_dist 398.4759 w_ratio 0.42778105 h_ratio 0.26139188
+Img DATASET/train/n000048/0001_01.bmp AnchorIdx 25268 pred_box -3182 -1311 -3182 -1311 gt_box 103 47 323 267 center_dist 3699.3171 w_ratio 7.4711505e-05 h_ratio 3.7355752e-05
+Img DATASET/train/n000048/0001_01.bmp AnchorIdx 25269 pred_box 94 -1 919 1193 gt_box 103 47 323 267 center_dist 528.5483 w_ratio 3.7528977 h_ratio 5.432648
+Img DATASET/train/n000048/0001_01.bmp AnchorIdx 25270 pred_box -2802271 -2804711 2836503 2834063 gt_box 103 47 323 267 center_dist 22282.578 w_ratio 25630.795 h_ratio 25630.795
+Img DATASET/train/n000048/0001_01.bmp AnchorIdx 25271 pred_box -3420 -1407 -3420 -1407 gt_box 103 47 323 267 center_dist 3955.5332 w_ratio 7.4711505e-05 h_ratio 3.7355752e-05
+Img DATASET/train/n000048/0001_01.bmp AnchorIdx 25274 pred_box -12625 -7503 -12625 -7503 gt_box 103 47 323 267 center_dist 14950.822 w_ratio 7.4711505e-05 h_ratio 3.7355752e-05
+Img DATASET/train/n000048/0001_01.bmp AnchorIdx 25299 pred_box -21994 -77310 24759 83289 gt_box 103 47 323 267 center_dist 3064.19 w_ratio 212.5184 h_ratio 730.00006
+Img DATASET/train/n000049/0001_02.bmp AnchorIdx 24130 pred_box -606 -234 -606 -234 gt_box 34 36 191 193 center_dist 799.1987 w_ratio 0.0013968602 h_ratio 0.0011387079
+Img DATASET/train/n000049/0001_02.bmp AnchorIdx 24131 pred_box -1480 -481 2651 892 gt_box 34 36 191 193 center_dist 481.26224 w_ratio 26.318428 h_ratio 8.755432
+Img DATASET/train/n000049/0001_02.bmp AnchorIdx 24186 pred_box -304 -188 -303 -187 gt_box 34 36 191 193 center_dist 514.9359 w_ratio 0.004679707 h_ratio 0.008272337
+Img DATASET/train/n000049/0001_02.bmp AnchorIdx 24187 pred_box -14 -115 498 581 gt_box 34 36 191 193 center_dist 175.83179 w_ratio 3.2646208 h_ratio 4.439052
+Img DATASET/train/n000049/0001_02.bmp AnchorIdx 24189 pred_box -238 -208 -237 -206 gt_box 34 36 191 193 center_dist 475.5824 w_ratio 0.0076714945 h_ratio 0.011952312
+Img DATASET/train/n000049/0001_02.bmp AnchorIdx 24190 pred_box 67 14 317 283 gt_box 34 36 191 193 center_dist 87.47361 w_ratio 1.5928588 h_ratio 1.7097402
+Img DATASET/train/n000049/0001_02.bmp AnchorIdx 24191 pred_box -334 26 -321 30 gt_box 34 36 191 193 center_dist 448.5354 w_ratio 0.08442692 h_ratio 0.030166028
+Img DATASET/train/n000049/0001_02.bmp AnchorIdx 24192 pred_box 85 -36 174 147 gt_box 34 36 191 193 center_dist 61.63652 w_ratio 0.56664646 h_ratio 1.1761135
+Img DATASET/train/n000049/0001_02.bmp AnchorIdx 24193 pred_box -224 -66 -219 -61 gt_box 34 36 191 193 center_dist 379.15085 w_ratio 0.03604488 h_ratio 0.030815264
+Img DATASET/train/n000049/0001_02.bmp AnchorIdx 24250 pred_box -17 89 321 312 gt_box 34 36 191 193 center_dist 95.17791 w_ratio 2.155518 h_ratio 1.4260564
+Img DATASET/train/n000049/0001_02.bmp AnchorIdx 24251 pred_box -238 70 -212 81 gt_box 34 36 191 193 center_dist 340.27213 w_ratio 0.16606206 h_ratio 0.073661506
+Img DATASET/train/n000050/0001_01.bmp AnchorIdx 25264 pred_box -112 -56 683 627 gt_box 41 57 232 248 center_dist 199.70108 w_ratio 4.1658583 h_ratio 3.5777984
+Img DATASET/train/n000050/0001_01.bmp AnchorIdx 25265 pred_box -405 50 -315 97 gt_box 41 57 232 248 center_dist 503.35217 w_ratio 0.47034392 h_ratio 0.24611726
+Img DATASET/train/n000050/0001_01.bmp AnchorIdx 25267 pred_box 105 44 413 349 gt_box 41 57 232 248 center_dist 130.72781 w_ratio 1.6133788 h_ratio 1.5964083
+Img DATASET/train/n000050/0001_01.bmp AnchorIdx 25268 pred_box -244 61 -138 125 gt_box 41 57 232 248 center_dist 333.08975 w_ratio 0.55666554 h_ratio 0.33200523
+Epoca 0 Avg L1 loss (pos anchors): 1.6629738 Positives: 340
+[VALID] imagem: DATASET/train/n000002/0001_01.bmp pred_box: 543 621 543 621
+[VALID] gt_box: 82 121 462 501 center_dist: 411.75357 pred_w,h: 0.0 0.0 gt_w,h: 380.0 380.0
+Img DATASET/train/n000002/0002_01.bmp AnchorIdx 25266 pred_box 147 142 464 812 gt_box 59 64 334 339 center_dist 296.843 w_ratio 1.1527854 h_ratio 2.4336758
+Img DATASET/train/n000002/0002_01.bmp AnchorIdx 25267 pred_box 30 146 1335 1669 gt_box 59 64 334 339 center_dist 857.7717 w_ratio 4.7477784 h_ratio 5.53582
+Img DATASET/train/n000002/0002_01.bmp AnchorIdx 25268 pred_box -60 34 437 163 gt_box 59 64 334 339 center_dist 102.696014 w_ratio 1.8104831 h_ratio 0.47153375
+Img DATASET/train/n000002/0002_01.bmp AnchorIdx 25269 pred_box 190 43 838 1833 gt_box 59 64 334 339 center_dist 802.7727 w_ratio 2.3546646 h_ratio 6.511633
+Img DATASET/train/n000002/0002_01.bmp AnchorIdx 25270 pred_box 103 64 318 329 gt_box 59 64 334 339 center_dist 15.23413 w_ratio 0.7835004 h_ratio 0.96358997
+Img DATASET/train/n000002/0002_01.bmp AnchorIdx 25271 pred_box 39 171 1341 792 gt_box 59 64 334 339 center_dist 567.82227 w_ratio 4.7362156 h_ratio 2.2588472
+Img DATASET/train/n000002/0002_01.bmp AnchorIdx 25296 pred_box 69 -4 284 545 gt_box 59 64 334 339 center_dist 71.91725 w_ratio 0.78315795 h_ratio 2.0005093
+Img DATASET/train/n000002/0002_01.bmp AnchorIdx 25297 pred_box 27 126 983 1145 gt_box 59 64 334 339 center_dist 533.0777 w_ratio 3.4756777 h_ratio 3.7076306
+Img DATASET/train/n000002/0002_01.bmp AnchorIdx 25298 pred_box -90 83 276 192 gt_box 59 64 334 339 center_dist 121.6318 w_ratio 1.334802 h_ratio 0.39846447
+Img DATASET/train/n000002/0002_01.bmp AnchorIdx 25299 pred_box 190 118 515 947 gt_box 59 64 334 339 center_dist 367.01303 w_ratio 1.182792 h_ratio 3.0146203
+Img DATASET/train/n000002/0002_01.bmp AnchorIdx 25300 pred_box 165 30 512 522 gt_box 59 64 334 339 center_dist 161.33235 w_ratio 1.2620769 h_ratio 1.7881564
+Img DATASET/train/n000002/0002_01.bmp AnchorIdx 25301 pred_box 50 188 769 502 gt_box 59 64 334 339 center_dist 257.362 w_ratio 2.614211 h_ratio 1.1389784
+Img DATASET/train/n000003/0002_01.bmp AnchorIdx 25236 pred_box -402 -901 -395 -884 gt_box 46 47 257 258 center_dist 1181.7292 w_ratio 0.035042733 h_ratio 0.08012353
+Img DATASET/train/n000003/0002_01.bmp AnchorIdx 25237 pred_box -419 -282 -397 -257 gt_box 46 47 257 258 center_dist 701.88336 w_ratio 0.10475471 h_ratio 0.11757472
+Img DATASET/train/n000003/0002_01.bmp AnchorIdx 25264 pred_box -41 141 323 340 gt_box 46 47 257 258 center_dist 89.01421 w_ratio 1.7315462 h_ratio 0.9423024
+Img DATASET/train/n000003/0002_01.bmp AnchorIdx 25265 pred_box 22 92 827 563 gt_box 46 47 257 258 center_dist 324.94168 w_ratio 3.813452 h_ratio 2.2332695
+Img DATASET/train/n000003/0002_01.bmp AnchorIdx 25266 pred_box -10 -140 73 27 gt_box 46 47 257 258 center_dist 241.00711 w_ratio 0.39712694 h_ratio 0.7947049
+Img DATASET/train/n000003/0002_01.bmp AnchorIdx 25267 pred_box 95 29 276 212 gt_box 46 47 257 258 center_dist 46.91935 w_ratio 0.86162484 h_ratio 0.8685386
+Img DATASET/train/n000003/0002_01.bmp AnchorIdx 25268 pred_box -268 -3 -193 53 gt_box 46 47 257 258 center_dist 403.20868 w_ratio 0.354125 h_ratio 0.26668993
+Img DATASET/train/n000003/0002_01.bmp AnchorIdx 25271 pred_box 170 106 747 426 gt_box 46 47 257 258 center_dist 327.79633 w_ratio 2.730915 h_ratio 1.5167822
+Img DATASET/train/n000003/0002_01.bmp AnchorIdx 25296 pred_box -38 -132 0 16 gt_box 46 47 257 258 center_dist 271.05225 w_ratio 0.18700883 h_ratio 0.7021681
+Img DATASET/train/n000004/0002_02.bmp AnchorIdx 24126 pred_box 29 -32 88 137 gt_box 27 36 151 160 center_dist 54.819374 w_ratio 0.47993228 h_ratio 1.3710677
+Img DATASET/train/n000004/0002_02.bmp AnchorIdx 24127 pred_box 41 41 260 223 gt_box 27 36 151 160 center_dist 70.677635 w_ratio 1.7640939 h_ratio 1.4734752
+Img DATASET/train/n000004/0002_02.bmp AnchorIdx 24128 pred_box -13 55 199 128 gt_box 27 36 151 160 center_dist 7.2071877 w_ratio 1.7186867 h_ratio 0.58689386
+Img DATASET/train/n000004/0002_02.bmp AnchorIdx 24130 pred_box 75 9 398 351 gt_box 27 36 151 160 center_dist 169.4644 w_ratio 2.5996187 h_ratio 2.75905
+Img DATASET/train/n000004/0002_02.bmp AnchorIdx 24131 pred_box 58 49 222 173 gt_box 27 36 151 160 center_dist 53.475067 w_ratio 1.3223734 h_ratio 1.0006896
+Img DATASET/train/n000004/0002_02.bmp AnchorIdx 24186 pred_box 31 36 114 210 gt_box 27 36 151 160 center_dist 30.042711 w_ratio 0.6639203 h_ratio 1.4006553
+Img DATASET/train/n000004/0002_02.bmp AnchorIdx 24187 pred_box 2 41 77 166 gt_box 27 36 151 160 center_dist 49.5191 w_ratio 0.60009414 h_ratio 1.0127274
+Img DATASET/train/n000004/0002_02.bmp AnchorIdx 24188 pred_box 0 81 282 186 gt_box 27 36 151 160 center_dist 63.672935 w_ratio 2.2733827 h_ratio 0.8488676
+Img DATASET/train/n000004/0002_02.bmp AnchorIdx 24190 pred_box 90 48 270 284 gt_box 27 36 151 160 center_dist 113.92621 w_ratio 1.4515947 h_ratio 1.9057606
+Img DATASET/train/n000004/0002_02.bmp AnchorIdx 24191 pred_box 57 63 337 211 gt_box 27 36 151 160 center_dist 115.15105 w_ratio 2.2573884 h_ratio 1.1953192
+Img DATASET/train/n000005/0002_01.bmp AnchorIdx 25266 pred_box 24 -125 147 157 gt_box 54 70 305 321 center_dist 202.27405 w_ratio 0.48881277 h_ratio 1.1279146
+Img DATASET/train/n000005/0002_01.bmp AnchorIdx 25267 pred_box 88 0 520 499 gt_box 54 70 305 321 center_dist 136.14923 w_ratio 1.7183546 h_ratio 1.9884104
+Img DATASET/train/n000005/0002_01.bmp AnchorIdx 25268 pred_box -11 125 545 308 gt_box 54 70 305 321 center_dist 90.021126 w_ratio 2.2216737 h_ratio 0.727818
+Img DATASET/train/n000005/0002_01.bmp AnchorIdx 25269 pred_box 165 -61 373 458 gt_box 54 70 305 321 center_dist 90.23496 w_ratio 0.82681125 h_ratio 2.0729585
+Img DATASET/train/n000005/0002_01.bmp AnchorIdx 25270 pred_box 95 52 292 293 gt_box 54 70 305 321 center_dist 26.533033 w_ratio 0.7854211 h_ratio 0.9598955
+Img DATASET/train/n000005/0002_01.bmp AnchorIdx 25271 pred_box -180 -43 1638 804 gt_box 54 70 305 321 center_dist 579.85266 w_ratio 7.2475557 h_ratio 3.3767815
+Img DATASET/train/n000005/0002_01.bmp AnchorIdx 25296 pred_box 33 66 162 369 gt_box 54 70 305 321 center_dist 84.37261 w_ratio 0.5132942 h_ratio 1.2048229
+Img DATASET/train/n000005/0002_01.bmp AnchorIdx 25297 pred_box 25 115 293 390 gt_box 54 70 305 321 center_dist 61.052227 w_ratio 1.0679712 h_ratio 1.0976167
+Img DATASET/train/n000005/0002_01.bmp AnchorIdx 25298 pred_box -20 163 491 332 gt_box 54 70 305 321 center_dist 76.865456 w_ratio 2.0363622 h_ratio 0.6727211
+Img DATASET/train/n000005/0002_01.bmp AnchorIdx 25299 pred_box 136 24 297 403 gt_box 54 70 305 321 center_dist 42.183742 w_ratio 0.64159286 h_ratio 1.5091499
+Img DATASET/train/n000005/0002_01.bmp AnchorIdx 25300 pred_box 82 25 258 248 gt_box 54 70 305 321 center_dist 59.188683 w_ratio 0.70082444 h_ratio 0.8897961
+Img DATASET/train/n000005/0002_01.bmp AnchorIdx 25301 pred_box -29 126 324 278 gt_box 54 70 305 321 center_dist 32.334667 w_ratio 1.4095505 h_ratio 0.60613865
+Img DATASET/train/n000006/0002_02.bmp AnchorIdx 25266 pred_box 102 -97 427 711 gt_box 51 63 291 303 center_dist 156.04709 w_ratio 1.3552514 h_ratio 3.3710654
+Img DATASET/train/n000006/0002_02.bmp AnchorIdx 25267 pred_box 54 43 506 499 gt_box 51 63 291 303 center_dist 141.11435 w_ratio 1.8822609 h_ratio 1.8998944
+Img DATASET/train/n000006/0002_02.bmp AnchorIdx 25268 pred_box -25 100 439 255 gt_box 51 63 291 303 center_dist 36.647705 w_ratio 1.9376767 h_ratio 0.64423156
+Img DATASET/train/n000006/0002_02.bmp AnchorIdx 25270 pred_box 146 42 519 492 gt_box 51 63 291 303 center_dist 182.70134 w_ratio 1.5569823 h_ratio 1.8756367
+Img DATASET/train/n000006/0002_02.bmp AnchorIdx 25271 pred_box 112 86 435 326 gt_box 51 63 291 303 center_dist 105.664505 w_ratio 1.3487165 h_ratio 0.9996433
+Img DATASET/train/n000006/0002_02.bmp AnchorIdx 25296 pred_box 69 56 257 490 gt_box 51 63 291 303 center_dist 90.74159 w_ratio 0.78499013 h_ratio 1.8051965
+Img DATASET/train/n000006/0002_02.bmp AnchorIdx 25297 pred_box -67 47 37 200 gt_box 51 63 291 303 center_dist 195.14307 w_ratio 0.4385725 h_ratio 0.63686544
+Img DATASET/train/n000007/0002_01.bmp AnchorIdx 24190 pred_box -54 -9 -13 24 gt_box 36 42 201 207 center_dist 192.61903 w_ratio 0.24963793 h_ratio 0.20630713
+Img DATASET/train/n000007/0002_01.bmp AnchorIdx 24191 pred_box -82 11 -17 49 gt_box 36 42 201 207 center_dist 192.80406 w_ratio 0.39503104 h_ratio 0.23210528
+Img DATASET/train/n000007/0002_01.bmp AnchorIdx 24193 pred_box 15 11 81 73 gt_box 36 42 201 207 center_dist 108.08092 w_ratio 0.39659104 h_ratio 0.3752903
+Img DATASET/train/n000007/0002_01.bmp AnchorIdx 24250 pred_box 41 46 143 222 gt_box 36 42 201 207 center_dist 28.0705 w_ratio 0.61802983 h_ratio 1.0647812
+Img DATASET/train/n000007/0002_01.bmp AnchorIdx 24251 pred_box -23 94 160 179 gt_box 36 42 201 207 center_dist 51.616783 w_ratio 1.1143917 h_ratio 0.51418346
+Img DATASET/train/n000007/0002_01.bmp AnchorIdx 24253 pred_box 87 39 250 245 gt_box 36 42 201 207 center_dist 53.897236 w_ratio 0.98551333 h_ratio 1.2457812
+Img DATASET/train/n000008/0002_01.bmp AnchorIdx 25266 pred_box 29 -187 228 255 gt_box 55 72 311 328 center_dist 174.27911 w_ratio 0.7780293 h_ratio 1.7295041
+Img DATASET/train/n000008/0002_01.bmp AnchorIdx 25267 pred_box -271 -365 1360 1363 gt_box 55 72 311 328 center_dist 468.6156 w_ratio 6.3758507 h_ratio 6.753519
+Img DATASET/train/n000008/0002_01.bmp AnchorIdx 25268 pred_box 3 238 570 293 gt_box 55 72 311 328 center_dist 123.0811 w_ratio 2.2174675 h_ratio 0.21653086
+Img DATASET/train/n000008/0002_01.bmp AnchorIdx 25269 pred_box 152 -95 347 487 gt_box 55 72 311 328 center_dist 67.14429 w_ratio 0.7606268 h_ratio 2.2773147
+Img DATASET/train/n000008/0002_01.bmp AnchorIdx 25270 pred_box 62 -724 124 860 gt_box 55 72 311 328 center_dist 159.56769 w_ratio 0.24125071 h_ratio 6.188324
+Img DATASET/train/n000008/0002_01.bmp AnchorIdx 25271 pred_box -116 159 606 290 gt_box 55 72 311 328 center_dist 66.87053 w_ratio 2.827392 h_ratio 0.5119291
+Img DATASET/train/n000008/0002_01.bmp AnchorIdx 25296 pred_box -222 480 644 530 gt_box 55 72 311 328 center_dist 306.8977 w_ratio 3.3856776 h_ratio 0.1970404
+Img DATASET/train/n000008/0002_01.bmp AnchorIdx 25297 pred_box 30 45 208 438 gt_box 55 72 311 328 center_dist 76.27573 w_ratio 0.69527286 h_ratio 1.5353158
+Img DATASET/train/n000008/0002_01.bmp AnchorIdx 25298 pred_box -14 -303 77 271 gt_box 55 72 311 328 center_dist 263.62885 w_ratio 0.3574417 h_ratio 2.2440503
+Img DATASET/train/n000008/0002_01.bmp AnchorIdx 25299 pred_box 128 52 286 335 gt_box 55 72 311 328 center_dist 25.567335 w_ratio 0.61788285 h_ratio 1.1037923
+Img DATASET/train/n000008/0002_01.bmp AnchorIdx 25300 pred_box 38 461 581 567 gt_box 55 72 311 328 center_dist 339.0755 w_ratio 2.1227622 h_ratio 0.41181043
+Img DATASET/train/n000008/0002_01.bmp AnchorIdx 25301 pred_box -91 100 344 253 gt_box 55 72 311 328 center_dist 61.168015 w_ratio 1.7045752 h_ratio 0.5988341
+Img DATASET/train/n000010/0002_01.bmp AnchorIdx 25329 pred_box 131 -1160 248 880 gt_box 75 110 423 458 center_dist 428.31335 w_ratio 0.33777797 h_ratio 5.8650074
+Img DATASET/train/n000010/0002_01.bmp AnchorIdx 25330 pred_box 76 200 301 429 gt_box 75 110 423 458 center_dist 68.08173 w_ratio 0.6464798 h_ratio 0.6580029
+Img DATASET/train/n000010/0002_01.bmp AnchorIdx 25332 pred_box -158 703 850 739 gt_box 75 110 423 458 center_dist 448.3656 w_ratio 2.8998535 h_ratio 0.10394211
+Img DATASET/train/n000010/0002_01.bmp AnchorIdx 25333 pred_box 104 34 300 336 gt_box 75 110 423 458 center_dist 109.02544 w_ratio 0.56302166 h_ratio 0.86568475
+Img DATASET/train/n000011/0002_01.bmp AnchorIdx 24124 pred_box -186 -132 -162 -83 gt_box 21 31 116 126 center_dist 306.22113 w_ratio 0.2559067 h_ratio 0.5189996
+Img DATASET/train/n000011/0002_01.bmp AnchorIdx 24125 pred_box -115 -29 6 44 gt_box 21 31 116 126 center_dist 142.35396 w_ratio 1.2855144 h_ratio 0.7796751
+Img DATASET/train/n000011/0002_01.bmp AnchorIdx 24127 pred_box -30 -32 13 36 gt_box 21 31 116 126 center_dist 108.67145 w_ratio 0.4570271 h_ratio 0.7355057
+Img DATASET/train/n000011/0002_01.bmp AnchorIdx 24128 pred_box 71 40 183 143 gt_box 21 31 116 126 center_dist 60.31592 w_ratio 1.1820347 h_ratio 1.076456
+Img DATASET/train/n000011/0002_01.bmp AnchorIdx 24131 pred_box 14 4 149 94 gt_box 21 31 116 126 center_dist 32.053314 w_ratio 1.4262552 h_ratio 0.9470744
+Img DATASET/train/n000012/0002_01.bmp AnchorIdx 24066 pred_box 56 13 131 249 gt_box 24 25 133 134 center_dist 53.99249 w_ratio 0.6846884 h_ratio 2.1686614
+Img DATASET/train/n000012/0002_01.bmp AnchorIdx 24067 pred_box 52 0 217 213 gt_box 24 25 133 134 center_dist 62.582783 w_ratio 1.509919 h_ratio 1.9665703
+Img DATASET/train/n000012/0002_01.bmp AnchorIdx 24124 pred_box -29 56 89 132 gt_box 24 25 133 134 center_dist 50.60153 w_ratio 1.0892143 h_ratio 0.70244163
+Img DATASET/train/n000012/0002_01.bmp AnchorIdx 24125 pred_box 15 50 246 195 gt_box 24 25 133 134 center_dist 68.29864 w_ratio 2.1121113 h_ratio 1.3258346
+Img DATASET/train/n000012/0002_01.bmp AnchorIdx 24126 pred_box 58 16 137 167 gt_box 24 25 133 134 center_dist 23.256176 w_ratio 0.72264975 h_ratio 1.3829267
+Img DATASET/train/n000012/0002_01.bmp AnchorIdx 24127 pred_box 57 31 186 208 gt_box 24 25 133 134 center_dist 59.493546 w_ratio 1.1830634 h_ratio 1.6234934
+Img DATASET/train/n000012/0002_01.bmp AnchorIdx 24128 pred_box -25 45 155 96 gt_box 24 25 133 134 center_dist 15.946643 w_ratio 1.6646441 h_ratio 0.4688653
+Img DATASET/train/n000012/0002_01.bmp AnchorIdx 24131 pred_box 62 37 210 143 gt_box 24 25 133 134 center_dist 59.2588 w_ratio 1.3535663 h_ratio 0.9771784
+Img DATASET/train/n000012/0002_01.bmp AnchorIdx 24186 pred_box 59 33 141 280 gt_box 24 25 133 134 center_dist 80.673904 w_ratio 0.746243 h_ratio 2.2643368
+Img DATASET/train/n000013/0002_01.bmp AnchorIdx 25303 pred_box 195 94 405 391 gt_box 99 77 458 436 center_dist 25.624159 w_ratio 0.585885 h_ratio 0.82809085
+Img DATASET/train/n000013/0002_01.bmp AnchorIdx 25333 pred_box 168 129 425 337 gt_box 99 77 458 436 center_dist 29.282223 w_ratio 0.7162228 h_ratio 0.5794676
+Img DATASET/train/n000014/0002_01.bmp AnchorIdx 24126 pred_box 3 -24 250 329 gt_box 30 35 172 177 center_dist 53.053142 w_ratio 1.7345473 h_ratio 2.490113
+Img DATASET/train/n000014/0002_01.bmp AnchorIdx 24127 pred_box -150 -242 809 865 gt_box 30 35 172 177 center_dist 307.69385 w_ratio 6.764101 h_ratio 7.8021937
+Img DATASET/train/n000014/0002_01.bmp AnchorIdx 24128 pred_box -22 17 228 108 gt_box 30 35 172 177 center_dist 42.750065 w_ratio 1.7625221 h_ratio 0.63928086
+Img DATASET/train/n000014/0002_01.bmp AnchorIdx 24129 pred_box 80 -72 367 692 gt_box 30 35 172 177 center_dist 238.40567 w_ratio 2.018368 h_ratio 5.3881707
+Img DATASET/train/n000014/0002_01.bmp AnchorIdx 24130 pred_box 37 4 125 127 gt_box 30 35 172 177 center_dist 44.197933 w_ratio 0.6146053 h_ratio 0.8653548
+Img DATASET/train/n000014/0002_01.bmp AnchorIdx 24131 pred_box 5 53 509 276 gt_box 30 35 172 177 center_dist 167.10942 w_ratio 3.5506427 h_ratio 1.570905
+Img DATASET/train/n000014/0002_01.bmp AnchorIdx 24186 pred_box 9 7 72 164 gt_box 30 35 172 177 center_dist 63.16263 w_ratio 0.44728398 h_ratio 1.1068657
+Img DATASET/train/n000014/0002_01.bmp AnchorIdx 24187 pred_box 26 78 261 304 gt_box 30 35 172 177 center_dist 95.879234 w_ratio 1.6592045 h_ratio 1.5918092
+Img DATASET/train/n000014/0002_01.bmp AnchorIdx 24188 pred_box -16 105 276 170 gt_box 30 35 172 177 center_dist 43.02661 w_ratio 2.063909 h_ratio 0.46027142
+Img DATASET/train/n000014/0002_01.bmp AnchorIdx 24189 pred_box 82 24 211 327 gt_box 30 35 172 177 center_dist 83.80629 w_ratio 0.9085048 h_ratio 2.1338556
+Img DATASET/train/n000014/0002_01.bmp AnchorIdx 24190 pred_box 44 -30 134 111 gt_box 30 35 172 177 center_dist 66.778366 w_ratio 0.63407654 h_ratio 1.0005927
+Img DATASET/train/n000014/0002_01.bmp AnchorIdx 24191 pred_box 4 82 296 198 gt_box 30 35 172 177 center_dist 59.953037 w_ratio 2.0575979 h_ratio 0.8171451
+Img DATASET/train/n000015/0002_01.bmp AnchorIdx 25300 pred_box -7 34 141 164 gt_box 75 105 423 453 center_dist 255.79968 w_ratio 0.42979384 h_ratio 0.37191644
+Img DATASET/train/n000015/0002_01.bmp AnchorIdx 25303 pred_box 141 83 424 402 gt_box 75 105 423 453 center_dist 49.68098 w_ratio 0.81197244 h_ratio 0.91676813
+Img DATASET/train/n000015/0002_01.bmp AnchorIdx 25329 pred_box 121 149 419 741 gt_box 75 105 423 453 center_dist 168.09338 w_ratio 0.85581243 h_ratio 1.7023344
+Img DATASET/train/n000015/0002_01.bmp AnchorIdx 25330 pred_box 33 147 289 403 gt_box 75 105 423 453 center_dist 87.858406 w_ratio 0.7354322 h_ratio 0.7360049
+Img DATASET/train/n000015/0002_01.bmp AnchorIdx 25332 pred_box 53 133 896 1106 gt_box 75 105 423 453 center_dist 409.35336 w_ratio 2.4231267 h_ratio 2.7962399
+Img DATASET/train/n000015/0002_01.bmp AnchorIdx 25333 pred_box 120 135 527 531 gt_box 75 105 423 453 center_dist 92.31085 w_ratio 1.1689063 h_ratio 1.1377883
+Img DATASET/train/n000016/0002_01.bmp AnchorIdx 24190 pred_box -24 32 305 268 gt_box 36 53 204 221 center_dist 24.72975 w_ratio 1.9602801 h_ratio 1.404102
+Img DATASET/train/n000016/0002_01.bmp AnchorIdx 24191 pred_box -2 50 427 269 gt_box 36 53 204 221 center_dist 95.223915 w_ratio 2.5560412 h_ratio 1.3066874
+Img DATASET/train/n000016/0002_01.bmp AnchorIdx 24193 pred_box 53 37 213 194 gt_box 36 53 204 221 center_dist 24.967033 w_ratio 0.9518724 h_ratio 0.9365553
+Img DATASET/train/n000016/0002_01.bmp AnchorIdx 24246 pred_box 34 29 198 439 gt_box 36 53 204 221 center_dist 97.2162 w_ratio 0.9718293 h_ratio 2.4396067
+Img DATASET/train/n000016/0002_01.bmp AnchorIdx 24249 pred_box 43 83 150 270 gt_box 36 53 204 221 center_dist 46.25864 w_ratio 0.6357027 h_ratio 1.1095303
+Img DATASET/train/n000016/0002_01.bmp AnchorIdx 24250 pred_box 43 72 266 268 gt_box 36 53 204 221 center_dist 48.793316 w_ratio 1.3298597 h_ratio 1.1667777
+Img DATASET/train/n000016/0002_01.bmp AnchorIdx 24251 pred_box -40 91 290 192 gt_box 36 53 204 221 center_dist 6.750166 w_ratio 1.9715264 h_ratio 0.5974525
+Img DATASET/train/n000016/0002_01.bmp AnchorIdx 24252 pred_box 100 23 218 285 gt_box 36 53 204 221 center_dist 43.43706 w_ratio 0.70516896 h_ratio 1.5557531
+Img DATASET/train/n000016/0002_01.bmp AnchorIdx 24253 pred_box 60 28 194 192 gt_box 36 53 204 221 center_dist 27.291815 w_ratio 0.79917044 h_ratio 0.9740504
+Img DATASET/train/n000016/0002_01.bmp AnchorIdx 24311 pred_box -19 124 272 245 gt_box 36 53 204 221 center_dist 48.617462 w_ratio 1.7363392 h_ratio 0.72331834
+Img DATASET/train/n000017/0002_01.bmp AnchorIdx 24186 pred_box -13 -45 55 85 gt_box 33 42 185 194 center_dist 131.6747 w_ratio 0.45473695 h_ratio 0.85634345
+Img DATASET/train/n000017/0002_01.bmp AnchorIdx 24187 pred_box -22 -3 85 105 gt_box 33 42 185 194 center_dist 102.07479 w_ratio 0.7106164 h_ratio 0.718293
+Img DATASET/train/n000017/0002_01.bmp AnchorIdx 24189 pred_box 60 41 168 184 gt_box 33 42 185 194 center_dist 7.0398116 w_ratio 0.71107197 h_ratio 0.94321454
+Img DATASET/train/n000017/0002_01.bmp AnchorIdx 24190 pred_box 30 14 163 146 gt_box 33 42 185 194 center_dist 39.21846 w_ratio 0.873626 h_ratio 0.86352307
+Img DATASET/train/n000017/0002_01.bmp AnchorIdx 24191 pred_box -26 72 224 142 gt_box 33 42 185 194 center_dist 14.346983 w_ratio 1.6555084 h_ratio 0.45851407
+Img DATASET/train/n000017/0002_01.bmp AnchorIdx 24193 pred_box 79 23 231 202 gt_box 33 42 185 194 center_dist 46.70785 w_ratio 1.0040618 h_ratio 1.1795315
+Img DATASET/train/n000017/0002_01.bmp AnchorIdx 24250 pred_box 33 61 147 212 gt_box 33 42 185 194 center_dist 26.621786 w_ratio 0.7529531 h_ratio 0.9936148
+Img DATASET/train/n000017/0002_01.bmp AnchorIdx 24251 pred_box -23 80 150 172 gt_box 33 42 185 194 center_dist 46.199173 w_ratio 1.1468223 h_ratio 0.6101376
+Img DATASET/train/n000018/0002_01.bmp AnchorIdx 25300 pred_box 18 -6 200 225 gt_box 68 118 383 433 center_dist 202.75134 w_ratio 0.579526 h_ratio 0.7356941
+Img DATASET/train/n000018/0002_01.bmp AnchorIdx 25301 pred_box 47 39 1027 660 gt_box 68 118 383 433 center_dist 320.62518 w_ratio 3.1131382 h_ratio 1.9744418
+Img DATASET/train/n000018/0002_01.bmp AnchorIdx 25326 pred_box 17 18 150 352 gt_box 68 118 383 433 center_dist 167.67 w_ratio 0.4240182 h_ratio 1.0614539
+Img DATASET/train/n000018/0002_01.bmp AnchorIdx 25327 pred_box -81 -77 48 127 gt_box 68 118 383 433 center_dist 348.31268 w_ratio 0.41468197 h_ratio 0.6522912
+Img DATASET/train/n000018/0002_01.bmp AnchorIdx 25329 pred_box 122 118 322 426 gt_box 68 118 383 433 center_dist 4.125387 w_ratio 0.6336907 h_ratio 0.97824067
+Img DATASET/train/n000018/0002_01.bmp AnchorIdx 25330 pred_box 104 89 373 324 gt_box 68 118 383 433 center_dist 70.02904 w_ratio 0.8540123 h_ratio 0.745369
+Img DATASET/train/n000018/0002_01.bmp AnchorIdx 25331 pred_box -30 207 478 382 gt_box 68 118 383 433 center_dist 19.614187 w_ratio 1.6160795 h_ratio 0.5540759
+Img DATASET/train/n000018/0002_01.bmp AnchorIdx 25332 pred_box 138 26 242 228 gt_box 68 118 383 433 center_dist 152.21489 w_ratio 0.331476 h_ratio 0.64289016
+Img DATASET/train/n000018/0002_01.bmp AnchorIdx 25333 pred_box 113 75 337 375 gt_box 68 118 383 433 center_dist 50.00711 w_ratio 0.71168816 h_ratio 0.9516044
+Img DATASET/train/n000019/0002_01.bmp AnchorIdx 24124 pred_box -27 12 178 207 gt_box 21 31 118 128 center_dist 30.87969 w_ratio 2.1150618 h_ratio 2.0146852
+Img DATASET/train/n000019/0002_01.bmp AnchorIdx 24125 pred_box -75 76 225 188 gt_box 21 31 118 128 center_dist 53.314472 w_ratio 3.0982084 h_ratio 1.1611841
+Img DATASET/train/n000019/0002_01.bmp AnchorIdx 24127 pred_box 36 14 169 161 gt_box 21 31 118 128 center_dist 34.641754 w_ratio 1.3786454 h_ratio 1.5090014
+Img DATASET/train/n000019/0002_01.bmp AnchorIdx 24128 pred_box 39 40 153 135 gt_box 21 31 118 128 center_dist 28.286602 w_ratio 1.1668388 h_ratio 0.97487074
+Img DATASET/train/n000019/0002_01.bmp AnchorIdx 24131 pred_box 40 37 202 125 gt_box 21 31 118 128 center_dist 51.734432 w_ratio 1.6734895 h_ratio 0.90520555
+Img DATASET/train/n000020/0002_02.bmp AnchorIdx 24126 pred_box 52 -13 101 192 gt_box 27 40 153 166 center_dist 18.76934 w_ratio 0.39062148 h_ratio 1.6331238
+Img DATASET/train/n000020/0002_02.bmp AnchorIdx 24127 pred_box 38 30 177 190 gt_box 27 40 153 166 center_dist 19.464104 w_ratio 1.1060343 h_ratio 1.2688129
+Img DATASET/train/n000020/0002_02.bmp AnchorIdx 24129 pred_box 64 22 159 151 gt_box 27 40 153 166 center_dist 27.232092 w_ratio 0.7543912 h_ratio 1.0191653
+Img DATASET/train/n000020/0002_02.bmp AnchorIdx 24130 pred_box 60 35 199 182 gt_box 27 40 153 166 center_dist 40.48148 w_ratio 1.0990279 h_ratio 1.1695727
+Img DATASET/train/n000020/0002_02.bmp AnchorIdx 24186 pred_box 6 86 141 235 gt_box 27 40 153 166 center_dist 60.238 w_ratio 1.0705339 h_ratio 1.1817579
+Img DATASET/train/n000020/0002_02.bmp AnchorIdx 24187 pred_box 21 67 158 207 gt_box 27 40 153 166 center_dist 34.80648 w_ratio 1.0877006 h_ratio 1.1132208
+Img DATASET/train/n000020/0002_02.bmp AnchorIdx 24188 pred_box -30 82 237 153 gt_box 27 40 153 166 center_dist 20.48038 w_ratio 2.1259859 h_ratio 0.5601928
+Img DATASET/train/n000020/0002_02.bmp AnchorIdx 24189 pred_box 75 24 161 230 gt_box 27 40 153 166 center_dist 37.44347 w_ratio 0.6818648 h_ratio 1.6325057
+Img DATASET/train/n000020/0002_02.bmp AnchorIdx 24190 pred_box 61 30 175 179 gt_box 27 40 153 166 center_dist 28.933907 w_ratio 0.9030008 h_ratio 1.1842464
+Img DATASET/train/n000020/0002_02.bmp AnchorIdx 24191 pred_box 4 73 209 162 gt_box 27 40 153 166 center_dist 22.75244 w_ratio 1.6295159 h_ratio 0.7065055
+Img DATASET/train/n000021/0002_02.bmp AnchorIdx 24126 pred_box 49 -49 200 376 gt_box 27 39 148 160 center_dist 74.375206 w_ratio 1.2491856 h_ratio 3.5232198
+Img DATASET/train/n000021/0002_02.bmp AnchorIdx 24127 pred_box 29 30 241 238 gt_box 27 39 148 160 center_dist 59.42501 w_ratio 1.7576575 h_ratio 1.7223412
+Img DATASET/train/n000021/0002_02.bmp AnchorIdx 24128 pred_box -9 59 247 145 gt_box 27 39 148 160 center_dist 31.705639 w_ratio 2.1253457 h_ratio 0.7099474
+Img DATASET/train/n000021/0002_02.bmp AnchorIdx 24130 pred_box 58 23 188 174 gt_box 27 39 148 160 center_dist 36.042934 w_ratio 1.0748944 h_ratio 1.2428248
+Img DATASET/train/n000021/0002_02.bmp AnchorIdx 24131 pred_box 42 46 188 146 gt_box 27 39 148 160 center_dist 28.024155 w_ratio 1.2061585 h_ratio 0.8247831
+Img DATASET/train/n000021/0002_02.bmp AnchorIdx 24186 pred_box 36 39 128 258 gt_box 27 39 148 160 center_dist 49.700825 w_ratio 0.7568778 h_ratio 1.8067498
+Img DATASET/train/n000021/0002_02.bmp AnchorIdx 24187 pred_box 41 68 156 261 gt_box 27 39 148 160 center_dist 66.552376 w_ratio 0.95037985 h_ratio 1.5900064
+Img DATASET/train/n000021/0002_02.bmp AnchorIdx 24188 pred_box -5 78 226 173 gt_box 27 39 148 160 center_dist 35.025764 w_ratio 1.9162957 h_ratio 0.78385234
+Img DATASET/train/n000021/0002_02.bmp AnchorIdx 24190 pred_box 67 57 184 189 gt_box 27 39 148 160 center_dist 45.781937 w_ratio 0.96704274 h_ratio 1.092724
+Img DATASET/train/n000021/0002_02.bmp AnchorIdx 24191 pred_box 3 61 153 134 gt_box 27 39 148 160 center_dist 8.980376 w_ratio 1.2417065 h_ratio 0.6050592
+Img DATASET/train/n000022/0002_01.bmp AnchorIdx 25266 pred_box 27 -100 133 130 gt_box 53 78 298 323 center_dist 208.54506 w_ratio 0.4337051 h_ratio 0.9401959
+Img DATASET/train/n000022/0002_01.bmp AnchorIdx 25267 pred_box -124 -149 -14 -39 gt_box 53 78 298 323 center_dist 383.9282 w_ratio 0.45067397 h_ratio 0.44880748
+Img DATASET/train/n000022/0002_01.bmp AnchorIdx 25268 pred_box -2 106 376 264 gt_box 53 78 298 323 center_dist 18.719427 w_ratio 1.5475414 h_ratio 0.64346457
+Img DATASET/train/n000022/0002_01.bmp AnchorIdx 25270 pred_box 125 72 355 341 gt_box 53 78 298 323 center_dist 65.383804 w_ratio 0.9372832 h_ratio 1.0999789
+Img DATASET/train/n000022/0002_01.bmp AnchorIdx 25271 pred_box 77 103 434 301 gt_box 53 78 298 323 center_dist 80.05742 w_ratio 1.4569219 h_ratio 0.8058541
+Img DATASET/train/n000022/0002_01.bmp AnchorIdx 25296 pred_box 12 29 131 309 gt_box 53 78 298 323 center_dist 108.21322 w_ratio 0.48448306 h_ratio 1.142506
+Img DATASET/train/n000022/0002_01.bmp AnchorIdx 25297 pred_box 45 130 267 380 gt_box 53 78 298 323 center_dist 58.024876 w_ratio 0.9064486 h_ratio 1.0194008
+Img DATASET/train/n000022/0002_01.bmp AnchorIdx 25298 pred_box -58 136 383 270 gt_box 53 78 298 323 center_dist 13.567461 w_ratio 1.803858 h_ratio 0.5471314
+Img DATASET/train/n000022/0002_01.bmp AnchorIdx 25300 pred_box 149 102 402 449 gt_box 53 78 298 323 center_dist 125.99416 w_ratio 1.0320472 h_ratio 1.4171743
+Img DATASET/train/n000022/0002_01.bmp AnchorIdx 25301 pred_box 131 105 481 400 gt_box 53 78 298 323 center_dist 140.99011 w_ratio 1.4272341 h_ratio 1.2037
+Img DATASET/train/n000023/0002_01.bmp AnchorIdx 25265 pred_box -200 19 -25 133 gt_box 48 70 272 294 center_dist 292.91476 w_ratio 0.78222656 h_ratio 0.50893056
+Img DATASET/train/n000023/0002_01.bmp AnchorIdx 25266 pred_box 17 -146 100 68 gt_box 48 70 272 294 center_dist 242.81075 w_ratio 0.3723031 h_ratio 0.95676524
+Img DATASET/train/n000023/0002_01.bmp AnchorIdx 25267 pred_box -18 -18 105 148 gt_box 48 70 272 294 center_dist 165.09668 w_ratio 0.5524147 h_ratio 0.7437549

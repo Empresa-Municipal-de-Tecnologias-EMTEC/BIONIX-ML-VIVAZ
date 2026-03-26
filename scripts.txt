@@ -12,11 +12,11 @@ Assim já está bom pra primeira versão. Agora prossiga para a implementação 
 
 A sintaxe pra executar o pixi pra você é assim:
 
-wsl bash -ic "pixi run treinar_detector"
+wsl bash -ic "pixi run run_retina_train"
+wsl bash -ic "pixi run run_retina_infer"
 
 Nesse diretório:
 
 /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src
-
 
 Se precisar coloque mais entradas no pixi.toml para executar novos artefatos.
