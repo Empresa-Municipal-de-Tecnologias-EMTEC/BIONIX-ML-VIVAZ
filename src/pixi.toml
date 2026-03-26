@@ -20,3 +20,7 @@ api = "mojo -I ../../BIONIX-ML src/servico_api.mojo"
 compilar_api = { cmd = "mkdir -p build && mojo build -I ../../BIONIX-ML -o build/poc src/servico_api.mojo" }
 smoke_tests = { cmd = "./scripts/run_smoke_tests.sh" }
 inferir_detector = "mojo -I ../../BIONIX-ML inferir_detector.mojo"
+run_retina_train = "mojo -I ../../BIONIX-ML run_retina_train.mojo"
+run_retina_infer = "mojo -I ../../BIONIX-ML run_retina_infer.mojo"
+treinar_retina = "mojo -I ../../BIONIX-ML run_retina_train.mojo"
+inferir_retina = "mojo -I ../../BIONIX-ML run_retina_infer.mojo"

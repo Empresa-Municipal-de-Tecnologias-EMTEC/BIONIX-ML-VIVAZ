@@ -1,3 +1,0 @@
-model: vivaz-detector-poc
-input_h: 100
-input_w: 64
