@@ -1,6 +1,6 @@
 import model_detector as model_pkg
 import bionix_ml.computacao.adaptadores.contexto as contexto_defs
-import retina_trainer as trainer
+import retina.retina_trainer as trainer
 
 fn main() raises -> None:
     print("Iniciando treino Retina minimal...")

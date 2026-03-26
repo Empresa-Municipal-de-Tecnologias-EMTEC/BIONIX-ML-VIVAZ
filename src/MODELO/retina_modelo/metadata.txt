@@ -1,3 +1,3 @@
-epoch:9
-avg_loss:0.37020484
-positives:379
+epoch:5
+avg_loss:0.37058696
+positives:348
