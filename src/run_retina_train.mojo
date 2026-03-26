@@ -7,5 +7,5 @@ fn main() raises -> None:
     var ctx = contexto_defs.criar_contexto_padrao("cpu")
     # build detector CNN block (height,width,num_filters,kernel)
     var bloco = model_pkg.criar_bloco_detector(640, 640, 6, 3, 3, ctx)
-    var result = trainer.treinar_retina_minimal(bloco, "DATASET", 640, 640, 64, 10, 0.0001)
+    var result = trainer.treinar_retina_minimal(bloco, "DATASET", 640, 640, 64, 5, 0.0001)
     print("Treinador finalizou:", result)
