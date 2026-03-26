@@ -143,6 +143,117 @@ fn carregar_dataset_detector_pouro(var dir_dataset: String, var altura: Int, var
     return out_list^
 
 
+# Color loader: returns inputs resized to (altura, largura) with 3 channels and bbox targets normalized to [0,1]
+fn carregar_dataset_detector_bbox_color(var dir_dataset: String, var altura: Int, var largura: Int, var tipo: String, var max_classes: Int = 100000) -> List[tensor_defs.Tensor]:
+    var classes = List[String]()
+    try:
+        classes = os.listdir(dir_dataset)
+    except _:
+        var out_fail = List[tensor_defs.Tensor]()
+        out_fail.append(tensor_defs.Tensor(List[Int]() , tipo))
+        out_fail.append(tensor_defs.Tensor(List[Int](), tipo))
+        return out_fail^
+
+    var features_list = List[List[List[List[Float32]]]]() # [H][W][3]
+    var bboxes_list = List[List[Float32]]()
+
+    var seen = 0
+    for nome in classes:
+        if seen >= max_classes:
+            break
+        var caminho = os.path.join(dir_dataset, nome)
+        seen = seen + 1
+        if not os.path.isdir(caminho):
+            continue
+        var arquivos = List[String]()
+        try:
+            arquivos = os.listdir(caminho)
+        except _:
+            continue
+        for f in arquivos:
+            if not f.endswith('.bmp'):
+                continue
+            var bmp_path = os.path.join(caminho, f)
+            var info = None
+            try:
+                info = dados_pkg.carregar_bmp_rgb(bmp_path)^
+            except _:
+                continue
+            if info.width == 0 or info.height == 0:
+                continue
+
+            # resize color matrix to target
+            try:
+                var resized = graficos_pkg.redimensionar_matriz_rgb_nearest(info.pixels.copy()^, altura, largura)
+            except _:
+                continue
+            features_list.append(resized^)
+
+            # parse first bbox in .txt as before
+            var txt_path = bmp_path.replace('.bmp', '.txt')
+            var target_box = List[Float32]()
+            try:
+                var linhas = dados_pkg.carregar_txt_linhas(txt_path)
+                if len(linhas) > 0:
+                    var parts = linhas[0].replace("\t", " ").replace(",", " ").split(" ")
+                    var campos = List[String]()
+                    for p in parts:
+                        var ps = p.strip()
+                        if len(ps) != 0:
+                            campos.append(String(ps))
+                    if len(campos) >= 4:
+                        var w = info.width
+                        var h = info.height
+                        for i in range(4):
+                            try:
+                                var v = Float32(uteis.parse_float_ascii(String(campos[i])))
+                                if i % 2 == 0:
+                                    target_box.append(v / Float32(max(1, w - 1)))
+                                else:
+                                    target_box.append(v / Float32(max(1, h - 1)))
+                            except _:
+                                target_box.append(0.0)
+            except _:
+                target_box = List[Float32]()
+
+            if len(target_box) < 4:
+                target_box = List[Float32](); target_box.append(0.0); target_box.append(0.0); target_box.append(0.0); target_box.append(0.0)
+            bboxes_list.append(target_box^)
+
+    var total = len(features_list)
+    if total == 0:
+        var out_fail2 = List[tensor_defs.Tensor]()
+        out_fail2.append(tensor_defs.Tensor(List[Int](), tipo))
+        out_fail2.append(tensor_defs.Tensor(List[Int](), tipo))
+        return out_fail2^
+
+    var features = altura * largura * 3
+    var formato_x = List[Int](); formato_x.append(total); formato_x.append(features)
+    var formato_y = List[Int](); formato_y.append(total); formato_y.append(4)
+
+    var x_t = tensor_defs.Tensor(formato_x^, tipo)
+    var y_t = tensor_defs.Tensor(formato_y^, tipo)
+    var idx = 0
+    for p in features_list:
+        # p is [H][W][3]
+        for yy in range(altura):
+            for xx in range(largura):
+                var pix = p[yy][xx]
+                # order R,G,B channels
+                x_t.dados[idx * features + (yy * largura + xx) * 3 + 0] = pix[0]
+                x_t.dados[idx * features + (yy * largura + xx) * 3 + 1] = pix[1]
+                x_t.dados[idx * features + (yy * largura + xx) * 3 + 2] = pix[2]
+        var tb = bboxes_list[idx]
+        for j in range(4):
+            y_t.dados[idx * 4 + j] = tb[j]
+        idx = idx + 1
+
+    var out_list = List[tensor_defs.Tensor]()
+    out_list.append(x_t.copy())
+    out_list.append(y_t.copy())
+    return out_list^
+
+
 # Reuse IO helpers from example: IoU and bbox parsing small helpers
 fn _iou(boxA: List[Int], boxB: List[Int]) -> Float32:
     var xA = max(boxA[0], boxB[0])

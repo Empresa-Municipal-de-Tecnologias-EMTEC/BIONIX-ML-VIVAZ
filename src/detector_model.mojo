@@ -63,8 +63,6 @@ fn treinar_detector_bbox_com_saida(
     var ultima_pred: List[Int] = List[Int]()
     var ultima_img: String = ""
 
-    var head_w: tensor_defs.Tensor = tensor_defs.Tensor(List[Int](), bloco.tipo_computacao)
-    var head_b: tensor_defs.Tensor = tensor_defs.Tensor(List[Int](), bloco.tipo_computacao)
     var head_initialized = False
 
     for epoca in range(epocas):
@@ -79,20 +77,20 @@ fn treinar_detector_bbox_com_saida(
             var feat_dim = feats.formato[1]
             var shape_w = List[Int]()
             shape_w.append(feat_dim); shape_w.append(4)
-            head_w = tensor_defs.Tensor(shape_w^, bloco.tipo_computacao)
+            bloco.peso_saida = tensor_defs.Tensor(shape_w^, bloco.tipo_computacao)
             var shape_b = List[Int]()
             shape_b.append(1); shape_b.append(4)
-            head_b = tensor_defs.Tensor(shape_b^, bloco.tipo_computacao)
-            for i in range(len(head_w.dados)):
-                head_w.dados[i] = 0.001
-            for j in range(len(head_b.dados)):
-                head_b.dados[j] = 0.0
+            bloco.bias_saida = tensor_defs.Tensor(shape_b^, bloco.tipo_computacao)
+            for i in range(len(bloco.peso_saida.dados)):
+                bloco.peso_saida.dados[i] = 0.001
+            for j in range(len(bloco.bias_saida.dados)):
+                bloco.bias_saida.dados[j] = 0.0
             head_initialized = True
 
         var preds = tensor_defs.Tensor(List[Int](), bloco.tipo_computacao)
         try:
-            preds = dispatcher.multiplicar_matrizes(feats, head_w)
-            preds = dispatcher.adicionar_bias_coluna(preds, head_b)
+            preds = dispatcher.multiplicar_matrizes(feats, bloco.peso_saida)
+            preds = dispatcher.adicionar_bias_coluna(preds, bloco.bias_saida)
         except _:
             print("Erro ao calcular preds; pulando epoca", epoca)
             continue
@@ -112,10 +110,10 @@ fn treinar_detector_bbox_com_saida(
             for j in range(cols):
                 grad_b_vals[j] = grad_b_vals[j] + grad_pred.dados[i * cols + j]
 
-        for i in range(len(head_w.dados)):
-            head_w.dados[i] = head_w.dados[i] - taxa_aprendizado * grad_w.dados[i]
+        for i in range(len(bloco.peso_saida.dados)):
+            bloco.peso_saida.dados[i] = bloco.peso_saida.dados[i] - taxa_aprendizado * grad_w.dados[i]
         for j in range(cols):
-            head_b.dados[j] = head_b.dados[j] - taxa_aprendizado * grad_b_vals[j]
+            bloco.bias_saida.dados[j] = bloco.bias_saida.dados[j] - taxa_aprendizado * grad_b_vals[j]
 
         loss_final = loss
 
@@ -181,8 +179,12 @@ fn treinar_detector_bbox_com_saida(
         if not os.path.exists(export_dir):
             os.mkdir(export_dir)
         var export_path = os.path.join(export_dir, "detector_pesos.bin")
-        var ok = arquivo_io.gravar_arquivo_binario(export_path, head_w.dados_bytes())
-        if not ok:
+        try:
+            var ok = False
+            ok = dados_pkg.gravar_arquivo_binario(export_path, bloco.peso_saida.dados_bytes_bin())
+            if not ok:
+                print("[ERRO] Falha ao exportar pesos binários na época", epoca, "em", export_path)
+        except _:
             print("[ERRO] Falha ao exportar pesos binários na época", epoca, "em", export_path)
 
         # Após cada época, tenta obter uma predição e imagem de validação
@@ -231,8 +233,8 @@ fn treinar_detector_bbox_com_saida(
                         input_tensor.dados[i] = flat[i]
 
                     var feats_single = cnn_pkg.extrair_features(bloco, input_tensor)
-                    var preds_single = dispatcher.multiplicar_matrizes(feats_single, head_w)
-                    preds_single = dispatcher.adicionar_bias_coluna(preds_single, head_b)
+                    var preds_single = dispatcher.multiplicar_matrizes(feats_single, bloco.peso_saida)
+                    preds_single = dispatcher.adicionar_bias_coluna(preds_single, bloco.bias_saida)
                     if len(preds_single.dados) >= 4:
                         var cx0 = _clamp01(preds_single.dados[0])
                         var cy0 = _clamp01(preds_single.dados[1])
@@ -253,23 +255,23 @@ fn treinar_detector_bbox_com_saida(
             pass
 
     # save head se solicitado
-    try:
-        if len(model_dir) > 0:
-            var meta = "feat_shape=" + String(head_w.formato[0]) + "," + String(head_w.formato[1]) + "\n"
-            meta = meta + "weights="
-            for i in range(len(head_w.dados)):
-                if i != 0:
-                    meta = meta + ","
-                meta = meta + String(Float64(head_w.dados[i]))
-            meta = meta + "\n"
-            meta = meta + "bias="
-            for j in range(len(head_b.dados)):
-                if j != 0:
-                    meta = meta + ","
-                meta = meta + String(Float64(head_b.dados[j]))
-            _ = io_modelo.save_metadata(os.path.join(model_dir, "bbox_head.txt"), meta)
-    except _:
-        pass
+        try:
+            if len(model_dir) > 0:
+                var meta = "feat_shape=" + String(bloco.peso_saida.formato[0]) + "," + String(bloco.peso_saida.formato[1]) + "\n"
+                meta = meta + "weights="
+                for i in range(len(bloco.peso_saida.dados)):
+                    if i != 0:
+                        meta = meta + ","
+                    meta = meta + String(Float64(bloco.peso_saida.dados[i]))
+                meta = meta + "\n"
+                meta = meta + "bias="
+                for j in range(len(bloco.bias_saida.dados)):
+                    if j != 0:
+                        meta = meta + ","
+                    meta = meta + String(Float64(bloco.bias_saida.dados[j]))
+                _ = io_modelo.save_metadata(os.path.join(model_dir, "bbox_head.txt"), meta)
+        except _:
+            pass
 
     return (loss_final, ultima_pred, ultima_img)
 
@@ -346,7 +348,7 @@ fn treinar_detector_bce(
             os.mkdir(export_dir)
         var export_path = os.path.join(export_dir, "detector_pesos.bin")
         # Exportar pesos em formato binário usando dados_bytes(), padrão do framework
-        var ok = arquivo_io.gravar_arquivo_binario(export_path, bloco.peso_saida.dados_bytes())
+        var ok = dados_pkg.gravar_arquivo_binario(export_path, bloco.peso_saida.dados_bytes_bin())
         if not ok:
             print("[ERRO] Falha ao exportar pesos binários na época", epoca, "em", export_path)
             # Visual validation: save a color BMP with bbox overlay for the first sample
@@ -629,6 +631,18 @@ fn treinar_detector_bbox(
 
         if imprimir_cada > 0 and (epoca % imprimir_cada == 0 or epoca == epocas - 1):
             print("Epoca", epoca, "| L1-like MSE loss:", loss_final)
+            # Debug: print first sample target (normalized) and raw preds before clamp
+            try:
+                if entradas.formato[0] > 0 and alvos.formato[0] > 0 and len(preds.dados) >= 4:
+                    var sample_target = List[Float32]()
+                    for k in range(4):
+                        sample_target.append(alvos.dados[0 * 4 + k])
+                    var sample_pred = List[Float32]()
+                    for k in range(4):
+                        sample_pred.append(preds.dados[k])
+                    print("[DEBUG] alvo_normalizado:", sample_target, "preds_raw:", sample_pred)
+            except _:
+                pass
 
         # Exportar pesos em formato binário ao final de cada época
 
@@ -637,7 +651,7 @@ fn treinar_detector_bbox(
             os.mkdir(export_dir)
         var export_path = os.path.join(export_dir, "detector_pesos.bin")
         # Exportar pesos em formato binário usando dados_bytes(), padrão do framework
-        var ok = arquivo_io.gravar_arquivo_binario(export_path, head_w.dados_bytes())
+        var ok = dados_pkg.gravar_arquivo_binario(export_path, head_w.dados_bytes_bin())
         if not ok:
             print("[ERRO] Falha ao exportar pesos binários na época", epoca, "em", export_path)
 
@@ -828,14 +842,18 @@ fn treinar_detector_bbox(
                                     input_tensor.dados[i] = flat[i]
 
                                 var feats_single = cnn_pkg.extrair_features(bloco, input_tensor)
-                                var preds_single = dispatcher.multiplicar_matrizes(feats_single, head_w)
-                                preds_single = dispatcher.adicionar_bias_coluna(preds_single, head_b)
-                                # read first row
+                                var preds_single = dispatcher.multiplicar_matrizes(feats_single, bloco.peso_saida)
+                                preds_single = dispatcher.adicionar_bias_coluna(preds_single, bloco.bias_saida)
+                                # read first row and clamp outputs to [0,1]
                                 if len(preds_single.dados) >= 4:
-                                    var px0 = Int(preds_single.dados[0] * Float32(W))
-                                    var py0 = Int(preds_single.dados[1] * Float32(H))
-                                    var px1 = Int(preds_single.dados[2] * Float32(W))
-                                    var py1 = Int(preds_single.dados[3] * Float32(H))
+                                    var cx0 = _clamp01(preds_single.dados[0])
+                                    var cy0 = _clamp01(preds_single.dados[1])
+                                    var cx1 = _clamp01(preds_single.dados[2])
+                                    var cy1 = _clamp01(preds_single.dados[3])
+                                    var px0 = Int(cx0 * Float32(W))
+                                    var py0 = Int(cy0 * Float32(H))
+                                    var px1 = Int(cx1 * Float32(W))
+                                    var py1 = Int(cy1 * Float32(H))
                                     if px0 < 0: px0 = 0
                                     if py0 < 0: py0 = 0
                                     if px1 >= W: px1 = W - 1
