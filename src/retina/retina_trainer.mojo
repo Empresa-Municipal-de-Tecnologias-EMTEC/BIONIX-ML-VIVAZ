@@ -348,16 +348,14 @@ fn treinar_retina_minimal(mut bloco: cnn_pkg.BlocoCNN, var dataset_dir: String, 
                     var cls_err = sig - cls_target
                     for j in range(4):
                         var err = pred[j] - tgt[j]
-                        # gradient clipping per-weight
                         if err > 100.0: err = 100.0
                         if err < -100.0: err = -100.0
                         for d in range(D):
-                                var grad_w = feats.dados[d] * err
-                            # clip gradient magnitude
+                            var grad_w = feats.dados[d] * err
                             if grad_w > 100.0: grad_w = 100.0
                             if grad_w < -100.0: grad_w = -100.0
-                                bloco.peso_saida.dados[d * 4 + j] = bloco.peso_saida.dados[d * 4 + j] - lr_atual * grad_w
-                            bloco.bias_saida.dados[j] = bloco.bias_saida.dados[j] - lr_atual * err
+                            bloco.peso_saida.dados[d * 4 + j] = bloco.peso_saida.dados[d * 4 + j] - lr_atual * grad_w
+                        bloco.bias_saida.dados[j] = bloco.bias_saida.dados[j] - lr_atual * err
         var avg_loss: Float32 = 0.0
         if count_pos > 0:
             # guard against NaN soma_loss
