@@ -200,6 +200,9 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
             class_ptrs[c] = ptr + 1
 
         var E = len(batch_paths)
+        # diagnostic clamp: process at most 4 images per epoch to reduce memory pressure
+        if E > 4:
+            E = 4
         if E == 0:
             print("Nenhuma imagem para treinar; verifique DATASET")
             return "Falha: sem imagens"
@@ -277,24 +280,47 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                     if ay + ah > altura: ah = max(1, altura - ay)
                     # crop directly from the BMP flat buffer when possible to avoid extra copies
                     var crop_rgb = List[List[List[Float32]]]()
+                    # Prefer flat-buffer based crop+resize to minimize intermediate allocations.
                     try:
-                        print("[DEBUG] treinar_retina_minimal: before crop resize; bmp.width=", bmp.width, "bmp.height=", bmp.height, "bmp.channels=", bmp.channels, "flat_len=", len(bmp.flat_pixels), "crop_rect=", ax, ay, ax + aw - 1, ay + ah - 1)
-                        crop_rgb = graficos_pkg.bmp.crop_and_resize_from_flat(bmp.flat_pixels.copy(), bmp.width, bmp.height, bmp.channels, ax, ay, ax + aw - 1, ay + ah - 1, patch_size, patch_size)
-                        # if the function returns an empty result (defensive guard), fall back to nested resize
+                        crop_rgb = graficos_pkg.bmp.crop_and_resize_from_flat(bmp.flat_pixels, bmp.width, bmp.height, bmp.channels, ax, ay, ax + aw - 1, ay + ah - 1, patch_size, patch_size)^
                         if len(crop_rgb) == 0:
-                            crop_rgb = graficos_pkg.crop_and_resize_rgb(img_matrix, ax, ay, ax + aw - 1, ay + ah - 1, patch_size, patch_size)
+                            # fallback to nested path only if flat path failed
+                            crop_rgb = graficos_pkg.crop_and_resize_rgb(img_matrix, ax, ay, ax + aw - 1, ay + ah - 1, patch_size, patch_size)^
                     except _:
-                        crop_rgb = graficos_pkg.crop_and_resize_rgb(img_matrix, ax, ay, ax + aw - 1, ay + ah - 1, patch_size, patch_size)
+                        crop_rgb = graficos_pkg.crop_and_resize_rgb(img_matrix, ax, ay, ax + aw - 1, ay + ah - 1, patch_size, patch_size)^
 
                     var in_shape = List[Int](); in_shape.append(1); in_shape.append(patch_size * patch_size * 3)
                     var tensor_in = tensor_defs.Tensor(in_shape^, detector.bloco_cnn.tipo_computacao)
+
+                    # Fill tensor directly from BMP flat buffer via nearest-neighbor crop+resize
+                    var yy0_local = ay; var xx0_local = ax
+                    var src_h_local = ah; var src_w_local = aw
+                    if src_h_local <= 0: src_h_local = 1
+                    if src_w_local <= 0: src_w_local = 1
                     for yy in range(patch_size):
+                        var src_y = (yy * src_h_local) // patch_size
+                        if src_y < 0: src_y = 0
+                        if src_y >= src_h_local: src_y = src_h_local - 1
+                        var img_y = yy0_local + src_y
+                        if img_y < 0: img_y = 0
+                        if img_y >= altura: img_y = altura - 1
                         for xx in range(patch_size):
-                            var pix = crop_rgb[yy][xx].copy()
+                            var src_x = (xx * src_w_local) // patch_size
+                            if src_x < 0: src_x = 0
+                            if src_x >= src_w_local: src_x = src_w_local - 1
+                            var img_x = xx0_local + src_x
+                            if img_x < 0: img_x = 0
+                            if img_x >= largura: img_x = largura - 1
                             var base = (yy * patch_size + xx) * 3
-                            tensor_in.dados[base + 0] = pix[0]
-                            tensor_in.dados[base + 1] = pix[1]
-                            tensor_in.dados[base + 2] = pix[2]
+                            var idx_flat = (img_y * largura + img_x) * bmp.channels
+                            if idx_flat + 2 < len(bmp.flat_pixels) and idx_flat >= 0:
+                                tensor_in.dados[base + 0] = bmp.flat_pixels[idx_flat + 0]
+                                tensor_in.dados[base + 1] = bmp.flat_pixels[idx_flat + 1]
+                                tensor_in.dados[base + 2] = bmp.flat_pixels[idx_flat + 2]
+                            else:
+                                tensor_in.dados[base + 0] = 0.0
+                                tensor_in.dados[base + 1] = 0.0
+                                tensor_in.dados[base + 2] = 0.0
 
                     var feats = cnn_pkg.extrair_features(detector.bloco_cnn, tensor_in)
                     var D = 0
