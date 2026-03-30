@@ -35,6 +35,21 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                           var patch_size: Int = 64, var epocas: Int = 5, var taxa_aprendizado: Float32 = 0.0001,
                           var batch_size: Int = 4) raises -> String:
 
+    print("[DEBUG] treinar_retina_minimal: entrada chamada; altura:", altura, "largura:", largura, "patch_size:", patch_size, "epocas:", epocas)
+    try:
+        var h = -1; var w = -1
+        try:
+            h = detector.bloco_cnn.altura
+        except _:
+            h = -1
+        try:
+            w = detector.bloco_cnn.largura
+        except _:
+            w = -1
+        print("[DEBUG] treinar_retina_minimal: detector.bloco_cnn dimensions maybe -> altura:", h, "largura:", w)
+    except _:
+        pass
+
     # scheduler (ReduceLROnPlateau-like)
     var lr_atual = taxa_aprendizado
     var best_loss: Float32 = 1e30
@@ -66,10 +81,17 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
     var head_initialized = False
 
     # Try loading any existing saved regression/classification heads
-    try:
-        _ = model_pkg.carregar_checkpoint(detector.bloco_cnn, export_dir)
-    except _:
-        pass
+    # TEMPORARY: skip checkpoint load to isolate OOM cause (set to False to enable load)
+    var _skip_checkpoint_load = True
+    if not _skip_checkpoint_load:
+        try:
+            print("[DEBUG] treinar_retina_minimal: calling model_pkg.carregar_checkpoint with", export_dir)
+            _ = model_pkg.carregar_checkpoint(detector.bloco_cnn, export_dir)
+            print("[DEBUG] treinar_retina_minimal: returned from model_pkg.carregar_checkpoint")
+        except _:
+            pass
+    else:
+        print("[DEBUG] treinar_retina_minimal: skipping model_pkg.carregar_checkpoint (temp)")
     try:
         # attempt to read canonical classification head files
         var raw_w = arquivo_pkg.ler_arquivo_binario(os.path.join(export_dir, "peso_cls.bin"))
@@ -98,14 +120,21 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
         pass
 
     # anchors (fixed for image size)
+    print("[DEBUG] treinar_retina_minimal: before gerar_anchors, largura:", largura)
     var anchors = anchor_gen.gerar_anchors(largura)
+    print("[DEBUG] treinar_retina_minimal: after gerar_anchors; anchors len:", len(anchors))
 
     # build class lists from dataset_dir (expect structure: dataset_dir/train/<class>/*.bmp)
+    print("[DEBUG] treinar_retina_minimal: about to build class lists from dataset_dir:", dataset_dir)
     var train_root = os.path.join(dataset_dir, "train")
     if not os.path.exists(train_root):
         train_root = dataset_dir
     var class_names = List[String]()
     var class_images = List[List[String]]()
+    var total_images: Int = 0
+    var _limit_dataset_scan = True
+    var _limit_total_images: Int = 2000
+    var _stop_scan: Bool = False
     try:
         for cls in os.listdir(train_root):
             var pcls = os.path.join(train_root, cls)
@@ -120,6 +149,14 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
             except _:
                 pass
             class_images.append(imgs)
+            total_images = total_images + len(imgs)
+            print("[DEBUG] treinar_retina_minimal: class", cls, "images:", len(imgs), "total_images:", total_images)
+            if _limit_dataset_scan and total_images > _limit_total_images:
+                print("[DEBUG] treinar_retina_minimal: reached total_images limit (", total_images, ") - stopping scan")
+                _stop_scan = True
+            if _stop_scan:
+                break
+            print("[DEBUG] treinar_retina_minimal: built class lists; classes:", len(class_names))
     except _:
         pass
     var class_ptrs = List[Int]()
@@ -172,11 +209,15 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                 var bmp = dados_pkg.carregar_bmp_rgb(path)
                 if bmp.width == 0:
                     continue
-                var img_matrix = List[List[List[Float32]]]()
+                # prefer flat-buffer resize to avoid excessive nested allocations
                 try:
-                    img_matrix = graficos_pkg.redimensionar_matriz_rgb_nearest(bmp.pixels.copy()^, altura, largura)^
+                    img_matrix = graficos_pkg.bmp.redimensionar_matriz_rgb_nearest_from_flat(bmp.flat_pixels, bmp.width, bmp.height, bmp.channels, altura, largura)
                 except _:
-                    continue
+                    # fallback to nested resize
+                    try:
+                        img_matrix = graficos_pkg.redimensionar_matriz_rgb_nearest(bmp.pixels.copy()^, altura, largura)^
+                    except _:
+                        continue
 
                 # load ground-truth box if exists
                 var tx0: Float32 = 0.0; var ty0: Float32 = 0.0; var tx1: Float32 = 0.0; var ty1: Float32 = 0.0
@@ -227,7 +268,12 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                     if ay < 0: ay = 0
                     if ax + aw > largura: aw = max(1, largura - ax)
                     if ay + ah > altura: ah = max(1, altura - ay)
-                    var crop_rgb = graficos_pkg.crop_and_resize_rgb(img_matrix, ax, ay, ax + aw - 1, ay + ah - 1, patch_size, patch_size)
+                    # crop directly from the BMP flat buffer when possible to avoid extra copies
+                    var crop_rgb = List[List[List[Float32]]]()
+                    try:
+                        crop_rgb = graficos_pkg.bmp.crop_and_resize_from_flat(bmp.flat_pixels, bmp.width, bmp.height, bmp.channels, ax, ay, ax + aw - 1, ay + ah - 1, patch_size, patch_size)
+                    except _:
+                        crop_rgb = graficos_pkg.crop_and_resize_rgb(img_matrix, ax, ay, ax + aw - 1, ay + ah - 1, patch_size, patch_size)
 
                     var in_shape = List[Int](); in_shape.append(1); in_shape.append(patch_size * patch_size * 3)
                     var tensor_in = tensor_defs.Tensor(in_shape^, detector.bloco_cnn.tipo_computacao)
