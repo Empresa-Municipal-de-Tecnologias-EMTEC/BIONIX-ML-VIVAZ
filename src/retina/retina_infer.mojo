@@ -87,7 +87,12 @@ fn validar_10_classes(model_dir: String, dataset_dir: String, out_dir: String, i
             continue
 
         print("[INFER] carregando imagem:", img_path)
-        var bmp = dados_pkg.carregar_bmp_rgb(img_path, input_size, input_size)
+        var bmp = bmpmod.zero_bmp()
+        try:
+            bmp = dados_pkg.carregar_bmp_rgb(img_path, input_size, input_size)
+        except _:
+            print("[INFER] excecao: falha ao carregar imagem:", img_path)
+            continue
         if bmp.width <= 0:
             print("[INFER] falha ao carregar imagem:", img_path)
             continue
