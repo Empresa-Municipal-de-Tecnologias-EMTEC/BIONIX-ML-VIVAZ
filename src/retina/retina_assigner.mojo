@@ -38,7 +38,8 @@ fn assignar_anchors(anchors: List[List[Float32]], gt_boxes: List[List[Int]],
         targets.append(List[Float32]())
 
     if len(gt_boxes) == 0:
-        return (labels, targets)
+        # transfer empty lists back to caller to avoid implicit copy
+        return (labels^, targets^)
 
     for a_idx in range(N):
         var best_iou: Float32 = 0.0
@@ -56,7 +57,8 @@ fn assignar_anchors(anchors: List[List[Float32]], gt_boxes: List[List[Int]],
                 best_gt_idx = g_idx
         if best_iou >= iou_pos and best_gt_idx >= 0:
             labels[a_idx] = 1
-            var gt = gt_boxes[best_gt_idx]
+            # copy GT entry to avoid implicit copy of caller-owned list
+            var gt = gt_boxes[best_gt_idx].copy()
             var gt_cx = Float32((gt[0] + gt[2]) / 2.0)
             var gt_cy = Float32((gt[1] + gt[3]) / 2.0)
             var gt_w = Float32(gt[2] - gt[0])

@@ -322,7 +322,7 @@ struct RetinaFace(Movable):
             cls_tensors_inited = False
 
         for i in range(len(anchors)):
-            var a = anchors[i]
+            var a = anchors[i].copy()
             var ax = Int(a[0] - a[2] / 2.0); var ay = Int(a[1] - a[3] / 2.0)
             var aw = Int(a[2]); var ah = Int(a[3])
             if ax < 0: ax = 0
@@ -382,11 +382,12 @@ struct RetinaFace(Movable):
             var drow = List[Float32]()
             for v in pred:
                 drow.append(v)
-            reg_deltas.append(drow)
+            # transfer newly created row into reg_deltas to avoid implicit copy
+            reg_deltas.append(drow^)
 
         var boxes: List[List[Float32]] = List[List[Float32]]()
         for i in range(len(anchors)):
-            var a = anchors[i]
+            var a = anchors[i].copy()
             var dx = reg_deltas[i][0]; var dy = reg_deltas[i][1]; var dw = reg_deltas[i][2]; var dh = reg_deltas[i][3]
             var cx = a[0] + dx * a[2]
             var cy = a[1] + dy * a[3]
@@ -398,7 +399,8 @@ struct RetinaFace(Movable):
             var y1 = cy + h/2.0
             var outb = List[Float32]()
             outb.append(x0); outb.append(y0); outb.append(x1); outb.append(y1)
-            boxes.append(outb)
+            # transfer freshly-built box to avoid implicit copy
+            boxes.append(outb^)
 
         var keep = nms_pkg.non_max_suppression(boxes, cls_scores, self.parametros.nms_iou)
         var kept_boxes = List[List[Int]]()
@@ -408,9 +410,10 @@ struct RetinaFace(Movable):
             var b = boxes[k].copy()
             var ib = List[Int]()
             ib.append(Int(b[0])); ib.append(Int(b[1])); ib.append(Int(b[2])); ib.append(Int(b[3]))
-            kept_boxes.append(ib)
-
-        return kept_boxes
+            # transfer the small int-list into kept_boxes
+            kept_boxes.append(ib^)
+        # transfer ownership of kept_boxes to caller to avoid implicit copy
+        return kept_boxes^
 
     fn treinar(mut self, var dataset_dir: String, var altura: Int = 640, var largura: Int = 640,
                var patch_size: Int = 64, var epocas: Int = 5, var taxa_aprendizado: Float32 = 0.0001,
