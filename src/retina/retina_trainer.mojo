@@ -9,6 +9,7 @@ import bionix_ml.uteis as uteis
 import bionix_ml.nucleo.Tensor as tensor_defs
 import retina.retina_anchor_generator as anchor_gen
 import retina.retina_assigner as assigner
+import retina.retina_utils as retina_utils
 import os
 import math
 
@@ -30,7 +31,7 @@ fn _split_fields(line: String) -> List[String]:
 
 
 # Minimal retina trainer that uses RGB patches and the retina_model helpers.
-fn treinar_retina_minimal(mut bloco: cnn_pkg.BlocoCNN, var dataset_dir: String, var altura: Int = 640, var largura: Int = 640,
+fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir: String, var altura: Int = 640, var largura: Int = 640,
                           var patch_size: Int = 64, var epocas: Int = 5, var taxa_aprendizado: Float32 = 0.0001,
                           var batch_size: Int = 4) raises -> String:
 
@@ -42,8 +43,16 @@ fn treinar_retina_minimal(mut bloco: cnn_pkg.BlocoCNN, var dataset_dir: String, 
     var scheduler_factor: Float32 = 0.5
     var min_lr: Float32 = 1e-7
     var min_delta: Float32 = 1e-6
+    # IoU-based early stopping params
+    var best_iou: Float32 = 0.0
+    var iou_patience: Int = 5
+    var iou_patience_count: Int = 0
+    var iou_min_delta: Float32 = 1e-4
+    var iou_target: Float32 = 0.75
+    var iou_consec_required: Int = 3
+    var iou_consec_count: Int = 0
 
-    # try to load existing heads if available
+    # try to load existing heads if available via detector
     var export_dir = os.path.join("MODELO", "retina_modelo")
     try:
         if not os.path.exists(export_dir):
@@ -51,72 +60,86 @@ fn treinar_retina_minimal(mut bloco: cnn_pkg.BlocoCNN, var dataset_dir: String, 
     except _:
         pass
 
-    # prepare dataset listing
-    var class_images = List[List[String]]()
-    var class_ptrs = List[Int]()
-    var class_names = List[String]()
-    try:
-        var train_root = os.path.join(dataset_dir, "train")
-        if not os.path.exists(train_root):
-            train_root = dataset_dir
-        for cls in os.listdir(train_root):
-            var pcls = os.path.join(train_root, cls)
-            if not os.path.isdir(pcls):
-                continue
-            class_names.append(cls)
-            var imgs = List[String]()
-            for f in os.listdir(pcls):
-                if f.endswith('.bmp'):
-                    imgs.append(os.path.join(pcls, f))
-            class_images.append(imgs)
-            class_ptrs.append(0)
-    except _:
-        pass
-
-    # allocate placeholder heads
-    var head_peso_cls = tensor_defs.Tensor(List[Int](), bloco.tipo_computacao)
-    var head_bias_cls = tensor_defs.Tensor(List[Int](), bloco.tipo_computacao)
+    # allocate placeholder heads (use detector's backend)
+    var head_peso_cls = tensor_defs.Tensor(List[Int](), detector.bloco_cnn.tipo_computacao)
+    var head_bias_cls = tensor_defs.Tensor(List[Int](), detector.bloco_cnn.tipo_computacao)
     var head_initialized = False
 
     # Try loading any existing saved regression/classification heads
     try:
-        model_utils.carregar_regression_head(bloco, export_dir)
+        model_pkg.carregar_checkpoint(bloco, export_dir)
     except _:
         pass
     try:
-        var head_bytes = model_utils.carregar_head_bytes(export_dir)
-        if len(head_bytes) >= 2:
-            var raw_w = head_bytes[0]
-            var raw_b = head_bytes[1]
-            if len(raw_w) > 0:
+        # attempt to read canonical classification head files
+        var raw_w = arquivo_pkg.ler_arquivo_binario(os.path.join(export_dir, "peso_cls.bin"))
+        var raw_b = arquivo_pkg.ler_arquivo_binario(os.path.join(export_dir, "bias_cls.bin"))
+        if len(raw_w) > 0:
+            try:
+                var D = 0
                 try:
-                    var D = 0
-                    try:
-                        D = bloco.peso_saida.formato[0]
-                    except _:
-                        D = 0
-                    if D > 0:
-                        var shape_w = List[Int]()
-                        shape_w.append(D); shape_w.append(1)
-                        head_peso_cls = tensor_defs.Tensor(shape_w^, bloco.tipo_computacao)
-                        head_peso_cls.carregar_dados_bytes_bin(raw_w)
-                        var shape_b = List[Int]()
-                        shape_b.append(1); shape_b.append(1)
-                        head_bias_cls = tensor_defs.Tensor(shape_b^, bloco.tipo_computacao)
-                        if len(raw_b) > 0:
-                            head_bias_cls.carregar_dados_bytes_bin(raw_b)
-                        head_initialized = True
+                    D = detector.bloco_cnn.peso_saida.formato[0]
                 except _:
-                    head_initialized = False
+                    D = 0
+                if D > 0:
+                    var shape_w = List[Int]()
+                    shape_w.append(D); shape_w.append(4)
+                        head_peso_cls = tensor_defs.Tensor(shape_w^, detector.bloco_cnn.tipo_computacao)
+                    head_peso_cls.carregar_dados_bytes_bin(raw_w)
+                    var shape_b = List[Int]()
+                    shape_b.append(1); shape_b.append(4)
+                        head_bias_cls = tensor_defs.Tensor(shape_b^, detector.bloco_cnn.tipo_computacao)
+                    if len(raw_b) > 0:
+                        head_bias_cls.carregar_dados_bytes_bin(raw_b)
+                    head_initialized = True
+            except _:
+                head_initialized = False
     except _:
         pass
 
     # anchors (fixed for image size)
     var anchors = anchor_gen.gerar_anchors(largura)
 
+    # build class lists from dataset_dir (expect structure: dataset_dir/train/<class>/*.bmp)
+    var train_root = os.path.join(dataset_dir, "train")
+    if not os.path.exists(train_root):
+        train_root = dataset_dir
+    var class_names = List[String]()
+    var class_images = List[List[String]]()
+    try:
+        for cls in os.listdir(train_root):
+            var pcls = os.path.join(train_root, cls)
+            if not os.path.isdir(pcls):
+                continue
+            class_names.append(cls)
+            var imgs = List[String]()
+            try:
+                for f in os.listdir(pcls):
+                    if f.endswith('.bmp'):
+                        imgs.append(os.path.join(pcls, f))
+            except _:
+                pass
+            class_images.append(imgs)
+    except _:
+        pass
+    var class_ptrs = List[Int]()
+    for _ in range(len(class_names)):
+        class_ptrs.append(0)
+
+    # `detector` is provided as parameter (RetinaFace); ensure its export dir is set
+    try:
+        detector.diretorio_modelo = export_dir
+    except _:
+        pass
+    # reuse any loaded heads in detector or the local placeholders
+    detector.cabeca_classificacao_peso = head_peso_cls
+    detector.cabeca_classificacao_bias = head_bias_cls
+
     for ep in range(epocas):
         var soma_loss: Float32 = 0.0
         var count_pos: Int = 0
+        var iou_sum: Float32 = 0.0
+        var count_iou: Int = 0
 
         # build a mini-batch list: one image per class this epoch (safer for memory)
         var batch_paths = List[String]()
@@ -201,7 +224,7 @@ fn treinar_retina_minimal(mut bloco: cnn_pkg.BlocoCNN, var dataset_dir: String, 
                     var crop_rgb = graficos_pkg.crop_and_resize_rgb(img_matrix, ax, ay, ax + aw - 1, ay + ah - 1, patch_size, patch_size)
 
                     var in_shape = List[Int](); in_shape.append(1); in_shape.append(patch_size * patch_size * 3)
-                    var tensor_in = tensor_defs.Tensor(in_shape^, bloco.tipo_computacao)
+                    var tensor_in = tensor_defs.Tensor(in_shape^, detector.bloco_cnn.tipo_computacao)
                     for yy in range(patch_size):
                         for xx in range(patch_size):
                             var pix = crop_rgb[yy][xx]
@@ -210,7 +233,7 @@ fn treinar_retina_minimal(mut bloco: cnn_pkg.BlocoCNN, var dataset_dir: String, 
                             tensor_in.dados[base + 1] = pix[1]
                             tensor_in.dados[base + 2] = pix[2]
 
-                    var feats = cnn_pkg.extrair_features(bloco, tensor_in)
+                    var feats = cnn_pkg.extrair_features(detector.bloco_cnn, tensor_in)
                     var D = 0
                     try:
                         D = feats.formato[1]
@@ -220,36 +243,51 @@ fn treinar_retina_minimal(mut bloco: cnn_pkg.BlocoCNN, var dataset_dir: String, 
                     # initialize heads from features on first positive
                     if not head_initialized and D > 0:
                         var shape_w = List[Int](); shape_w.append(D); shape_w.append(4)
-                        bloco.peso_saida = tensor_defs.Tensor(shape_w^, bloco.tipo_computacao)
+                        detector.bloco_cnn.peso_saida = tensor_defs.Tensor(shape_w^, detector.bloco_cnn.tipo_computacao)
                         var shape_b = List[Int](); shape_b.append(1); shape_b.append(4)
-                        bloco.bias_saida = tensor_defs.Tensor(shape_b^, bloco.tipo_computacao)
-                        for k in range(len(bloco.peso_saida.dados)):
-                            bloco.peso_saida.dados[k] = 0.001
-                        for k in range(len(bloco.bias_saida.dados)):
-                            bloco.bias_saida.dados[k] = 0.0
+                        detector.bloco_cnn.bias_saida = tensor_defs.Tensor(shape_b^, detector.bloco_cnn.tipo_computacao)
+                        for k in range(len(detector.bloco_cnn.peso_saida.dados)):
+                            detector.bloco_cnn.peso_saida.dados[k] = 0.001
+                        for k in range(len(detector.bloco_cnn.bias_saida.dados)):
+                            detector.bloco_cnn.bias_saida.dados[k] = 0.0
                         var shape_cw = List[Int](); shape_cw.append(D); shape_cw.append(1)
-                        head_peso_cls = tensor_defs.Tensor(shape_cw^, bloco.tipo_computacao)
+                        head_peso_cls = tensor_defs.Tensor(shape_cw^, detector.bloco_cnn.tipo_computacao)
                         var shape_cb = List[Int](); shape_cb.append(1); shape_cb.append(1)
-                        head_bias_cls = tensor_defs.Tensor(shape_cb^, bloco.tipo_computacao)
+                        head_bias_cls = tensor_defs.Tensor(shape_cb^, detector.bloco_cnn.tipo_computacao)
                         for k in range(len(head_peso_cls.dados)):
                             head_peso_cls.dados[k] = 0.001
                         head_bias_cls.dados[0] = 0.0
                         head_initialized = True
 
                     # compute prediction and simple L1 update
-                    var pred = List[Float32]()
-                    for j in range(4):
-                        var s: Float32 = 0.0
-                        for d in range(D):
-                            s = s + feats.dados[d] * bloco.peso_saida.dados[d * 4 + j]
-                        s = s + bloco.bias_saida.dados[j]
-                        pred.append(s)
+                        var pred = List[Float32]()
+                        for j in range(4):
+                            var s: Float32 = 0.0
+                            for d in range(D):
+                                s = s + feats.dados[d] * detector.bloco_cnn.peso_saida.dados[d * 4 + j]
+                            s = s + detector.bloco_cnn.bias_saida.dados[j]
+                            pred.append(s)
 
                     var tgt = targets[a_idx].copy()
                     if len(tgt) < 4:
                         continue
-                    for j in range(4):
-                        var err = pred[j] - tgt[j]
+                    # compute predicted box in image coordinates (same decoding as inference)
+                    try:
+                        var dx = pred[0]; var dy = pred[1]; var dw = pred[2]; var dh = pred[3]
+                        var cx = a[0] + dx * a[2]
+                        var cy = a[1] + dy * a[3]
+                        var w = a[2] * Float32(math.exp(Float64(dw)))
+                        var h = a[3] * Float32(math.exp(Float64(dh)))
+                        var px0 = cx - w/2.0; var py0 = cy - h/2.0; var px1 = cx + w/2.0; var py1 = cy + h/2.0
+                        var pred_box = List[Float32](); pred_box.append(px0); pred_box.append(py0); pred_box.append(px1); pred_box.append(py1)
+                        var gt_box = List[Float32](); gt_box.append(Float32(gt_x0)); gt_box.append(Float32(gt_y0)); gt_box.append(Float32(gt_x1)); gt_box.append(Float32(gt_y1))
+                        var iou_val = retina_utils.calcular_iou(pred_box, gt_box)
+                        iou_sum = iou_sum + iou_val
+                        count_iou = count_iou + 1
+                    except _:
+                        pass
+                        for j in range(4):
+                            var err = pred[j] - tgt[j]
                         # clamped gradient step
                         if err > 100.0: err = 100.0
                         if err < -100.0: err = -100.0
@@ -257,8 +295,8 @@ fn treinar_retina_minimal(mut bloco: cnn_pkg.BlocoCNN, var dataset_dir: String, 
                             var grad_w = feats.dados[d] * err
                             if grad_w > 100.0: grad_w = 100.0
                             if grad_w < -100.0: grad_w = -100.0
-                            bloco.peso_saida.dados[d * 4 + j] = bloco.peso_saida.dados[d * 4 + j] - lr_atual * grad_w
-                        bloco.bias_saida.dados[j] = bloco.bias_saida.dados[j] - lr_atual * err
+                            detector.bloco_cnn.peso_saida.dados[d * 4 + j] = detector.bloco_cnn.peso_saida.dados[d * 4 + j] - lr_atual * grad_w
+                        detector.bloco_cnn.bias_saida.dados[j] = detector.bloco_cnn.bias_saida.dados[j] - lr_atual * err
                         soma_loss = soma_loss + abs(err)
                     count_pos = count_pos + 1
 
@@ -277,7 +315,12 @@ fn treinar_retina_minimal(mut bloco: cnn_pkg.BlocoCNN, var dataset_dir: String, 
             meta_lines.append("lr:" + String(lr_atual))
             meta_lines.append("best_loss:" + String(best_loss))
             meta_lines.append("scheduler_wait:" + String(scheduler_wait))
-            model_utils.salvar_estado_modelo(bloco, head_peso_cls, head_bias_cls, export_dir, meta_lines)
+            # delegate full workspace save to RetinaFace wrapper
+            detector.cabeca_classificacao_peso = head_peso_cls
+            detector.cabeca_classificacao_bias = head_bias_cls
+            detector.treinamento_epoca = ep
+            detector.treinamento_lr = lr_atual
+            _ = detector.salvar_workspace(export_dir)
             print("DBG: returned from salvar_estado_modelo for epoch", ep)
         except _:
             pass
@@ -342,21 +385,33 @@ fn treinar_retina_minimal(mut bloco: cnn_pkg.BlocoCNN, var dataset_dir: String, 
                             raw_w_bytes = head_peso_cls.dados_bytes_bin()
                             raw_b_bytes = head_bias_cls.dados_bytes_bin()
                         else:
-                            var hb = model_utils.carregar_head_bytes(export_dir)
-                            if len(hb) >= 2:
-                                raw_w_bytes = hb[0]
-                                raw_b_bytes = hb[1]
+                            try:
+                                raw_w_bytes = arquivo_pkg.ler_arquivo_binario(os.path.join(export_dir, "peso_cls.bin"))
+                            except _:
+                                raw_w_bytes = List[Int]()
+                            try:
+                                raw_b_bytes = arquivo_pkg.ler_arquivo_binario(os.path.join(export_dir, "bias_cls.bin"))
+                            except _:
+                                raw_b_bytes = List[Int]()
                     except _:
                         pass
 
                     var boxes = List[List[Int]]()
-                    try:
-                        print("DBG: calling inferir_com_bloco for epoch sample class", class_names[c])
-                        boxes = model_utils.inferir_com_bloco(bloco, raw_w_bytes, raw_b_bytes, bmp.pixels, largura, 1)
-                        print("DBG: returned from inferir_com_bloco for epoch sample class", class_names[c])
-                    except _:
-                        print("DBG: inferir_com_bloco raised for epoch sample class", class_names[c])
-                        boxes = List[List[Int]]()
+                        try:
+                            print("DBG: calling detector.inferir for epoch sample class", class_names[c])
+                            # load bytes into detector heads if available
+                            try:
+                                if len(raw_w_bytes) > 0 and len(detector.cabeca_classificacao_peso.formato) >= 1:
+                                    detector.cabeca_classificacao_peso.carregar_dados_bytes_bin(raw_w_bytes)
+                                if len(raw_b_bytes) > 0 and len(detector.cabeca_classificacao_bias.formato) >= 1:
+                                    detector.cabeca_classificacao_bias.carregar_dados_bytes_bin(raw_b_bytes)
+                            except _:
+                                pass
+                            boxes = detector.inferir(bmp.pixels, largura, 1)
+                            print("DBG: returned from detector.inferir for epoch sample class", class_names[c])
+                        except _:
+                            print("DBG: detector.inferir raised for epoch sample class", class_names[c])
+                            boxes = List[List[Int]]()
 
                     if len(boxes) == 0:
                         print("Epoch sample", ep, "class", class_names[c], "NO_PRED_BOX gt_box", s_gt_x0, s_gt_y0, s_gt_x1, s_gt_y1)
@@ -379,6 +434,33 @@ fn treinar_retina_minimal(mut bloco: cnn_pkg.BlocoCNN, var dataset_dir: String, 
                         pass
                 except _:
                     pass
+        except _:
+            pass
+
+        # Evaluate IoU-based convergence and early stopping
+        try:
+            var mean_iou: Float32 = 0.0
+            if count_iou > 0:
+                mean_iou = iou_sum / Float32(count_iou)
+            print("Epoca", ep, "Mean IoU (pos anchors):", mean_iou)
+            # improvement?
+            if mean_iou > best_iou + iou_min_delta:
+                best_iou = mean_iou
+                iou_patience_count = 0
+                iou_consec_count = iou_consec_count + 1
+            else:
+                iou_patience_count = iou_patience_count + 1
+                iou_consec_count = 0
+
+            # Check target consecutive condition
+            if best_iou >= iou_target and iou_consec_count >= iou_consec_required:
+                print("Early stopping: reached IoU target", best_iou, "at epoch", ep)
+                break
+
+            # Patience-based stop
+            if iou_patience_count >= iou_patience:
+                print("Early stopping: no IoU improvement for", iou_patience, "epochs. Best IoU:", best_iou)
+                break
         except _:
             pass
 
@@ -435,11 +517,18 @@ fn treinar_retina_minimal(mut bloco: cnn_pkg.BlocoCNN, var dataset_dir: String, 
                                 var raw_b_bytes = head_bias_cls.dados_bytes_bin() if head_initialized else List[Int]()
                                 var boxes = List[List[Int]]()
                                 try:
-                                    print("DBG: calling inferir_com_bloco for validation image", img_path)
-                                    boxes = model_utils.inferir_com_bloco(bloco, raw_w_bytes, raw_b_bytes, bmp.pixels, largura, 16)
-                                    print("DBG: returned from inferir_com_bloco for validation image", img_path)
+                                    print("DBG: calling detector.inferir for validation image", img_path)
+                                    try:
+                                        if len(raw_w_bytes) > 0 and len(detector.cabeca_classificacao_peso.formato) >= 1:
+                                            detector.cabeca_classificacao_peso.carregar_dados_bytes_bin(raw_w_bytes)
+                                        if len(raw_b_bytes) > 0 and len(detector.cabeca_classificacao_bias.formato) >= 1:
+                                            detector.cabeca_classificacao_bias.carregar_dados_bytes_bin(raw_b_bytes)
+                                    except _:
+                                        pass
+                                    boxes = detector.inferir(bmp.pixels, largura, 16)
+                                    print("DBG: returned from detector.inferir for validation image", img_path)
                                 except _:
-                                    print("DBG: inferir_com_bloco raised for validation image", img_path)
+                                    print("DBG: detector.inferir raised for validation image", img_path)
                                     boxes = List[List[Int]]()
 
                                 # print detailed per-image diagnostics (only during validation)
@@ -499,7 +588,9 @@ fn treinar_retina_minimal(mut bloco: cnn_pkg.BlocoCNN, var dataset_dir: String, 
         final_meta_lines.append("lr:" + String(lr_atual))
         final_meta_lines.append("best_loss:" + String(best_loss))
         final_meta_lines.append("scheduler_wait:" + String(scheduler_wait))
-        model_utils.salvar_estado_modelo(bloco, head_peso_cls, head_bias_cls, export_dir, final_meta_lines)
+        detector.cabeca_classificacao_peso = head_peso_cls
+        detector.cabeca_classificacao_bias = head_bias_cls
+        _ = detector.salvar_workspace(export_dir)
     except _:
         pass
 

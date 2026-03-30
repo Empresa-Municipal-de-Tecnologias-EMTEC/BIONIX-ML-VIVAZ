@@ -16,56 +16,49 @@ import bionix_ml.uteis as uteis
 import retina.retina_model as model_utils
 
 fn inferir_retina(model_dir: String = "MODELO", input_size: Int = 640, max_per_image: Int = 16) -> List[List[Int]]:
-    # Backward-compatible placeholder: prefer image-aware inferir_retina_imagem
+    # Legacy shim: not used by the unified pipeline. Keep for backward compatibility.
     return List[List[Int]]()
 
 
 fn inferir_retina_imagem(model_dir: String, img_pixels: List[List[List[Float32]]], input_size: Int = 640, max_per_image: Int = 16) -> List[List[Int]]:
-    # delegate to shared helper in retina_model
-    var bloco = model_utils.criar_bloco_retina(input_size)
-    var loaded = False
+    # Per-image inference using RetinaFace wrapper. Returns list of boxes.
+    var params = model_utils.BlocoRetinaFaceParametros(input_size)
+    var detector = model_utils.RetinaFace(params, model_dir)
     try:
-        loaded = model_utils.carregar_bloco_retina(bloco, model_dir)
+        var loaded = detector.carregar_workspace(model_dir)
     except _:
         loaded = False
     if not loaded:
         print("[INFER] checkpoint do bloco não encontrado em", model_dir)
         return List[List[Int]]()
 
-    var head = model_utils.carregar_head_bytes(model_dir)
-    var raw_peso_cls = head[0]
-    var raw_bias_cls = head[1]
-
     try:
-        return model_utils.inferir_com_bloco(bloco, raw_peso_cls, raw_bias_cls, img_pixels, input_size, max_per_image)
+        var boxes = detector.inferir(img_pixels, input_size, max_per_image)
+        return boxes
     except _:
         return List[List[Int]]()
 
 
-fn validar_10_classes(model_dir: String, dataset_dir: String, out_dir: String, input_size: Int = 640, max_per_image: Int = 16, var n_classes: Int = 10) raises -> Bool:
-    # Load model once
-    var bloco = model_utils.criar_bloco_retina(input_size)
-    var loaded = False
+fn validar_10_classes(model_dir: String, dataset_dir: String, out_dir: String, input_size: Int = 640, max_per_image: Int = 8, n_classes: Int = 10) -> Bool:
+    # Run inference over up to `n_classes` classes (one image per class), saving overlays to out_dir.
+    var params = model_utils.BlocoRetinaFaceParametros(input_size)
+    var detector = model_utils.RetinaFace(params, model_dir)
     try:
-        loaded = model_utils.carregar_bloco_retina(bloco, model_dir)
+        var loaded = detector.carregar_workspace(model_dir)
     except _:
         loaded = False
     if not loaded:
         print("[INFER] checkpoint do bloco não encontrado em", model_dir)
         return False
 
-    var head = model_utils.carregar_head_bytes(model_dir)
-    var raw_peso_cls = head[0]
-    var raw_bias_cls = head[1]
-
-    # prepare output directory
+    # ensure out_dir exists
     try:
         if not os.path.exists(out_dir):
-            os.mkdir(out_dir)
+            os.makedirs(out_dir)
     except _:
         pass
 
-    # list classes
+    # determine class folders
     var train_root = os.path.join(dataset_dir, "train")
     if not os.path.exists(train_root):
         train_root = dataset_dir
@@ -106,7 +99,7 @@ fn validar_10_classes(model_dir: String, dataset_dir: String, out_dir: String, i
 
         var boxes = List[List[Int]]()
         try:
-            boxes = model_utils.inferir_com_bloco(bloco, raw_peso_cls, raw_bias_cls, bmp.pixels, input_size, max_per_image)
+            boxes = detector.inferir(bmp.pixels, input_size, max_per_image)
         except _:
             boxes = List[List[Int]]()
 
