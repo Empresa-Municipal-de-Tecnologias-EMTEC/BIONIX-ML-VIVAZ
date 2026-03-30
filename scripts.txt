@@ -19,4 +19,10 @@ Nesse diretório:
 
 /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src
 
+Para filtrar só os erros execute assim:
+
+pixi run run_retina_train  2>&1 >/dev/null | grep -i "error:"
+
+Mas não sei se precisa escapar as aspas para não dar conflito com o wsl
+
 Se precisar coloque mais entradas no pixi.toml para executar novos artefatos.

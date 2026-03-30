@@ -133,11 +133,11 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
         pass
     # reuse any loaded heads in detector or the local placeholders (transfer ownership)
     try:
-        detector.cabeca_classificacao_peso = head_peso_cls^
+        detector.cabeca_classificacao_peso = head_peso_cls.copy()
     except _:
         pass
     try:
-        detector.cabeca_classificacao_bias = head_bias_cls^
+        detector.cabeca_classificacao_bias = head_bias_cls.copy()
     except _:
         pass
 
@@ -323,9 +323,16 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
             meta_lines.append("lr:" + String(lr_atual))
             meta_lines.append("best_loss:" + String(best_loss))
             meta_lines.append("scheduler_wait:" + String(scheduler_wait))
-            # delegate full workspace save to RetinaFace wrapper
-            detector.cabeca_classificacao_peso = head_peso_cls
-            detector.cabeca_classificacao_bias = head_bias_cls
+            # delegate full workspace save to RetinaFace wrapper (transfer ownership)
+            if head_initialized:
+                try:
+                    detector.cabeca_classificacao_peso = head_peso_cls.copy()
+                except _:
+                    pass
+                try:
+                    detector.cabeca_classificacao_bias = head_bias_cls.copy()
+                except _:
+                    pass
             detector.treinamento_epoca = ep
             detector.treinamento_lr = lr_atual
             _ = detector.salvar_workspace(export_dir)
@@ -405,21 +412,21 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                         pass
 
                     var boxes = List[List[Int]]()
+                    try:
+                        print("DBG: calling detector.inferir for epoch sample class", class_names[c])
+                        # load bytes into detector heads if available
                         try:
-                            print("DBG: calling detector.inferir for epoch sample class", class_names[c])
-                            # load bytes into detector heads if available
-                            try:
-                                if len(raw_w_bytes) > 0 and len(detector.cabeca_classificacao_peso.formato) >= 1:
-                                    detector.cabeca_classificacao_peso.carregar_dados_bytes_bin(raw_w_bytes)
-                                if len(raw_b_bytes) > 0 and len(detector.cabeca_classificacao_bias.formato) >= 1:
-                                    detector.cabeca_classificacao_bias.carregar_dados_bytes_bin(raw_b_bytes)
-                            except _:
-                                pass
-                            boxes = detector.inferir(bmp.pixels, largura, 1)
-                            print("DBG: returned from detector.inferir for epoch sample class", class_names[c])
+                            if len(raw_w_bytes) > 0 and len(detector.cabeca_classificacao_peso.formato) >= 1:
+                                detector.cabeca_classificacao_peso.carregar_dados_bytes_bin(raw_w_bytes)
+                            if len(raw_b_bytes) > 0 and len(detector.cabeca_classificacao_bias.formato) >= 1:
+                                detector.cabeca_classificacao_bias.carregar_dados_bytes_bin(raw_b_bytes)
                         except _:
-                            print("DBG: detector.inferir raised for epoch sample class", class_names[c])
-                            boxes = List[List[Int]]()
+                            pass
+                        boxes = detector.inferir(bmp.pixels, largura, 1)
+                        print("DBG: returned from detector.inferir for epoch sample class", class_names[c])
+                    except _:
+                        print("DBG: detector.inferir raised for epoch sample class", class_names[c])
+                        boxes = List[List[Int]]()
 
                     if len(boxes) == 0:
                         print("Epoch sample", ep, "class", class_names[c], "NO_PRED_BOX gt_box", s_gt_x0, s_gt_y0, s_gt_x1, s_gt_y1)
