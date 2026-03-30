@@ -28,7 +28,7 @@ fn inferir_retina_imagem(model_dir: String, img_pixels: List[List[List[Float32]]
         return List[List[Int]]()
 
     try:
-        var boxes = detector.inferir(img_pixels, input_size, max_per_image)
+            var boxes = detector.inferir(img_pixels.copy(), input_size, max_per_image)
         return boxes
     except _:
         return List[List[Int]]()
@@ -111,7 +111,7 @@ fn validar_10_classes(model_dir: String, dataset_dir: String, out_dir: String, i
                 flat_rgb.append(Int(px[0] * 255.0)); flat_rgb.append(Int(px[1] * 255.0)); flat_rgb.append(Int(px[2] * 255.0))
 
         # draw predicted boxes (blue)
-        var flat_pred = flat_rgb.copy()^
+        var flat_pred = flat_rgb.copy()
         for box in boxes:
             graficos_pkg.draw_bbox_on_flat_rgb(flat_pred, bmp.width, bmp.height, box, 0, 0, 255)
 
@@ -169,7 +169,7 @@ fn validar_10_classes(model_dir: String, dataset_dir: String, out_dir: String, i
             file_box = List[Int]()
 
         if len(file_box) >= 4:
-            var flat_box = flat_rgb.copy()^
+            var flat_box = flat_rgb.copy()
             var coords = List[Int]()
             coords.append(file_box[0]); coords.append(file_box[1]); coords.append(file_box[2]); coords.append(file_box[3])
             graficos_pkg.draw_bbox_on_flat_rgb(flat_box, bmp.width, bmp.height, coords^, 0, 255, 0)

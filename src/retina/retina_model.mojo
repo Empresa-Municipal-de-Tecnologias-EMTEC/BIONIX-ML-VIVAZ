@@ -218,7 +218,7 @@ struct RetinaFace(Movable):
                 state_lines.append("epoch:" + String(self.treinamento_epoca))
                 state_lines.append("lr:" + String(self.treinamento_lr))
                 state_lines.append("meta:" + self.treinamento_meta)
-                uteis.gravar_texto_seguro(os.path.join(model_dir, "retina_state.txt"), String("\n").join(state_lines.copy()^))
+                uteis.gravar_texto_seguro(os.path.join(model_dir, "retina_state.txt"), String("\n").join(state_lines.copy()))
             except _:
                 pass
 
@@ -306,7 +306,7 @@ struct RetinaFace(Movable):
                     try:
                         var raw_w = arquivo_pkg.ler_arquivo_binario(os.path.join(self.diretorio_modelo, "peso_cls.bin"))
                         if len(raw_w) > 0:
-                            peso_cls_tensor.carregar_dados_bytes_bin(raw_w)
+                            peso_cls_tensor.carregar_dados_bytes_bin(raw_w.copy())
                             cls_tensors_inited = True
                     except _:
                         pass
@@ -315,7 +315,7 @@ struct RetinaFace(Movable):
                         if len(raw_b) > 0:
                             var shape_b = List[Int](); shape_b.append(1); shape_b.append(1)
                             bias_cls_tensor = tensor_defs_local.Tensor(shape_b^, self.bloco_cnn.tipo_computacao)
-                            bias_cls_tensor.carregar_dados_bytes_bin(raw_b)
+                            bias_cls_tensor.carregar_dados_bytes_bin(raw_b.copy())
                     except _:
                         pass
         except _:
@@ -336,7 +336,7 @@ struct RetinaFace(Movable):
             var tensor_in = tensor_defs_local.Tensor(in_shape^, self.bloco_cnn.tipo_computacao)
             for yy in range(patch_size):
                 for xx in range(patch_size):
-                    var pix = patch_rgb[yy][xx]
+                    var pix = patch_rgb[yy][xx].copy()
                     var base = (yy * patch_size + xx) * 3
                     tensor_in.dados[base + 0] = pix[0]
                     tensor_in.dados[base + 1] = pix[1]
@@ -405,7 +405,7 @@ struct RetinaFace(Movable):
         for k in keep:
             if len(kept_boxes) >= maxp:
                 break
-            var b = boxes[k]
+            var b = boxes[k].copy()
             var ib = List[Int]()
             ib.append(Int(b[0])); ib.append(Int(b[1])); ib.append(Int(b[2])); ib.append(Int(b[3]))
             kept_boxes.append(ib)

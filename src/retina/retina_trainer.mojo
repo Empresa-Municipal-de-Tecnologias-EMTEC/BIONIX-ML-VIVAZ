@@ -107,12 +107,12 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                     var shape_w = List[Int]()
                     shape_w.append(D); shape_w.append(4)
                     head_peso_cls = tensor_defs.Tensor(shape_w^, detector.bloco_cnn.tipo_computacao)
-                    _ = head_peso_cls.carregar_dados_bytes_bin(raw_w)
+                    _ = head_peso_cls.carregar_dados_bytes_bin(raw_w.copy())
                     var shape_b = List[Int]()
                     shape_b.append(1); shape_b.append(4)
                     head_bias_cls = tensor_defs.Tensor(shape_b^, detector.bloco_cnn.tipo_computacao)
                     if len(raw_b) > 0:
-                        _ = head_bias_cls.carregar_dados_bytes_bin(raw_b)
+                        _ = head_bias_cls.carregar_dados_bytes_bin(raw_b.copy())
                     head_initialized = True
             except _:
                 head_initialized = False
@@ -189,7 +189,7 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
         # build a mini-batch list: one image per class this epoch (safer for memory)
         var batch_paths = List[String]()
         for c in range(len(class_names)):
-            var imgs = class_images[c]
+            var imgs = class_images[c].copy()
             if len(imgs) == 0:
                 continue
             var ptr = class_ptrs[c]
@@ -213,11 +213,11 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                     continue
                 # prefer flat-buffer resize to avoid excessive nested allocations
                 try:
-                    img_matrix = graficos_pkg.bmp.redimensionar_matriz_rgb_nearest_from_flat(bmp.flat_pixels, bmp.width, bmp.height, bmp.channels, altura, largura)
+                    img_matrix = graficos_pkg.bmp.redimensionar_matriz_rgb_nearest_from_flat(bmp.flat_pixels.copy(), bmp.width, bmp.height, bmp.channels, altura, largura)
                 except _:
                     # fallback to nested resize
                     try:
-                        img_matrix = graficos_pkg.redimensionar_matriz_rgb_nearest(bmp.pixels.copy()^, altura, largura)^
+                        img_matrix = graficos_pkg.redimensionar_matriz_rgb_nearest(bmp.pixels.copy(), altura, largura)
                     except _:
                         continue
 
@@ -273,7 +273,7 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                     # crop directly from the BMP flat buffer when possible to avoid extra copies
                     var crop_rgb = List[List[List[Float32]]]()
                     try:
-                        crop_rgb = graficos_pkg.bmp.crop_and_resize_from_flat(bmp.flat_pixels, bmp.width, bmp.height, bmp.channels, ax, ay, ax + aw - 1, ay + ah - 1, patch_size, patch_size)
+                        crop_rgb = graficos_pkg.bmp.crop_and_resize_from_flat(bmp.flat_pixels.copy(), bmp.width, bmp.height, bmp.channels, ax, ay, ax + aw - 1, ay + ah - 1, patch_size, patch_size)
                     except _:
                         crop_rgb = graficos_pkg.crop_and_resize_rgb(img_matrix, ax, ay, ax + aw - 1, ay + ah - 1, patch_size, patch_size)
 
@@ -281,7 +281,7 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                     var tensor_in = tensor_defs.Tensor(in_shape^, detector.bloco_cnn.tipo_computacao)
                     for yy in range(patch_size):
                         for xx in range(patch_size):
-                            var pix = crop_rgb[yy][xx]
+                            var pix = crop_rgb[yy][xx].copy()
                             var base = (yy * patch_size + xx) * 3
                             tensor_in.dados[base + 0] = pix[0]
                             tensor_in.dados[base + 1] = pix[1]
@@ -336,7 +336,7 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                         var px0 = cx - w/2.0; var py0 = cy - h/2.0; var px1 = cx + w/2.0; var py1 = cy + h/2.0
                         var pred_box = List[Float32](); pred_box.append(px0); pred_box.append(py0); pred_box.append(px1); pred_box.append(py1)
                         var gt_box = List[Float32](); gt_box.append(Float32(gt_x0)); gt_box.append(Float32(gt_y0)); gt_box.append(Float32(gt_x1)); gt_box.append(Float32(gt_y1))
-                        var iou_val = retina_utils.calcular_iou(pred_box, gt_box)
+                        var iou_val = retina_utils.calcular_iou(pred_box.copy(), gt_box.copy())
                         iou_sum = iou_sum + iou_val
                         count_iou = count_iou + 1
                     except _:
@@ -402,7 +402,7 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
             for c in range(limit):
                 try:
                     print("DBG: epoch_samples: processing class", c, "name", class_names[c])
-                    var imgs = class_images[c]
+                    var imgs = class_images[c].copy()
                     if len(imgs) == 0:
                         continue
                     # pick first available image for the class
@@ -465,12 +465,12 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                         # load bytes into detector heads if available
                         try:
                             if len(raw_w_bytes) > 0 and len(detector.cabeca_classificacao_peso.formato) >= 1:
-                                detector.cabeca_classificacao_peso.carregar_dados_bytes_bin(raw_w_bytes)
+                                detector.cabeca_classificacao_peso.carregar_dados_bytes_bin(raw_w_bytes.copy())
                             if len(raw_b_bytes) > 0 and len(detector.cabeca_classificacao_bias.formato) >= 1:
-                                detector.cabeca_classificacao_bias.carregar_dados_bytes_bin(raw_b_bytes)
+                                detector.cabeca_classificacao_bias.carregar_dados_bytes_bin(raw_b_bytes.copy())
                         except _:
                             pass
-                        boxes = detector.inferir(bmp.pixels, largura, 1)
+                        boxes = detector.inferir(bmp.pixels.copy(), largura, 1)
                         print("DBG: returned from detector.inferir for epoch sample class", class_names[c])
                     except _:
                         print("DBG: detector.inferir raised for epoch sample class", class_names[c])
@@ -479,7 +479,7 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                     if len(boxes) == 0:
                         print("Epoch sample", ep, "class", class_names[c], "NO_PRED_BOX gt_box", s_gt_x0, s_gt_y0, s_gt_x1, s_gt_y1)
                     else:
-                        var pb = boxes[0]
+                        var pb = boxes[0].copy()
                         print("Epoch sample", ep, "class", class_names[c], "pred_box", pb[0], pb[1], pb[2], pb[3], "gt_box", s_gt_x0, s_gt_y0, s_gt_x1, s_gt_y1)
 
                     # write sample file
@@ -487,7 +487,7 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                         var sample_path = os.path.join(export_dir, "epoch_samples", "epoch_" + String(ep) + "_class_" + class_names[c] + ".txt")
                         var lines_out = List[String]()
                         if len(boxes) > 0:
-                            var pb2 = boxes[0]
+                            var pb2 = boxes[0].copy()
                             lines_out.append("pred_box: " + String(pb2[0]) + " " + String(pb2[1]) + " " + String(pb2[2]) + " " + String(pb2[3]))
                         else:
                             lines_out.append("pred_box: none")
@@ -592,12 +592,12 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                                     print("DBG: calling detector.inferir for validation image", img_path)
                                     try:
                                         if len(raw_w_bytes) > 0 and len(detector.cabeca_classificacao_peso.formato) >= 1:
-                                            _ = detector.cabeca_classificacao_peso.carregar_dados_bytes_bin(raw_w_bytes)
+                                            _ = detector.cabeca_classificacao_peso.carregar_dados_bytes_bin(raw_w_bytes.copy())
                                         if len(raw_b_bytes) > 0 and len(detector.cabeca_classificacao_bias.formato) >= 1:
-                                            _ = detector.cabeca_classificacao_bias.carregar_dados_bytes_bin(raw_b_bytes)
+                                            _ = detector.cabeca_classificacao_bias.carregar_dados_bytes_bin(raw_b_bytes.copy())
                                     except _:
                                         pass
-                                    boxes = detector.inferir(bmp.pixels, largura, 16)
+                                    boxes = detector.inferir(bmp.pixels.copy(), largura, 16)
                                     print("DBG: returned from detector.inferir for validation image", img_path)
                                 except _:
                                     print("DBG: detector.inferir raised for validation image", img_path)
@@ -608,7 +608,7 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                                     print("Img", img_path, "pred_boxes", 0)
                                 else:
                                     for bi in range(len(boxes)):
-                                        var pb = boxes[bi]
+                                        var pb = boxes[bi].copy()
                                         var px0 = pb[0]; var py0 = pb[1]; var px1 = pb[2]; var py1 = pb[3]
                                         # compute center distance to GT if available
                                         var center_dist: Float32 = 0.0
