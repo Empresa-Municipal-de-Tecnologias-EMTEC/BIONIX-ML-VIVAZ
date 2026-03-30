@@ -214,6 +214,7 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                     continue
                 # prefer flat-buffer resize to avoid excessive nested allocations
                 try:
+                    print("[DEBUG] treinar_retina_minimal: before flat resize; bmp.width=", bmp.width, "bmp.height=", bmp.height, "bmp.channels=", bmp.channels, "flat_len=", len(bmp.flat_pixels))
                     img_matrix = graficos_pkg.bmp.redimensionar_matriz_rgb_nearest_from_flat(bmp.flat_pixels.copy(), bmp.width, bmp.height, bmp.channels, altura, largura)
                 except _:
                     # fallback to nested resize
@@ -277,7 +278,11 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                     # crop directly from the BMP flat buffer when possible to avoid extra copies
                     var crop_rgb = List[List[List[Float32]]]()
                     try:
+                        print("[DEBUG] treinar_retina_minimal: before crop resize; bmp.width=", bmp.width, "bmp.height=", bmp.height, "bmp.channels=", bmp.channels, "flat_len=", len(bmp.flat_pixels), "crop_rect=", ax, ay, ax + aw - 1, ay + ah - 1)
                         crop_rgb = graficos_pkg.bmp.crop_and_resize_from_flat(bmp.flat_pixels.copy(), bmp.width, bmp.height, bmp.channels, ax, ay, ax + aw - 1, ay + ah - 1, patch_size, patch_size)
+                        # if the function returns an empty result (defensive guard), fall back to nested resize
+                        if len(crop_rgb) == 0:
+                            crop_rgb = graficos_pkg.crop_and_resize_rgb(img_matrix, ax, ay, ax + aw - 1, ay + ah - 1, patch_size, patch_size)
                     except _:
                         crop_rgb = graficos_pkg.crop_and_resize_rgb(img_matrix, ax, ay, ax + aw - 1, ay + ah - 1, patch_size, patch_size)
 
