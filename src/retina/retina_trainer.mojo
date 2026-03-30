@@ -27,7 +27,8 @@ fn _split_fields(line: String) -> List[String]:
             cur = cur + String(ch)
     if len(cur) > 0:
         fields.append(cur)
-    return fields
+    # transfer local list to caller to avoid implicit copy
+    return fields^
 
 
 # Minimal retina trainer that uses RGB patches and the retina_model helpers.
@@ -257,6 +258,7 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                 if len(gt_box) == 4:
                     gt_list.append(gt_box^)
 
+                # explicitly copy assigner output to avoid implicit-copy warning
                 var (labels, targets) = assigner.assignar_anchors(anchors, gt_list^).copy()
 
                 # for each positive anchor update small regression head and cls head

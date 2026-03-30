@@ -38,4 +38,5 @@ fn non_max_suppression(boxes: List[List[Float32]], scores: List[Float32], iou_th
                 break
         if keep_i:
             keep.append(idx_i)
-    return keep
+    # transfer ownership of keep to caller to avoid implicit copy
+    return keep^
