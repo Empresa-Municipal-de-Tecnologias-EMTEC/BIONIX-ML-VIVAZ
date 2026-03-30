@@ -257,7 +257,7 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                 if len(gt_box) == 4:
                     gt_list.append(gt_box^)
 
-                var (labels, targets) = assigner.assignar_anchors(anchors, gt_list^)
+                var (labels, targets) = assigner.assignar_anchors(anchors, gt_list^).copy()
 
                 # for each positive anchor update small regression head and cls head
                 for a_idx in range(len(anchors)):
