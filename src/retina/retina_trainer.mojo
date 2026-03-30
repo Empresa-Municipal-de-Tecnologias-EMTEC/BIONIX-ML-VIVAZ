@@ -1,5 +1,5 @@
 import bionix_ml.camadas.cnn as cnn_pkg
-import model_detector as model_pkg
+import retina.model_detector as model_pkg
 import bionix_ml.dados as dados_pkg
 import bionix_ml.dados.arquivo as arquivo_pkg
 import retina.retina_model as model_utils
@@ -67,7 +67,7 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
 
     # Try loading any existing saved regression/classification heads
     try:
-        model_pkg.carregar_checkpoint(bloco, export_dir)
+        _ = model_pkg.carregar_checkpoint(detector.bloco_cnn, export_dir)
     except _:
         pass
     try:
@@ -84,13 +84,13 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                 if D > 0:
                     var shape_w = List[Int]()
                     shape_w.append(D); shape_w.append(4)
-                        head_peso_cls = tensor_defs.Tensor(shape_w^, detector.bloco_cnn.tipo_computacao)
-                    head_peso_cls.carregar_dados_bytes_bin(raw_w)
+                    head_peso_cls = tensor_defs.Tensor(shape_w^, detector.bloco_cnn.tipo_computacao)
+                    _ = head_peso_cls.carregar_dados_bytes_bin(raw_w)
                     var shape_b = List[Int]()
                     shape_b.append(1); shape_b.append(4)
-                        head_bias_cls = tensor_defs.Tensor(shape_b^, detector.bloco_cnn.tipo_computacao)
+                    head_bias_cls = tensor_defs.Tensor(shape_b^, detector.bloco_cnn.tipo_computacao)
                     if len(raw_b) > 0:
-                        head_bias_cls.carregar_dados_bytes_bin(raw_b)
+                        _ = head_bias_cls.carregar_dados_bytes_bin(raw_b)
                     head_initialized = True
             except _:
                 head_initialized = False
@@ -131,9 +131,15 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
         detector.diretorio_modelo = export_dir
     except _:
         pass
-    # reuse any loaded heads in detector or the local placeholders
-    detector.cabeca_classificacao_peso = head_peso_cls
-    detector.cabeca_classificacao_bias = head_bias_cls
+    # reuse any loaded heads in detector or the local placeholders (transfer ownership)
+    try:
+        detector.cabeca_classificacao_peso = head_peso_cls^
+    except _:
+        pass
+    try:
+        detector.cabeca_classificacao_bias = head_bias_cls^
+    except _:
+        pass
 
     for ep in range(epocas):
         var soma_loss: Float32 = 0.0
@@ -260,17 +266,18 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                         head_initialized = True
 
                     # compute prediction and simple L1 update
-                        var pred = List[Float32]()
-                        for j in range(4):
-                            var s: Float32 = 0.0
-                            for d in range(D):
-                                s = s + feats.dados[d] * detector.bloco_cnn.peso_saida.dados[d * 4 + j]
-                            s = s + detector.bloco_cnn.bias_saida.dados[j]
-                            pred.append(s)
+                    var pred = List[Float32]()
+                    for j in range(4):
+                        var s: Float32 = 0.0
+                        for d in range(D):
+                            s = s + feats.dados[d] * detector.bloco_cnn.peso_saida.dados[d * 4 + j]
+                        s = s + detector.bloco_cnn.bias_saida.dados[j]
+                        pred.append(s)
 
                     var tgt = targets[a_idx].copy()
                     if len(tgt) < 4:
                         continue
+
                     # compute predicted box in image coordinates (same decoding as inference)
                     try:
                         var dx = pred[0]; var dy = pred[1]; var dw = pred[2]; var dh = pred[3]
@@ -286,8 +293,9 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                         count_iou = count_iou + 1
                     except _:
                         pass
-                        for j in range(4):
-                            var err = pred[j] - tgt[j]
+
+                    for j in range(4):
+                        var err = pred[j] - tgt[j]
                         # clamped gradient step
                         if err > 100.0: err = 100.0
                         if err < -100.0: err = -100.0
@@ -513,16 +521,25 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                                 except _:
                                     pass
 
-                                var raw_w_bytes = head_peso_cls.dados_bytes_bin() if head_initialized else List[Int]()
-                                var raw_b_bytes = head_bias_cls.dados_bytes_bin() if head_initialized else List[Int]()
+                                var raw_w_bytes = List[Int]()
+                                var raw_b_bytes = List[Int]()
+                                if head_initialized:
+                                    try:
+                                        raw_w_bytes = head_peso_cls.dados_bytes_bin()
+                                    except _:
+                                        raw_w_bytes = List[Int]()
+                                    try:
+                                        raw_b_bytes = head_bias_cls.dados_bytes_bin()
+                                    except _:
+                                        raw_b_bytes = List[Int]()
                                 var boxes = List[List[Int]]()
                                 try:
                                     print("DBG: calling detector.inferir for validation image", img_path)
                                     try:
                                         if len(raw_w_bytes) > 0 and len(detector.cabeca_classificacao_peso.formato) >= 1:
-                                            detector.cabeca_classificacao_peso.carregar_dados_bytes_bin(raw_w_bytes)
+                                            _ = detector.cabeca_classificacao_peso.carregar_dados_bytes_bin(raw_w_bytes)
                                         if len(raw_b_bytes) > 0 and len(detector.cabeca_classificacao_bias.formato) >= 1:
-                                            detector.cabeca_classificacao_bias.carregar_dados_bytes_bin(raw_b_bytes)
+                                            _ = detector.cabeca_classificacao_bias.carregar_dados_bytes_bin(raw_b_bytes)
                                     except _:
                                         pass
                                     boxes = detector.inferir(bmp.pixels, largura, 16)
@@ -588,8 +605,14 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
         final_meta_lines.append("lr:" + String(lr_atual))
         final_meta_lines.append("best_loss:" + String(best_loss))
         final_meta_lines.append("scheduler_wait:" + String(scheduler_wait))
-        detector.cabeca_classificacao_peso = head_peso_cls
-        detector.cabeca_classificacao_bias = head_bias_cls
+        try:
+            detector.cabeca_classificacao_peso = head_peso_cls^
+        except _:
+            pass
+        try:
+            detector.cabeca_classificacao_bias = head_bias_cls^
+        except _:
+            pass
         _ = detector.salvar_workspace(export_dir)
     except _:
         pass

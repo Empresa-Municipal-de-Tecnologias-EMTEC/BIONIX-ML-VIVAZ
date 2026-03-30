@@ -1,4 +1,4 @@
-import model_detector as model_pkg
+import retina.model_detector as model_pkg
 import bionix_ml.computacao.adaptadores.contexto as contexto_defs
 import bionix_ml.nucleo.Tensor as tensor_defs
 import bionix_ml.dados.arquivo as arquivo_pkg
@@ -428,20 +428,3 @@ struct RetinaFace(Movable):
             var empty_w = tensor_defs.Tensor(List[Int](), self.bloco_cnn.tipo_computacao)
             var empty_b = tensor_defs.Tensor(List[Int](), self.bloco_cnn.tipo_computacao)
             return (empty_w, empty_b)
-
-
-// `criar_bloco_retina` removed — use `model_pkg.criar_bloco_detector(...)` directly
-
-
-
-
-
-
-
-    
-
-
-
-
-
-*** End Patch
