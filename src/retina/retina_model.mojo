@@ -306,7 +306,7 @@ struct RetinaFace(Movable):
                     try:
                         var raw_w = arquivo_pkg.ler_arquivo_binario(os.path.join(self.diretorio_modelo, "peso_cls.bin"))
                         if len(raw_w) > 0:
-                            peso_cls_tensor.carregar_dados_bytes_bin(raw_w.copy())
+                            _ = peso_cls_tensor.carregar_dados_bytes_bin(raw_w.copy())
                             cls_tensors_inited = True
                     except _:
                         pass
@@ -315,7 +315,7 @@ struct RetinaFace(Movable):
                         if len(raw_b) > 0:
                             var shape_b = List[Int](); shape_b.append(1); shape_b.append(1)
                             bias_cls_tensor = tensor_defs_local.Tensor(shape_b^, self.bloco_cnn.tipo_computacao)
-                            bias_cls_tensor.carregar_dados_bytes_bin(raw_b.copy())
+                            _ = bias_cls_tensor.carregar_dados_bytes_bin(raw_b.copy())
                     except _:
                         pass
         except _:

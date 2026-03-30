@@ -258,8 +258,10 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                 if len(gt_box) == 4:
                     gt_list.append(gt_box^)
 
-                # explicitly copy assigner output to avoid implicit-copy warning
-                var (labels, targets) = assigner.assignar_anchors(anchors, gt_list^).copy()
+                # receive AssignResult from assigner and copy its lists (explicit copy to avoid move/destruction errors)
+                var res = assigner.assignar_anchors(anchors, gt_list^)
+                var labels = res.labels.copy()
+                var targets = res.targets.copy()
 
                 # for each positive anchor update small regression head and cls head
                 for a_idx in range(len(anchors)):
@@ -467,9 +469,9 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                         # load bytes into detector heads if available
                         try:
                             if len(raw_w_bytes) > 0 and len(detector.cabeca_classificacao_peso.formato) >= 1:
-                                detector.cabeca_classificacao_peso.carregar_dados_bytes_bin(raw_w_bytes.copy())
+                                _ = detector.cabeca_classificacao_peso.carregar_dados_bytes_bin(raw_w_bytes.copy())
                             if len(raw_b_bytes) > 0 and len(detector.cabeca_classificacao_bias.formato) >= 1:
-                                detector.cabeca_classificacao_bias.carregar_dados_bytes_bin(raw_b_bytes.copy())
+                                _ = detector.cabeca_classificacao_bias.carregar_dados_bytes_bin(raw_b_bytes.copy())
                         except _:
                             pass
                         boxes = detector.inferir(bmp.pixels.copy(), largura, 1)
@@ -494,7 +496,7 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                         else:
                             lines_out.append("pred_box: none")
                         lines_out.append("gt_box: " + String(s_gt_x0) + " " + String(s_gt_y0) + " " + String(s_gt_x1) + " " + String(s_gt_y1))
-                        uteis.gravar_texto_seguro(sample_path, String("\n").join(lines_out^))
+                        _ = uteis.gravar_texto_seguro(sample_path, String("\n").join(lines_out^))
                     except _:
                         pass
                 except _:

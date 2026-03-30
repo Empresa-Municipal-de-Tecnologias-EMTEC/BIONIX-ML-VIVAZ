@@ -1,6 +1,16 @@
 import bionix_ml.nucleo.Tensor as tensor_defs
 import math
 
+
+# Container to hold assigner results and allow transferring inner lists
+struct AssignResult(Movable):
+    var labels: List[Int]
+    var targets: List[List[Float32]]
+
+    fn __init__(out self, var labels_in: List[Int] = List[Int](), var targets_in: List[List[Float32]] = List[List[Float32]]()):
+        self.labels = labels_in^
+        self.targets = targets_in^
+
 fn calcular_iou_xywh(box1: List[Float32], box2: List[Float32]) -> Float32:
     # boxes: [cx, cy, w, h]
     var x1_min = box1[0] - box1[2] / 2.0
@@ -28,7 +38,7 @@ fn calcular_iou_xywh(box1: List[Float32], box2: List[Float32]) -> Float32:
     return inter_area / (area1 + area2 - inter_area)
 
 fn assignar_anchors(anchors: List[List[Float32]], gt_boxes: List[List[Int]],
-                    iou_pos: Float32 = 0.5, iou_neg: Float32 = 0.4) -> (List[Int], List[List[Float32]]):
+                    iou_pos: Float32 = 0.5, iou_neg: Float32 = 0.4) -> AssignResult:
     # gt_boxes are [x0,y0,x1,y1] em pixels (ints)
     var N = len(anchors)
     var labels: List[Int] = List[Int]()
@@ -38,8 +48,8 @@ fn assignar_anchors(anchors: List[List[Float32]], gt_boxes: List[List[Int]],
         targets.append(List[Float32]())
 
     if len(gt_boxes) == 0:
-        # transfer empty lists back to caller to avoid implicit copy
-        return (labels^, targets^)
+        # return an AssignResult transferring the inner lists
+        return AssignResult(labels^, targets^)
 
     for a_idx in range(N):
         var best_iou: Float32 = 0.0
@@ -78,4 +88,5 @@ fn assignar_anchors(anchors: List[List[Float32]], gt_boxes: List[List[Int]],
         else:
             labels[a_idx] = -1 # ignore
 
-    return (labels^, targets^)
+    # return result struct transferring ownership of lists
+    return AssignResult(labels^, targets^)
