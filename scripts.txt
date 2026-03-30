@@ -26,3 +26,14 @@ pixi run run_retina_train  2>&1 >/dev/null | grep -i "error:"
 Mas não sei se precisa escapar as aspas para não dar conflito com o wsl
 
 Se precisar coloque mais entradas no pixi.toml para executar novos artefatos.
+
+----------------------------------------
+
+A sintaxe pra executar o pixi pra você é assim:
+
+wsl bash -ic "pixi run run_retina_train_debug_build"
+wsl bash -ic "pixi run run_retina_train_debug_run"
+
+Nesse diretório:
+
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src
