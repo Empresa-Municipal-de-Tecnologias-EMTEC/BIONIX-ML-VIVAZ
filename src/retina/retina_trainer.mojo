@@ -133,7 +133,7 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
     var class_images = List[List[String]]()
     var total_images: Int = 0
     var _limit_dataset_scan = True
-    var _limit_total_images: Int = 2000
+    var _limit_total_images: Int = 500
     var _stop_scan: Bool = False
     try:
         for cls in os.listdir(train_root):
