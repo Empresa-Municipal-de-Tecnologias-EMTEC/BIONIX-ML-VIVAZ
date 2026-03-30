@@ -148,9 +148,11 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                         imgs.append(os.path.join(pcls, f))
             except _:
                 pass
-            class_images.append(imgs)
-            total_images = total_images + len(imgs)
-            print("[DEBUG] treinar_retina_minimal: class", cls, "images:", len(imgs), "total_images:", total_images)
+            # compute length before transferring ownership into class_images
+            var imgs_len = len(imgs)
+            class_images.append(imgs^)
+            total_images = total_images + imgs_len
+            print("[DEBUG] treinar_retina_minimal: class", cls, "images:", imgs_len, "total_images:", total_images)
             if _limit_dataset_scan and total_images > _limit_total_images:
                 print("[DEBUG] treinar_retina_minimal: reached total_images limit (", total_images, ") - stopping scan")
                 _stop_scan = True
@@ -253,7 +255,7 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
 
                 var gt_list = List[List[Int]]()
                 if len(gt_box) == 4:
-                    gt_list.append(gt_box.copy())
+                    gt_list.append(gt_box^)
 
                 var (labels, targets) = assigner.assignar_anchors(anchors, gt_list^)
 
@@ -375,10 +377,10 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                     detector.cabeca_classificacao_peso = head_peso_cls.copy()
                 except _:
                     pass
-                try:
-                    detector.cabeca_classificacao_bias = head_bias_cls.copy()
-                except _:
-                    pass
+            try:
+                detector.cabeca_classificacao_bias = head_bias_cls.copy()
+            except _:
+                pass
             detector.treinamento_epoca = ep
             detector.treinamento_lr = lr_atual
             _ = detector.salvar_workspace(export_dir)
@@ -490,7 +492,7 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                         else:
                             lines_out.append("pred_box: none")
                         lines_out.append("gt_box: " + String(s_gt_x0) + " " + String(s_gt_y0) + " " + String(s_gt_x1) + " " + String(s_gt_y1))
-                        uteis.gravar_texto_seguro(sample_path, String("\n").join(lines_out.copy()^))
+                        uteis.gravar_texto_seguro(sample_path, String("\n").join(lines_out^))
                     except _:
                         pass
                 except _:
