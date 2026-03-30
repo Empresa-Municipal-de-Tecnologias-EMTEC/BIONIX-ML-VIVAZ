@@ -176,7 +176,7 @@ struct RetinaFace(Movable):
 
             # Save block via BlocoCNN and export heads/metadata
             try:
-                var ok_block = self.bloco_cnn.salvar_estado(model_dir, "bloco")
+                var ok_block = model_pkg.salvar_checkpoint(self.bloco_cnn, model_dir)
             except _:
                 ok_block = False
             try:
@@ -199,8 +199,10 @@ struct RetinaFace(Movable):
                     _ = self.cabeca_classificacao_bias.salvar_em_arquivo(model_dir, "bias_cls.bin")
             except _:
                 pass
+            var ok_block: Bool = False
+            var okc: Bool = False
             try:
-                var okc = model_pkg.salvar_checkpoint(self.bloco_cnn, model_dir)
+                okc = model_pkg.salvar_checkpoint(self.bloco_cnn, model_dir)
             except _:
                 okc = False
             # consider save successful if either block checkpoint or exported files existed
@@ -285,8 +287,8 @@ struct RetinaFace(Movable):
         var cls_tensors_inited = False
         try:
             if len(self.cabeca_classificacao_peso.formato) >= 1:
-                peso_cls_tensor = self.cabeca_classificacao_peso
-                bias_cls_tensor = self.cabeca_classificacao_bias
+                peso_cls_tensor = self.cabeca_classificacao_peso.copy()
+                bias_cls_tensor = self.cabeca_classificacao_bias.copy()
                 cls_tensors_inited = True
             else:
                 # try load from canonical files
