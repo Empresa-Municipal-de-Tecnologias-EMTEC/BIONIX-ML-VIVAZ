@@ -8,22 +8,17 @@ import bionix_ml.dados.arquivo as arquivo_pkg
 import os
 import bionix_ml.dados.bmp as bmpmod
 import math
-import model_detector as model_pkg
+import retina.model_detector as model_pkg
 import bionix_ml.computacao.adaptadores.contexto as contexto_defs
 import bionix_ml.camadas.cnn as cnn_pkg
 import bionix_ml.graficos as graficos_pkg
 import bionix_ml.uteis as uteis
 import retina.retina_model as model_utils
 
-fn inferir_retina(model_dir: String = "MODELO", input_size: Int = 640, max_per_image: Int = 16) -> List[List[Int]]:
-    # Legacy shim: not used by the unified pipeline. Keep for backward compatibility.
-    return List[List[Int]]()
-
-
 fn inferir_retina_imagem(model_dir: String, img_pixels: List[List[List[Float32]]], input_size: Int = 640, max_per_image: Int = 16) -> List[List[Int]]:
     # Per-image inference using RetinaFace wrapper. Returns list of boxes.
     var params = model_utils.BlocoRetinaFaceParametros(input_size)
-    var detector = model_utils.RetinaFace(params, model_dir)
+    var detector = model_utils.RetinaFace(params^, model_dir)
     try:
         var loaded = detector.carregar_workspace(model_dir)
     except _:
@@ -42,7 +37,7 @@ fn inferir_retina_imagem(model_dir: String, img_pixels: List[List[List[Float32]]
 fn validar_10_classes(model_dir: String, dataset_dir: String, out_dir: String, input_size: Int = 640, max_per_image: Int = 8, n_classes: Int = 10) -> Bool:
     # Run inference over up to `n_classes` classes (one image per class), saving overlays to out_dir.
     var params = model_utils.BlocoRetinaFaceParametros(input_size)
-    var detector = model_utils.RetinaFace(params, model_dir)
+    var detector = model_utils.RetinaFace(params^, model_dir)
     try:
         var loaded = detector.carregar_workspace(model_dir)
     except _:
