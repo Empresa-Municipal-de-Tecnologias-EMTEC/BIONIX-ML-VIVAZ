@@ -1,0 +1,1280 @@
+✨ Pixi task (run_retina_train): mojo -I ../../BIONIX-ML run_retina_train.mojo
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:110:64: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+                    _ = head_peso_cls.carregar_dados_bytes_bin(raw_w)
+                                                               ^~~~~
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:110:64: note: consider transferring the value with '^'
+                    _ = head_peso_cls.carregar_dados_bytes_bin(raw_w)
+                                                               ^
+                                                                    ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:110:64: note: you can copy it explicitly with '.copy()'
+                    _ = head_peso_cls.carregar_dados_bytes_bin(raw_w)
+                                                               ^
+                                                                    .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:115:68: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+                        _ = head_bias_cls.carregar_dados_bytes_bin(raw_b)
+                                                                   ^~~~~
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:115:68: note: consider transferring the value with '^'
+                        _ = head_bias_cls.carregar_dados_bytes_bin(raw_b)
+                                                                   ^
+                                                                        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:115:68: note: you can copy it explicitly with '.copy()'
+                        _ = head_bias_cls.carregar_dados_bytes_bin(raw_b)
+                                                                   ^
+                                                                        .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:151:33: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+            class_images.append(imgs)
+                                ^~~~
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:151:33: note: consider transferring the value with '^'
+            class_images.append(imgs)
+                                ^
+                                    ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:151:33: note: you can copy it explicitly with '.copy()'
+            class_images.append(imgs)
+                                ^
+                                    .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:190:36: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+            var imgs = class_images[c]
+                       ~~~~~~~~~~~~^~~
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:190:36: note: consider transferring the value with '^'
+            var imgs = class_images[c]
+                                   ^
+                                      ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:190:36: note: you can copy it explicitly with '.copy()'
+            var imgs = class_images[c]
+                                   ^
+                                      .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:214:97: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+                    img_matrix = graficos_pkg.bmp.redimensionar_matriz_rgb_nearest_from_flat(bmp.flat_pixels, bmp.width, bmp.height, bmp.channels, altura, largura)
+                                                                                             ~~~^~~~~~~~~~~~
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:214:97: note: consider transferring the value with '^'
+                    img_matrix = graficos_pkg.bmp.redimensionar_matriz_rgb_nearest_from_flat(bmp.flat_pixels, bmp.width, bmp.height, bmp.channels, altura, largura)
+                                                                                                ^
+                                                                                                            ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:214:97: note: you can copy it explicitly with '.copy()'
+                    img_matrix = graficos_pkg.bmp.redimensionar_matriz_rgb_nearest_from_flat(bmp.flat_pixels, bmp.width, bmp.height, bmp.channels, altura, largura)
+                                                                                                ^
+                                                                                                            .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:218:101: warning: transfer from an owned value has no effect and can be removed
+                        img_matrix = graficos_pkg.redimensionar_matriz_rgb_nearest(bmp.pixels.copy()^, altura, largura)^
+                                                                                                    ^
+                                                                                                    
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:218:120: warning: transfer from an owned value has no effect and can be removed
+                        img_matrix = graficos_pkg.redimensionar_matriz_rgb_nearest(bmp.pixels.copy()^, altura, largura)^
+                                                                                                                       ^
+                                                                                                                       
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:258:28: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+                var (labels, targets) = assigner.assignar_anchors(anchors, gt_list^)
+                     ~~~~~~^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:258:28: note: consider transferring the value with '^'
+                var (labels, targets) = assigner.assignar_anchors(anchors, gt_list^)
+                           ^
+                            ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:258:28: note: you can copy it explicitly with '.copy()'
+                var (labels, targets) = assigner.assignar_anchors(anchors, gt_list^)
+                           ^
+                            .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:258:28: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+                var (labels, targets) = assigner.assignar_anchors(anchors, gt_list^)
+                     ~~~~~~^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:258:28: note: consider transferring the value with '^'
+                var (labels, targets) = assigner.assignar_anchors(anchors, gt_list^)
+                           ^
+                            ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:258:28: note: you can copy it explicitly with '.copy()'
+                var (labels, targets) = assigner.assignar_anchors(anchors, gt_list^)
+                           ^
+                            .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:274:82: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+                        crop_rgb = graficos_pkg.bmp.crop_and_resize_from_flat(bmp.flat_pixels, bmp.width, bmp.height, bmp.channels, ax, ay, ax + aw - 1, ay + ah - 1, patch_size, patch_size)
+                                                                              ~~~^~~~~~~~~~~~
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:274:82: note: consider transferring the value with '^'
+                        crop_rgb = graficos_pkg.bmp.crop_and_resize_from_flat(bmp.flat_pixels, bmp.width, bmp.height, bmp.channels, ax, ay, ax + aw - 1, ay + ah - 1, patch_size, patch_size)
+                                                                                 ^
+                                                                                             ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:274:82: note: you can copy it explicitly with '.copy()'
+                        crop_rgb = graficos_pkg.bmp.crop_and_resize_from_flat(bmp.flat_pixels, bmp.width, bmp.height, bmp.channels, ax, ay, ax + aw - 1, ay + ah - 1, patch_size, patch_size)
+                                                                                 ^
+                                                                                             .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:282:51: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+                            var pix = crop_rgb[yy][xx]
+                                      ~~~~~~~~~~~~^~~~
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:282:51: note: consider transferring the value with '^'
+                            var pix = crop_rgb[yy][xx]
+                                                  ^
+                                                      ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:282:51: note: you can copy it explicitly with '.copy()'
+                            var pix = crop_rgb[yy][xx]
+                                                  ^
+                                                      .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:337:65: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+                        var iou_val = retina_utils.calcular_iou(pred_box, gt_box)
+                                                                ^~~~~~~~
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:337:65: note: consider transferring the value with '^'
+                        var iou_val = retina_utils.calcular_iou(pred_box, gt_box)
+                                                                ^
+                                                                        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:337:65: note: you can copy it explicitly with '.copy()'
+                        var iou_val = retina_utils.calcular_iou(pred_box, gt_box)
+                                                                ^
+                                                                        .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:337:75: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+                        var iou_val = retina_utils.calcular_iou(pred_box, gt_box)
+                                                                          ^~~~~~
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:337:75: note: consider transferring the value with '^'
+                        var iou_val = retina_utils.calcular_iou(pred_box, gt_box)
+                                                                          ^
+                                                                                ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:337:75: note: you can copy it explicitly with '.copy()'
+                        var iou_val = retina_utils.calcular_iou(pred_box, gt_box)
+                                                                          ^
+                                                                                .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:403:44: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+                    var imgs = class_images[c]
+                               ~~~~~~~~~~~~^~~
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:403:44: note: consider transferring the value with '^'
+                    var imgs = class_images[c]
+                                           ^
+                                              ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:403:44: note: you can copy it explicitly with '.copy()'
+                    var imgs = class_images[c]
+                                           ^
+                                              .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:466:93: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+                                detector.cabeca_classificacao_peso.carregar_dados_bytes_bin(raw_w_bytes)
+                                                                                            ^~~~~~~~~~~
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:466:93: note: consider transferring the value with '^'
+                                detector.cabeca_classificacao_peso.carregar_dados_bytes_bin(raw_w_bytes)
+                                                                                            ^
+                                                                                                       ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:466:93: note: you can copy it explicitly with '.copy()'
+                                detector.cabeca_classificacao_peso.carregar_dados_bytes_bin(raw_w_bytes)
+                                                                                            ^
+                                                                                                       .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:466:92: warning: 'Bool' value is unused
+                                detector.cabeca_classificacao_peso.carregar_dados_bytes_bin(raw_w_bytes)
+                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~
+                                _ = 
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:468:93: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+                                detector.cabeca_classificacao_bias.carregar_dados_bytes_bin(raw_b_bytes)
+                                                                                            ^~~~~~~~~~~
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:468:93: note: consider transferring the value with '^'
+                                detector.cabeca_classificacao_bias.carregar_dados_bytes_bin(raw_b_bytes)
+                                                                                            ^
+                                                                                                       ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:468:93: note: you can copy it explicitly with '.copy()'
+                                detector.cabeca_classificacao_bias.carregar_dados_bytes_bin(raw_b_bytes)
+                                                                                            ^
+                                                                                                       .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:468:92: warning: 'Bool' value is unused
+                                detector.cabeca_classificacao_bias.carregar_dados_bytes_bin(raw_b_bytes)
+                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~
+                                _ = 
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:480:39: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+                        var pb = boxes[0]
+                                 ~~~~~^~~
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:480:39: note: consider transferring the value with '^'
+                        var pb = boxes[0]
+                                      ^
+                                         ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:480:39: note: you can copy it explicitly with '.copy()'
+                        var pb = boxes[0]
+                                      ^
+                                         .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:488:44: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+                            var pb2 = boxes[0]
+                                      ~~~~~^~~
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:488:44: note: consider transferring the value with '^'
+                            var pb2 = boxes[0]
+                                           ^
+                                              ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:488:44: note: you can copy it explicitly with '.copy()'
+                            var pb2 = boxes[0]
+                                           ^
+                                              .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:493:98: warning: transfer from an owned value has no effect and can be removed
+                        uteis.gravar_texto_seguro(sample_path, String("\n").join(lines_out.copy()^))
+                                                                                                 ^
+                                                                                                 
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:493:50: warning: 'Bool' value is unused
+                        uteis.gravar_texto_seguro(sample_path, String("\n").join(lines_out.copy()^))
+                        ~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                        _ = 
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:593:109: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+                                            _ = detector.cabeca_classificacao_peso.carregar_dados_bytes_bin(raw_w_bytes)
+                                                                                                            ^~~~~~~~~~~
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:593:109: note: consider transferring the value with '^'
+                                            _ = detector.cabeca_classificacao_peso.carregar_dados_bytes_bin(raw_w_bytes)
+                                                                                                            ^
+                                                                                                                       ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:593:109: note: you can copy it explicitly with '.copy()'
+                                            _ = detector.cabeca_classificacao_peso.carregar_dados_bytes_bin(raw_w_bytes)
+                                                                                                            ^
+                                                                                                                       .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:595:109: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+                                            _ = detector.cabeca_classificacao_bias.carregar_dados_bytes_bin(raw_b_bytes)
+                                                                                                            ^~~~~~~~~~~
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:595:109: note: consider transferring the value with '^'
+                                            _ = detector.cabeca_classificacao_bias.carregar_dados_bytes_bin(raw_b_bytes)
+                                                                                                            ^
+                                                                                                                       ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:595:109: note: you can copy it explicitly with '.copy()'
+                                            _ = detector.cabeca_classificacao_bias.carregar_dados_bytes_bin(raw_b_bytes)
+                                                                                                            ^
+                                                                                                                       .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:609:55: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+                                        var pb = boxes[bi]
+                                                 ~~~~~^~~~
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:609:55: note: consider transferring the value with '^'
+                                        var pb = boxes[bi]
+                                                      ^
+                                                          ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:609:55: note: you can copy it explicitly with '.copy()'
+                                        var pb = boxes[bi]
+                                                      ^
+                                                          .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:53:48: warning: transfer from an owned value has no effect and can be removed
+    return bmp.parse_bmp(caminho, BMP_MODO_RGB)^
+                                               ^
+                                               
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:57:75: warning: transfer from an owned value has no effect and can be removed
+    return bmp.parse_bmp(caminho, BMP_MODO_RGB, altura_alvo, largura_alvo)^
+                                                                          ^
+                                                                          
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:6:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/bmp.mojo:142:116: warning: transfer from an owned value has no effect and can be removed
+        return BMPInfo(0, 0, 0, 0, modo, List[List[List[Float32]]](), List[List[Float32]](), List[List[Float32]]())^
+                                                                                                                   ^
+                                                                                                                   
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:6:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/bmp.mojo:159:116: warning: transfer from an owned value has no effect and can be removed
+        return BMPInfo(0, 0, 0, 0, modo, List[List[List[Float32]]](), List[List[Float32]](), List[List[Float32]]())^
+                                                                                                                   ^
+                                                                                                                   
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:6:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/bmp.mojo:162:116: warning: transfer from an owned value has no effect and can be removed
+        return BMPInfo(0, 0, 0, 0, modo, List[List[List[Float32]]](), List[List[Float32]](), List[List[Float32]]())^
+                                                                                                                   ^
+                                                                                                                   
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:6:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/bmp.mojo:216:77: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+    return BMPInfo(width, height, bits_per_pixel, pixel_array_offset, modo, pixels, grayscale, preto_branco)^
+                                                                            ^~~~~~
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:6:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/bmp.mojo:216:77: note: consider transferring the value with '^'
+    return BMPInfo(width, height, bits_per_pixel, pixel_array_offset, modo, pixels, grayscale, preto_branco)^
+                                                                            ^
+                                                                                  ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:6:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/bmp.mojo:216:77: note: you can copy it explicitly with '.copy()'
+    return BMPInfo(width, height, bits_per_pixel, pixel_array_offset, modo, pixels, grayscale, preto_branco)^
+                                                                            ^
+                                                                                  .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:6:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/bmp.mojo:216:85: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+    return BMPInfo(width, height, bits_per_pixel, pixel_array_offset, modo, pixels, grayscale, preto_branco)^
+                                                                                    ^~~~~~~~~
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:6:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/bmp.mojo:216:85: note: consider transferring the value with '^'
+    return BMPInfo(width, height, bits_per_pixel, pixel_array_offset, modo, pixels, grayscale, preto_branco)^
+                                                                                    ^
+                                                                                             ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:6:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/bmp.mojo:216:85: note: you can copy it explicitly with '.copy()'
+    return BMPInfo(width, height, bits_per_pixel, pixel_array_offset, modo, pixels, grayscale, preto_branco)^
+                                                                                    ^
+                                                                                             .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:6:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/bmp.mojo:216:96: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+    return BMPInfo(width, height, bits_per_pixel, pixel_array_offset, modo, pixels, grayscale, preto_branco)^
+                                                                                               ^~~~~~~~~~~~
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:6:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/bmp.mojo:216:96: note: consider transferring the value with '^'
+    return BMPInfo(width, height, bits_per_pixel, pixel_array_offset, modo, pixels, grayscale, preto_branco)^
+                                                                                               ^
+                                                                                                           ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:6:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/bmp.mojo:216:96: note: you can copy it explicitly with '.copy()'
+    return BMPInfo(width, height, bits_per_pixel, pixel_array_offset, modo, pixels, grayscale, preto_branco)^
+                                                                                               ^
+                                                                                                           .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:6:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/bmp.mojo:216:109: warning: transfer from an owned value has no effect and can be removed
+    return BMPInfo(width, height, bits_per_pixel, pixel_array_offset, modo, pixels, grayscale, preto_branco)^
+                                                                                                            ^
+                                                                                                            
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:6:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/bmp.mojo:292:70: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+        var px_redim = graficos.redimensionar_matriz_rgb_nearest(info.pixels, altura_alvo, largura_alvo)
+                                                                 ~~~~^~~~~~~
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:6:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/bmp.mojo:292:70: note: consider transferring the value with '^'
+        var px_redim = graficos.redimensionar_matriz_rgb_nearest(info.pixels, altura_alvo, largura_alvo)
+                                                                     ^
+                                                                            ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:6:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/bmp.mojo:292:70: note: you can copy it explicitly with '.copy()'
+        var px_redim = graficos.redimensionar_matriz_rgb_nearest(info.pixels, altura_alvo, largura_alvo)
+                                                                     ^
+                                                                            .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:6:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/bmp.mojo:293:164: warning: transfer from an owned value has no effect and can be removed
+        return BMPInfo(largura_alvo, altura_alvo, info.bits_per_pixel, info.pixel_array_offset, info.modo, px_redim^, List[List[Float32]](), List[List[Float32]]())^
+                                                                                                                                                                   ^
+                                                                                                                                                                   
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:6:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/bmp.mojo:296:79: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+        var pb_redim = graficos.redimensionar_matriz_preto_branco_nearest(info.preto_branco, altura_alvo, largura_alvo)
+                                                                          ~~~~^~~~~~~~~~~~~
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:6:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/bmp.mojo:296:79: note: consider transferring the value with '^'
+        var pb_redim = graficos.redimensionar_matriz_preto_branco_nearest(info.preto_branco, altura_alvo, largura_alvo)
+                                                                              ^
+                                                                                           ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:6:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/bmp.mojo:296:79: note: you can copy it explicitly with '.copy()'
+        var pb_redim = graficos.redimensionar_matriz_preto_branco_nearest(info.preto_branco, altura_alvo, largura_alvo)
+                                                                              ^
+                                                                                           .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:6:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/bmp.mojo:297:170: warning: transfer from an owned value has no effect and can be removed
+        return BMPInfo(largura_alvo, altura_alvo, info.bits_per_pixel, info.pixel_array_offset, info.modo, List[List[List[Float32]]](), List[List[Float32]](), pb_redim^)^
+                                                                                                                                                                         ^
+                                                                                                                                                                         
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:6:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/bmp.mojo:299:72: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+    var gs_redim = graficos.redimensionar_matriz_grayscale_nearest(info.grayscale, altura_alvo, largura_alvo)
+                                                                   ~~~~^~~~~~~~~~
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:6:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/bmp.mojo:299:72: note: consider transferring the value with '^'
+    var gs_redim = graficos.redimensionar_matriz_grayscale_nearest(info.grayscale, altura_alvo, largura_alvo)
+                                                                       ^
+                                                                                 ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:6:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/bmp.mojo:299:72: note: you can copy it explicitly with '.copy()'
+    var gs_redim = graficos.redimensionar_matriz_grayscale_nearest(info.grayscale, altura_alvo, largura_alvo)
+                                                                       ^
+                                                                                 .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:6:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/bmp.mojo:300:166: warning: transfer from an owned value has no effect and can be removed
+    return BMPInfo(largura_alvo, altura_alvo, info.bits_per_pixel, info.pixel_array_offset, info.modo, List[List[List[Float32]]](), gs_redim^, List[List[Float32]]())^
+                                                                                                                                                                     ^
+                                                                                                                                                                     
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:6:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/bmp.mojo:55:46: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+                    var pix = self.pixels[ry][rx]
+                              ~~~~~~~~~~~~~~~^~~~
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:6:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/bmp.mojo:55:46: note: consider transferring the value with '^'
+                    var pix = self.pixels[ry][rx]
+                                             ^
+                                                 ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:6:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/bmp.mojo:55:46: note: you can copy it explicitly with '.copy()'
+                    var pix = self.pixels[ry][rx]
+                                             ^
+                                                 .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/graficos/__init__.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/graficos/__init__.mojo:10:68: warning: transfer from an owned value has no effect and can be removed
+    return bmp.redimensionar_matriz_grayscale_nearest(origem.copy()^, altura_alvo, largura_alvo)
+                                                                   ^
+                                                                   
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/graficos/__init__.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/graficos/__init__.mojo:15:71: warning: transfer from an owned value has no effect and can be removed
+    return bmp.redimensionar_matriz_preto_branco_nearest(origem.copy()^, altura_alvo, largura_alvo)
+                                                                      ^
+                                                                      
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/graficos/__init__.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/graficos/__init__.mojo:20:62: warning: transfer from an owned value has no effect and can be removed
+    return bmp.redimensionar_matriz_rgb_nearest(origem.copy()^, altura_alvo, largura_alvo)
+                                                             ^
+                                                             
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/graficos/__init__.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/graficos/__init__.mojo:116:30: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+            var pix = img[yy][xx]
+                      ~~~~~~~^~~~
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/graficos/__init__.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/graficos/__init__.mojo:116:30: note: consider transferring the value with '^'
+            var pix = img[yy][xx]
+                             ^
+                                 ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/graficos/__init__.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/graficos/__init__.mojo:116:30: note: you can copy it explicitly with '.copy()'
+            var pix = img[yy][xx]
+                             ^
+                                 .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/graficos/__init__.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/graficos/bmp.mojo:35:29: warning: transfer from an owned value has no effect and can be removed
+        return origem.copy()^
+                            ^
+                            
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/graficos/__init__.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/graficos/bmp.mojo:91:51: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+    return redimensionar_matriz_grayscale_nearest(origem, altura_alvo, largura_alvo)
+                                                  ^~~~~~
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/graficos/__init__.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/graficos/bmp.mojo:91:51: note: consider transferring the value with '^'
+    return redimensionar_matriz_grayscale_nearest(origem, altura_alvo, largura_alvo)
+                                                  ^
+                                                        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/graficos/__init__.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/graficos/bmp.mojo:91:51: note: you can copy it explicitly with '.copy()'
+    return redimensionar_matriz_grayscale_nearest(origem, altura_alvo, largura_alvo)
+                                                  ^
+                                                        .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/graficos/__init__.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/graficos/bmp.mojo:109:29: warning: transfer from an owned value has no effect and can be removed
+        return origem.copy()^
+                            ^
+                            
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/graficos/__init__.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/graficos/bmp.mojo:122:39: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+            var src_px = origem[src_y][src_x]
+                         ~~~~~~~~~~~~~^~~~~~~
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/graficos/__init__.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/graficos/bmp.mojo:122:39: note: consider transferring the value with '^'
+            var src_px = origem[src_y][src_x]
+                                      ^
+                                             ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/graficos/__init__.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/graficos/bmp.mojo:122:39: note: you can copy it explicitly with '.copy()'
+            var src_px = origem[src_y][src_x]
+                                      ^
+                                             .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:11:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_assigner.mojo:41:17: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+        return (labels, targets)
+                ^~~~~~
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:11:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_assigner.mojo:41:17: note: consider transferring the value with '^'
+        return (labels, targets)
+                ^
+                      ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:11:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_assigner.mojo:41:17: note: you can copy it explicitly with '.copy()'
+        return (labels, targets)
+                ^
+                      .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:11:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_assigner.mojo:41:25: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+        return (labels, targets)
+                        ^~~~~~~
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:11:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_assigner.mojo:41:25: note: consider transferring the value with '^'
+        return (labels, targets)
+                        ^
+                               ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:11:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_assigner.mojo:41:25: note: you can copy it explicitly with '.copy()'
+        return (labels, targets)
+                        ^
+                               .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:11:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_assigner.mojo:59:30: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+            var gt = gt_boxes[best_gt_idx]
+                     ~~~~~~~~^~~~~~~~~~~~~
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:11:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_assigner.mojo:59:30: note: consider transferring the value with '^'
+            var gt = gt_boxes[best_gt_idx]
+                             ^
+                                          ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:11:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_assigner.mojo:59:30: note: you can copy it explicitly with '.copy()'
+            var gt = gt_boxes[best_gt_idx]
+                             ^
+                                          .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:221:124: warning: transfer from an owned value has no effect and can be removed
+                uteis.gravar_texto_seguro(os.path.join(model_dir, "retina_state.txt"), String("\n").join(state_lines.copy()^))
+                                                                                                                           ^
+                                                                                                                           
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:221:42: warning: 'Bool' value is unused
+                uteis.gravar_texto_seguro(os.path.join(model_dir, "retina_state.txt"), String("\n").join(state_lines.copy()^))
+                ~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                _ = 
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:309:70: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+                            peso_cls_tensor.carregar_dados_bytes_bin(raw_w)
+                                                                     ^~~~~
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:309:70: note: consider transferring the value with '^'
+                            peso_cls_tensor.carregar_dados_bytes_bin(raw_w)
+                                                                     ^
+                                                                          ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:309:70: note: you can copy it explicitly with '.copy()'
+                            peso_cls_tensor.carregar_dados_bytes_bin(raw_w)
+                                                                     ^
+                                                                          .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:309:69: warning: 'Bool' value is unused
+                            peso_cls_tensor.carregar_dados_bytes_bin(raw_w)
+                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~
+                            _ = 
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:318:70: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+                            bias_cls_tensor.carregar_dados_bytes_bin(raw_b)
+                                                                     ^~~~~
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:318:70: note: consider transferring the value with '^'
+                            bias_cls_tensor.carregar_dados_bytes_bin(raw_b)
+                                                                     ^
+                                                                          ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:318:70: note: you can copy it explicitly with '.copy()'
+                            bias_cls_tensor.carregar_dados_bytes_bin(raw_b)
+                                                                     ^
+                                                                          .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:318:69: warning: 'Bool' value is unused
+                            bias_cls_tensor.carregar_dados_bytes_bin(raw_b)
+                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~
+                            _ = 
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:325:28: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+            var a = anchors[i]
+                    ~~~~~~~^~~
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:325:28: note: consider transferring the value with '^'
+            var a = anchors[i]
+                           ^
+                              ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:325:28: note: you can copy it explicitly with '.copy()'
+            var a = anchors[i]
+                           ^
+                              .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:339:44: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+                    var pix = patch_rgb[yy][xx]
+                              ~~~~~~~~~~~~~^~~~
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:339:44: note: consider transferring the value with '^'
+                    var pix = patch_rgb[yy][xx]
+                                           ^
+                                               ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:339:44: note: you can copy it explicitly with '.copy()'
+                    var pix = patch_rgb[yy][xx]
+                                           ^
+                                               .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:385:31: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+            reg_deltas.append(drow)
+                              ^~~~
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:385:31: note: consider transferring the value with '^'
+            reg_deltas.append(drow)
+                              ^
+                                  ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:385:31: note: you can copy it explicitly with '.copy()'
+            reg_deltas.append(drow)
+                              ^
+                                  .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:389:28: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+            var a = anchors[i]
+                    ~~~~~~~^~~
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:389:28: note: consider transferring the value with '^'
+            var a = anchors[i]
+                           ^
+                              ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:389:28: note: you can copy it explicitly with '.copy()'
+            var a = anchors[i]
+                           ^
+                              .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:401:26: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+            boxes.append(outb)
+                         ^~~~
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:401:26: note: consider transferring the value with '^'
+            boxes.append(outb)
+                         ^
+                             ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:401:26: note: you can copy it explicitly with '.copy()'
+            boxes.append(outb)
+                         ^
+                             .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:408:26: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+            var b = boxes[k]
+                    ~~~~~^~~
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:408:26: note: consider transferring the value with '^'
+            var b = boxes[k]
+                         ^
+                            ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:408:26: note: you can copy it explicitly with '.copy()'
+            var b = boxes[k]
+                         ^
+                            .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:411:31: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+            kept_boxes.append(ib)
+                              ^~
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:411:31: note: consider transferring the value with '^'
+            kept_boxes.append(ib)
+                              ^
+                                ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:411:31: note: you can copy it explicitly with '.copy()'
+            kept_boxes.append(ib)
+                              ^
+                                .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:413:16: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+        return kept_boxes
+               ^~~~~~~~~~
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:413:16: note: consider transferring the value with '^'
+        return kept_boxes
+               ^
+                         ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:413:16: note: you can copy it explicitly with '.copy()'
+        return kept_boxes
+               ^
+                         .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:21:15: warning: Use `str.codepoints()` or `str.codepoint_slices()` instead.
+    for ch in line:
+              ^~~~
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:1: note: '__iter__' declared here
+import retina.model_detector as model_pkg
+^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:30:12: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+    return fields
+           ^~~~~~
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:30:12: note: consider transferring the value with '^'
+    return fields
+           ^
+                 ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:30:12: note: you can copy it explicitly with '.copy()'
+    return fields
+           ^
+                 .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:274:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_nms.mojo:41:12: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+    return keep
+           ^~~~
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:274:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_nms.mojo:41:12: note: consider transferring the value with '^'
+    return keep
+           ^
+               ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:274:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_nms.mojo:41:12: note: you can copy it explicitly with '.copy()'
+    return keep
+           ^
+               .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/model_detector.mojo:241:16: warning: 'except' logic is unreachable, try doesn't raise an exception
+        return False
+               ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/model_detector.mojo:257:15: warning: 'except' logic is unreachable, try doesn't raise an exception
+        print("[DEBUG] model_detector.carregar_checkpoint: exception during load")
+              ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:184:28: warning: 'except' logic is unreachable, try doesn't raise an exception
+                ok_block = False
+                           ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:185:13: warning: try body doesn't raise an exception
+            try:
+            ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:190:13: warning: try body doesn't raise an exception
+            try:
+            ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:195:13: warning: try body doesn't raise an exception
+            try:
+            ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:200:13: warning: try body doesn't raise an exception
+            try:
+            ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:210:23: warning: 'except' logic is unreachable, try doesn't raise an exception
+                okc = False
+                      ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:216:13: warning: try body doesn't raise an exception
+            try:
+            ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:227:20: warning: 'except' logic is unreachable, try doesn't raise an exception
+            return False
+                   ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:302:30: warning: 'except' logic is unreachable, try doesn't raise an exception
+                    Dguess = 0
+                             ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:306:21: warning: try body doesn't raise an exception
+                    try:
+                    ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:313:21: warning: try body doesn't raise an exception
+                    try:
+                    ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:322:34: warning: 'except' logic is unreachable, try doesn't raise an exception
+            cls_tensors_inited = False
+                                 ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:354:21: warning: 'except' logic is unreachable, try doesn't raise an exception
+                D = 0
+                    ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:44:17: warning: 'except' logic is unreachable, try doesn't raise an exception
+            h = -1
+                ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:48:17: warning: 'except' logic is unreachable, try doesn't raise an exception
+            w = -1
+                ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:39:5: warning: try body doesn't raise an exception
+    try:
+    ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:87:9: warning: try body doesn't raise an exception
+        try:
+        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:105:25: warning: 'except' logic is unreachable, try doesn't raise an exception
+                    D = 0
+                        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:118:36: warning: 'except' logic is unreachable, try doesn't raise an exception
+                head_initialized = False
+                                   ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:95:5: warning: try body doesn't raise an exception
+    try:
+    ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:167:5: warning: try body doesn't raise an exception
+    try:
+    ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:172:5: warning: try body doesn't raise an exception
+    try:
+    ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:176:5: warning: try body doesn't raise an exception
+    try:
+    ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:219:28: warning: 'except' logic is unreachable, try doesn't raise an exception
+                    except _:
+                           ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:276:89: warning: 'except' logic is unreachable, try doesn't raise an exception
+                        crop_rgb = graficos_pkg.crop_and_resize_rgb(img_matrix, ax, ay, ax + aw - 1, ay + ah - 1, patch_size, patch_size)
+                                                                                        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:293:29: warning: 'except' logic is unreachable, try doesn't raise an exception
+                        D = 0
+                            ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:328:21: warning: try body doesn't raise an exception
+                    try:
+                    ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:374:17: warning: try body doesn't raise an exception
+                try:
+                ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:378:17: warning: try body doesn't raise an exception
+                try:
+                ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:363:9: warning: try body doesn't raise an exception
+        try:
+        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:452:56: warning: 'except' logic is unreachable, try doesn't raise an exception
+                                raw_w_bytes = List[Int]()
+                                                       ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:456:56: warning: 'except' logic is unreachable, try doesn't raise an exception
+                                raw_b_bytes = List[Int]()
+                                                       ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:444:21: warning: try body doesn't raise an exception
+                    try:
+                    ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:464:25: warning: try body doesn't raise an exception
+                        try:
+                        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:474:98: warning: 'except' logic is unreachable, try doesn't raise an exception
+                        print("DBG: detector.inferir raised for epoch sample class", class_names[c])
+                                                                                                 ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:484:21: warning: try body doesn't raise an exception
+                    try:
+                    ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:390:9: warning: try body doesn't raise an exception
+        try:
+        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:502:9: warning: try body doesn't raise an exception
+        try:
+        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:583:64: warning: 'except' logic is unreachable, try doesn't raise an exception
+                                        raw_w_bytes = List[Int]()
+                                                               ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:587:64: warning: 'except' logic is unreachable, try doesn't raise an exception
+                                        raw_b_bytes = List[Int]()
+                                                               ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:591:37: warning: try body doesn't raise an exception
+                                    try:
+                                    ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:601:43: warning: 'except' logic is unreachable, try doesn't raise an exception
+                                    print("DBG: detector.inferir raised for validation image", img_path)
+                                          ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:624:59: warning: 'except' logic is unreachable, try doesn't raise an exception
+                                            center_dist = 0.0; w_ratio = 0.0; h_ratio = 0.0
+                                                          ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:529:9: warning: try body doesn't raise an exception
+        try:
+        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:639:9: warning: try body doesn't raise an exception
+        try:
+        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:661:9: warning: try body doesn't raise an exception
+        try:
+        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:665:9: warning: try body doesn't raise an exception
+        try:
+        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:655:5: warning: try body doesn't raise an exception
+    try:
+    ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:12:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_utils.mojo:41:16: warning: 'except' logic is unreachable, try doesn't raise an exception
+        return 0.0
+               ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:2:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/computacao/adaptadores/contexto.mojo:2:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/computacao/adaptadores/adaptador_dispositivo.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/computacao/cuda/conjunto_de_buffers_dispositivo.mojo:29:9: warning: unreachable code after return statement
+        return
+        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/model_detector.mojo:13:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/computacao/storage_sessao.mojo:70:16: warning: 'except' logic is unreachable, try doesn't raise an exception
+        return False
+               ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/camadas/cnn/__init__.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/camadas/cnn/__init__.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/camadas/cnn/cnn.mojo:2:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/computacao/dispatcher_tensor.mojo:48:9: warning: try body doesn't raise an exception
+        try:
+        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/camadas/cnn/__init__.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/camadas/cnn/__init__.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/camadas/cnn/cnn.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/nucleo/Tensor.mojo:118:20: warning: 'except' logic is unreachable, try doesn't raise an exception
+            return False
+                   ^
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:11:50: warning: assignment to 'ctx' was never used; assign to '_' instead?
+    var ctx = contexto_defs.criar_contexto_padrao("cpu")
+                                                 ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:182:59: warning: assignment to 'ok_block' was never used; assign to '_' instead?
+                var ok_block = model_pkg.salvar_checkpoint(self.bloco_cnn, model_dir)
+                                                          ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:206:29: warning: assignment to 'okc' was never used; assign to '_' instead?
+            var okc: Bool = False
+                            ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:184:17: warning: variable 'ok_block' was never used, remove it?
+                ok_block = False
+                ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:350:21: warning: assignment to 'D' was never used; assign to '_' instead?
+            var D = 0
+                    ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:345:51: warning: assignment to 'feats_t' was never used; assign to '_' instead?
+            var feats_t = tensor_defs_local.Tensor(List[Int](), self.bloco_cnn.tipo_computacao)
+                                                  ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:298:30: warning: assignment to 'Dguess' was never used; assign to '_' instead?
+                var Dguess = 0
+                             ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:614:64: warning: assignment to 'h_ratio' was never used; assign to '_' instead?
+                                        var h_ratio: Float32 = 0.0
+                                                               ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:613:64: warning: assignment to 'w_ratio' was never used; assign to '_' instead?
+                                        var w_ratio: Float32 = 0.0
+                                                               ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:612:68: warning: assignment to 'center_dist' was never used; assign to '_' instead?
+                                        var center_dist: Float32 = 0.0
+                                                                   ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:588:60: warning: assignment to 'boxes' was never used; assign to '_' instead?
+                                var boxes = List[List[Int]]()
+                                                           ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:460:48: warning: assignment to 'boxes' was never used; assign to '_' instead?
+                    var boxes = List[List[Int]]()
+                                               ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:443:48: warning: assignment to 'raw_b_bytes' was never used; assign to '_' instead?
+                    var raw_b_bytes = List[Int]()
+                                               ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:442:48: warning: assignment to 'raw_w_bytes' was never used; assign to '_' instead?
+                    var raw_w_bytes = List[Int]()
+                                               ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:289:29: warning: assignment to 'D' was never used; assign to '_' instead?
+                    var D = 0
+                            ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:272:61: warning: assignment to 'crop_rgb' was never used; assign to '_' instead?
+                    var crop_rgb = List[List[List[Float32]]]()
+                                                            ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:214:93: warning: assignment to 'img_matrix' was never used; assign to '_' instead?
+                    img_matrix = graficos_pkg.bmp.redimensionar_matriz_rgb_nearest_from_flat(bmp.flat_pixels, bmp.width, bmp.height, bmp.channels, altura, largura)
+                                                                                            ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:40:17: warning: assignment to 'h' was never used; assign to '_' instead?
+        var h = -1; var w = -1
+                ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:40:29: warning: assignment to 'w' was never used; assign to '_' instead?
+        var h = -1; var w = -1
+                            ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:101:25: warning: assignment to 'D' was never used; assign to '_' instead?
+                var D = 0
+                        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:10:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_anchor_generator.mojo:32:32: warning: assignment to 'scales_local' was never used; assign to '_' instead?
+    scales_local = scales_local^
+                               ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_model.mojo:420:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:11:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_assigner.mojo:36:19: warning: assignment to 'i' was never used; assign to '_' instead?
+    for i in range(N):
+                  ^
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/graficos/__init__.mojo:106:28: warning: assignment to 'xx' was never used; assign to '_' instead?
+            for xx in range(out_w):
+                           ^
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/graficos/__init__.mojo:104:24: warning: assignment to 'yy' was never used; assign to '_' instead?
+        for yy in range(out_h):
+                       ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/graficos/__init__.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/graficos/bmp.mojo:67:28: warning: assignment to 'xx' was never used; assign to '_' instead?
+            for xx in range(out_w):
+                           ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/graficos/__init__.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/graficos/bmp.mojo:65:24: warning: assignment to 'yy' was never used; assign to '_' instead?
+        for yy in range(out_h):
+                       ^
+Iniciando treino Retina minimal...
+[DEBUG] run_retina_train: start marker
+[DEBUG] run_retina_train: antes de criar RetinaFace
+[DEBUG] RetinaFace.__init__: start; parametros.input_size= 320
+[DEBUG] RetinaFace.__init__: criando bloco_cnn via model_pkg.criar_bloco_detector()
+[DEBUG] criar_bloco_detector: parametros -> altura: 320 largura: 320 num_filtros: 6 kernel: 3 x 3
+[DEBUG] criar_bloco_detector: BlocoCNN instanciado
+[DEBUG] RetinaFace.__init__: bloco_cnn criado
+[DEBUG] run_retina_train: RetinaFace criado
+[DEBUG] run_retina_train: chamando detector.treinar()
+[DEBUG] treinar_retina_minimal: entrada chamada; altura: 320 largura: 320 patch_size: 32 epocas: 3
+[DEBUG] treinar_retina_minimal: detector.bloco_cnn dimensions maybe -> altura: 320 largura: 320
+[DEBUG] treinar_retina_minimal: skipping model_pkg.carregar_checkpoint (temp)
+[DEBUG] treinar_retina_minimal: before gerar_anchors, largura: 320
+[DEBUG] treinar_retina_minimal: after gerar_anchors; anchors len: 6375
+[DEBUG] treinar_retina_minimal: about to build class lists from dataset_dir: DATASET
+[DEBUG] treinar_retina_minimal: class n000002 images: 315 total_images: 315
+[DEBUG] treinar_retina_minimal: built class lists; classes: 1
+[DEBUG] treinar_retina_minimal: class n000003 images: 205 total_images: 520
+[DEBUG] treinar_retina_minimal: built class lists; classes: 2
+[DEBUG] treinar_retina_minimal: class n000004 images: 387 total_images: 907
+[DEBUG] treinar_retina_minimal: built class lists; classes: 3
+[DEBUG] treinar_retina_minimal: class n000005 images: 229 total_images: 1136
+[DEBUG] treinar_retina_minimal: built class lists; classes: 4
+[DEBUG] treinar_retina_minimal: class n000006 images: 485 total_images: 1621
+[DEBUG] treinar_retina_minimal: built class lists; classes: 5
+[DEBUG] treinar_retina_minimal: class n000007 images: 259 total_images: 1880
+[DEBUG] treinar_retina_minimal: built class lists; classes: 6
+[DEBUG] treinar_retina_minimal: class n000008 images: 273 total_images: 2153
+[DEBUG] treinar_retina_minimal: reached total_images limit ( 2153 ) - stopping scan
+#0 0x000077b0dc7739db llvm::sys::PrintStackTrace(llvm::raw_ostream&, int) (/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/.pixi/envs/default/lib/libKGENCompilerRTShared.so+0x3c89db)
+#1 0x000077b0dc7712e6 llvm::sys::RunSignalHandlers() (/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/.pixi/envs/default/lib/libKGENCompilerRTShared.so+0x3c62e6)
+#2 0x000077b0dc7745e7 SignalHandler(int, siginfo_t*, void*) (/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/.pixi/envs/default/lib/libKGENCompilerRTShared.so+0x3c95e7)
+#3 0x000077b0dd045330 (/lib/x86_64-linux-gnu/libc.so.6+0x45330)
+#4 0x000077b0e01968ba tcmalloc::tcmalloc_internal::TCMallocPolicy<tcmalloc::tcmalloc_internal::CppOomPolicy, tcmalloc::tcmalloc_internal::AlignAsPolicy, tcmalloc::tcmalloc_internal::AllocationAccessHotPolicy, tcmalloc::tcmalloc_internal::InvokeHooksPolicy, tcmalloc::tcmalloc_internal::NonSizeReturningPolicy, tcmalloc::tcmalloc_internal::LocalNumaPartitionPolicy>::pointer_type tcmalloc::tcmalloc_internal::alloc_small_sampled_hooks_or_perthread<tcmalloc::tcmalloc_internal::TCMallocPolicy<tcmalloc::tcmalloc_internal::CppOomPolicy, tcmalloc::tcmalloc_internal::AlignAsPolicy, tcmalloc::tcmalloc_internal::AllocationAccessHotPolicy, tcmalloc::tcmalloc_internal::InvokeHooksPolicy, tcmalloc::tcmalloc_internal::NonSizeReturningPolicy, tcmalloc::tcmalloc_internal::LocalNumaPartitionPolicy>>(unsigned long, unsigned long, tcmalloc::tcmalloc_internal::TCMallocPolicy<tcmalloc::tcmalloc_internal::CppOomPolicy, tcmalloc::tcmalloc_internal::AlignAsPolicy, tcmalloc::tcmalloc_internal::AllocationAccessHotPolicy, tcmalloc::tcmalloc_internal::InvokeHooksPolicy, tcmalloc::tcmalloc_internal::NonSizeReturningPolicy, tcmalloc::tcmalloc_internal::LocalNumaPartitionPolicy>, unsigned long) (/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/.pixi/envs/default/bin/../lib/libAsyncRTRuntimeGlobals.so+0x418ba)
+#5 0x000077b07802b2e3
+
+To get symbolicated stack trace, compile your program using `mojo build` with debug info enabled, e.g. `-debug-level=line-tables`.

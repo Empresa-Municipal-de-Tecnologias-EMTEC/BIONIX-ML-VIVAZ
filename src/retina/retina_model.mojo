@@ -99,9 +99,12 @@ struct RetinaFace(Movable):
     var treinamento_meta: String
 
     fn __init__(out self, var parametros_in: BlocoRetinaFaceParametros = BlocoRetinaFaceParametros(), var diretorio_modelo_in: String = "MODELO/retina_modelo"):
+        print("[DEBUG] RetinaFace.__init__: start; parametros.input_size=", parametros_in.input_size)
         self.parametros = parametros_in^
-        # create underlying CNN block
+        # create underlying CNN block (may allocate memory)
+        print("[DEBUG] RetinaFace.__init__: criando bloco_cnn via model_pkg.criar_bloco_detector()")
         self.bloco_cnn = model_pkg.criar_bloco_detector(self.parametros.input_size, self.parametros.input_size, self.parametros.num_filtros, self.parametros.kernel_h, self.parametros.kernel_w, contexto_defs.criar_contexto_padrao(self.parametros.tipo_ctx))
+        print("[DEBUG] RetinaFace.__init__: bloco_cnn criado")
         # placeholder head tensors (initialized lazily)
         self.cabeca_classificacao_peso = tensor_defs.Tensor(List[Int](), self.bloco_cnn.tipo_computacao)
         self.cabeca_classificacao_bias = tensor_defs.Tensor(List[Int](), self.bloco_cnn.tipo_computacao)
