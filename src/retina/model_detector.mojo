@@ -185,11 +185,11 @@ fn treinar_detector_color_com_saida(
 
                 if found and orig_info.width > 0 and orig_info.height > 0:
                     # build prediction on resized color image
-                    var resized = graficos_pkg.bmp.redimensionar_matriz_rgb_nearest_from_flat(orig_info.flat_pixels, orig_info.width, orig_info.height, orig_info.channels, bloco.altura, bloco.largura)
+                    var resized = graficos_pkg.bmp.redimensionar_matriz_rgb_nearest_from_flat(orig_info.flat_pixels.copy(), orig_info.width, orig_info.height, orig_info.channels, bloco.altura, bloco.largura)
                     var flat = List[Float32]()
                     for ry in range(len(resized)):
                         for rx in range(len(resized[0])):
-                            var pix = resized[ry][rx]
+                            var pix = resized[ry][rx].copy()
                             # pix is [r,g,b] normalized 0..1
                             flat.append(pix[0]); flat.append(pix[1]); flat.append(pix[2])
                     var in_shape = List[Int](); in_shape.append(1); in_shape.append(bloco.altura * bloco.largura * 3)

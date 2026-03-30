@@ -32,7 +32,7 @@ fn non_max_suppression(boxes: List[List[Float32]], scores: List[Float32], iou_th
         var keep_i = True
         var idx_i = idxs[i]
         for k in keep:
-            var iou = intersec_over_union(boxes[idx_i], boxes[k])
+            var iou = intersec_over_union(boxes[idx_i].copy(), boxes[k].copy())
             if iou > iou_thresh:
                 keep_i = False
                 break

@@ -183,13 +183,13 @@ fn carregar_dataset_detector_bbox_color(var dir_dataset: String, var altura: Int
                 continue
 
             # resize color matrix to target using flat-buffer helper
-            try:
-                var resized = graficos_pkg.bmp.redimensionar_matriz_rgb_nearest_from_flat(info.flat_pixels, info.width, info.height, info.channels, altura, largura)
-            except _:
                 try:
-                    var resized = graficos_pkg.redimensionar_matriz_rgb_nearest(info.pixels.copy()^, altura, largura)
+                    var resized = graficos_pkg.bmp.redimensionar_matriz_rgb_nearest_from_flat(info.flat_pixels.copy(), info.width, info.height, info.channels, altura, largura)
                 except _:
-                    continue
+                    try:
+                        var resized = graficos_pkg.redimensionar_matriz_rgb_nearest(info.pixels.copy(), altura, largura)
+                    except _:
+                        continue
             features_list.append(resized^)
 
             # parse first bbox in .txt as before
@@ -342,7 +342,7 @@ fn carregar_dataset_detector_bbox(var dir_dataset: String, var altura: Int, var 
                 continue
 
             # Resize the full image to target resolution and use as input
-            var resized = graficos_pkg.redimensionar_matriz_grayscale_nearest(img.copy()^, altura, largura)
+            var resized = graficos_pkg.redimensionar_matriz_grayscale_nearest(img.copy(), altura, largura)
             features_list.append(resized^)
 
             # collect first bbox found as target (if multiple, store first); normalized to [0,1]
