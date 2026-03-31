@@ -12,6 +12,7 @@ import retina.retina_assigner as assigner
 import retina.retina_utils as retina_utils
 import os
 import math
+import diagnostics.one_shot_debug as osd
 
 
 # Simple field-splitting helper
@@ -399,6 +400,37 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                 var labels = res.labels.copy()
                 var targets = res.targets.copy()
 
+                # Quick checksum of anchors immediately after assigner to detect early mutations
+                try:
+                    var post_assign_ck: Float32 = Float32(0.0)
+                    var lim_ck = 100
+                    if len(anchors) < lim_ck:
+                        lim_ck = len(anchors)
+                    for i_ck in range(lim_ck):
+                        var a_ckv = anchors[i_ck].copy()
+                        for vv in a_ckv:
+                            post_assign_ck = post_assign_ck + vv * Float32(i_ck + 1)
+                    if post_assign_ck != anchors_checksum:
+                        print("[DBG-ERR] anchors checksum changed after assigner: gen_ck=", anchors_checksum, "post_assign_ck=", post_assign_ck)
+                        # locate first diff
+                        try:
+                            var first_diff2 = -1
+                            for ii in range(min(len(anchors), 200)):
+                                var o2 = anchors_snapshot[ii].copy()
+                                var c2 = anchors[ii].copy()
+                                var d2 = False
+                                for jj in range(4):
+                                    if o2[jj] != c2[jj]:
+                                        d2 = True; break
+                                if d2:
+                                    first_diff2 = ii; break
+                            print("[DBG-ERR] first differing anchor after assigner idx=", first_diff2)
+                        except _:
+                            pass
+                        return "Falha: anchors mutated after assigner"
+                except _:
+                    pass
+
                 # Diagnostic: print assigner sizes and a few sample anchors/labels
                 try:
                     print("[DBG] assigner: anchors_len=", len(anchors), "labels_len=", len(labels), "targets_len=", len(targets))
@@ -450,6 +482,38 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                             print("[DBG] treinar_retina_minimal: reached max positive anchors for this image; skipping remaining positives")
                         break
                     
+                    # Check anchors checksum immediately before processing this anchor
+                    try:
+                        var pre_anchor_ck: Float32 = Float32(0.0)
+                        var lim_ck2 = 100
+                        if len(anchors) < lim_ck2:
+                            lim_ck2 = len(anchors)
+                        for i_ck2 in range(lim_ck2):
+                            var a_ckv2 = anchors[i_ck2].copy()
+                            for vv2 in a_ckv2:
+                                pre_anchor_ck = pre_anchor_ck + vv2 * Float32(i_ck2 + 1)
+                        if pre_anchor_ck != anchors_checksum:
+                            print("[DBG-ERR] anchors checksum changed before anchor processing a_idx=", a_idx, "gen_ck=", anchors_checksum, "pre_anchor_ck=", pre_anchor_ck)
+                            # locate first diff near reported idx
+                            try:
+                                var first_diff3 = -1
+                                for ii in range(min(len(anchors), 200)):
+                                    var o3 = anchors_snapshot[ii].copy()
+                                    var c3 = anchors[ii].copy()
+                                    var d3 = False
+                                    for jj in range(4):
+                                        if o3[jj] != c3[jj]:
+                                            d3 = True; break
+                                    if d3:
+                                        first_diff3 = ii; break
+                                print("[DBG-ERR] first differing anchor near pre-anchor detect idx=", first_diff3)
+                                # recent write-trace disabled (instrumentation removed)
+                            except _:
+                                pass
+                            return "Falha: anchors mutated before processing anchor"
+                    except _:
+                        pass
+
                     # Create a fresh tensor for each anchor to isolate memory
                     var tensor_in = tensor_defs.Tensor(in_shape.copy(), detector.bloco_cnn.tipo_computacao)
 
@@ -502,20 +566,26 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                             
                             if base + 2 < tensor_len and base >= 0:
                                 if idx_flat + 2 < flat_len and idx_flat >= 0:
-                                    tensor_in.dados[base + 0] = bmp_flat[idx_flat + 0]
-                                    tensor_in.dados[base + 1] = bmp_flat[idx_flat + 1]
-                                    tensor_in.dados[base + 2] = bmp_flat[idx_flat + 2]
+                                            # log the attempted write for debugging
+                                            # one-shot debug: mark this write (very small, movable)
+                                            try:
+                                                osd.debug_marker(String("trainer_tensor_write"), String("img=") + path + String(" a_idx=") + String(a_idx) + String(" base=") + String(base) + String(" idx_flat=") + String(idx_flat))
+                                            except _:
+                                                pass
+                                            tensor_in.dados[base + 0] = bmp_flat[idx_flat + 0]
+                                            tensor_in.dados[base + 1] = bmp_flat[idx_flat + 1]
+                                            tensor_in.dados[base + 2] = bmp_flat[idx_flat + 2]
                                 else:
-                                    tensor_in.dados[base + 0] = 0.0
-                                    tensor_in.dados[base + 1] = 0.0
-                                    tensor_in.dados[base + 2] = 0.0
+                                            tensor_in.dados[base + 0] = 0.0
+                                            tensor_in.dados[base + 1] = 0.0
+                                            tensor_in.dados[base + 2] = 0.0
                             else:
                                 dbg_oob_count = dbg_oob_count + 1
                     
                     if dbg_oob_count > 0:
                         print("[DBG-ERR] treinar_retina_minimal: OOB detected in crop, count=", dbg_oob_count)
 
-                    var feats = detector.bloco_cnn.extrair_features(tensor_in)
+                    var feats = cnn_pkg.extrair_features(detector.bloco_cnn, tensor_in)
                     var D = 0
                     try:
                         D = feats.formato[1]

@@ -4,6 +4,7 @@ import bionix_ml.uteis as uteis
 import bionix_ml.computacao as computacao_pkg
 import bionix_ml.nucleo.Tensor as tensor_defs
 import os
+# diagnostics.write_trace instrumentation removed; keep file available for later one-shot usage
 
 # Dataset loader: reads dataset tree with .bmp + .txt (.box) files and yields crops as tensors
 fn carregar_dataset_detector_pouro(var dir_dataset: String, var altura: Int, var largura: Int, var tipo: String, var max_classes: Int = 100000) -> List[tensor_defs.Tensor]:
@@ -127,13 +128,17 @@ fn carregar_dataset_detector_pouro(var dir_dataset: String, var altura: Int, var
     for p in positivos:
         for yy in range(altura):
             for xx in range(largura):
-                x_t.dados[idx * features + yy * largura + xx] = p[yy][xx]
+                var out_idx = idx * features + yy * largura + xx
+                # original behavior: write pixel into tensor (debug instrumentation removed)
+                x_t.dados[out_idx] = p[yy][xx]
         y_t.dados[idx] = 1.0
         idx = idx + 1
     for n in negativos:
         for yy in range(altura):
             for xx in range(largura):
-                x_t.dados[idx * features + yy * largura + xx] = n[yy][xx]
+                var out_idx = idx * features + yy * largura + xx
+                # original behavior: write pixel into tensor (debug instrumentation removed)
+                x_t.dados[out_idx] = n[yy][xx]
         y_t.dados[idx] = 0.0
         idx = idx + 1
 
