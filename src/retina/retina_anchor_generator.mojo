@@ -1,6 +1,18 @@
 import bionix_ml.nucleo.Tensor as tensor_defs
 import math
 
+
+# small helper to detect NaN/Inf or absurd values
+fn _num_sane(var v: Float32) -> Bool:
+    try:
+        if v != v:
+            return False
+        if v < -1e12 or v > 1e12:
+            return False
+        return True
+    except _:
+        return False
+
 fn gerar_anchors(input_size: Int = 640, strides: List[Int] = [8,16,32,64],
                  scales: List[List[Float32]] = List[List[Float32]](), ratios: List[Float32] = [0.5, 1.0, 2.0]) -> List[List[Float32]]:
     # Gera anchors como [cx, cy, w, h] em pixels para cada nível.
@@ -28,6 +40,18 @@ fn gerar_anchors(input_size: Int = 640, strides: List[Int] = [8,16,32,64],
                         var h = sc / Float32(math.sqrt(r))
                         var a: List[Float32] = List[Float32]()
                         a.append(cx); a.append(cy); a.append(w); a.append(h)
+                        # sanity-check anchor components before appending
+                        var ok = True
+                        for vv in a:
+                            if not _num_sane(vv):
+                                ok = False
+                                break
+                        if not ok:
+                            try:
+                                print("[DBG] gerar_anchors: skipping corrupted anchor at stride", stride, "cx,cy,w,h=", cx, cy, w, h)
+                            except _:
+                                print("[DBG] gerar_anchors: skipping corrupted anchor (unable to format values)")
+                            continue
                         out.append(a^)
     scales_local = scales_local^
     return out^

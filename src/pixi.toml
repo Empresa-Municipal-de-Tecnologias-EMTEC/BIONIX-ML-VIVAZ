@@ -24,3 +24,4 @@ api = "mojo -I ../../BIONIX-ML src/servico_api.mojo"
 compilar_api = { cmd = "mkdir -p build && mojo build -I ../../BIONIX-ML -o build/poc src/servico_api.mojo" }
 compilar_debug = { cmd = "mkdir -p build && mojo build -debug-level=line-tables -I ../../BIONIX-ML -o build/principal_debug principal.mojo" }
 run_test_crop = "mojo -I ../../BIONIX-ML test_crop_call.mojo"
+run_crop_harness = "mojo -I ../../BIONIX-ML run_crop_harness.mojo"

@@ -13,6 +13,16 @@ struct AssignResult(Movable):
 
 fn calcular_iou_xywh(box1: List[Float32], box2: List[Float32]) -> Float32:
     # boxes: [cx, cy, w, h]
+    try:
+        # fast NaN/Inf guard
+        for v in box1:
+            if v != v:
+                return 0.0
+        for v in box2:
+            if v != v:
+                return 0.0
+    except _:
+        return 0.0
     var x1_min = box1[0] - box1[2] / 2.0
     var y1_min = box1[1] - box1[3] / 2.0
     var x1_max = box1[0] + box1[2] / 2.0
@@ -41,6 +51,22 @@ fn assignar_anchors(anchors: List[List[Float32]], gt_boxes: List[List[Int]],
                     iou_pos: Float32 = 0.5, iou_neg: Float32 = 0.4) -> AssignResult:
     # gt_boxes are [x0,y0,x1,y1] em pixels (ints)
     var N = len(anchors)
+    # quick validation: count invalid anchors
+    var invalid_count: Int = 0
+    for i in range(N):
+        try:
+            var a = anchors[i].copy()
+            for v in a:
+                if v != v:
+                    invalid_count = invalid_count + 1
+                    break
+        except _:
+            invalid_count = invalid_count + 1
+    if invalid_count > 0:
+        try:
+            print("[DBG] assignar_anchors: detected", invalid_count, "anchors with NaN; they will be treated as background")
+        except _:
+            pass
     var labels: List[Int] = List[Int]()
     var targets: List[List[Float32]] = List[List[Float32]]()
     for i in range(N):
@@ -61,6 +87,13 @@ fn assignar_anchors(anchors: List[List[Float32]], gt_boxes: List[List[Int]],
             var gt_w = Float32(gt[2] - gt[0])
             var gt_h = Float32(gt[3] - gt[1])
             var a = anchors[a_idx].copy()
+            # sanitize anchor components if needed (avoid NaN propagation)
+            try:
+                for k in range(len(a)):
+                    if a[k] != a[k]:
+                        a[k] = 0.0
+            except _:
+                pass
             var iou = calcular_iou_xywh(a, List[Float32](gt_cx, gt_cy, gt_w, gt_h))
             if iou > best_iou:
                 best_iou = iou

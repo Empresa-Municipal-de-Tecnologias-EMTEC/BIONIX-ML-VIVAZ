@@ -1,6 +1,7 @@
 import retina.model_detector as model_pkg
 import bionix_ml.computacao.adaptadores.contexto as contexto_defs
 import retina.retina_model as model_mod
+import retina.retina_anchor_generator as ag
 import os
 
 fn main() raises -> None:
@@ -8,6 +9,35 @@ fn main() raises -> None:
     # debug: quick marker and PID if available
     # PID not portable in this environment; print a simple marker
     print("[DEBUG] run_retina_train: start marker")
+    # If RUN_ANCHOR_HARNESS=1 is set, run a lightweight anchor diagnostic and exit
+    try:
+        var run_h = os.getenv("RUN_ANCHOR_HARNESS")
+        if run_h == "1":
+            print("[HARN] RUN_ANCHOR_HARNESS=1 -> running anchor diagnostic")
+            for s in [320, 640]:
+                try:
+                    var anchors = ag.gerar_anchors(s)
+                    var total = len(anchors)
+                    var bad = 0
+                    var first_bad = -1
+                    for i in range(total):
+                        var a = anchors[i].copy()
+                        var ok = True
+                        for v in a:
+                            if v != v or v < -1e9 or v > 1e9:
+                                ok = False
+                                break
+                        if not ok:
+                            bad = bad + 1
+                            if first_bad == -1:
+                                first_bad = i
+                    print("[HARN] input=", s, "anchors=", total, "bad=", bad, "first_bad=", first_bad)
+                except _:
+                    print("[HARN] failed to gerar_anchors for size", s)
+            return
+    except _:
+        pass
+
     var ctx = contexto_defs.criar_contexto_padrao("cpu")
     # create RetinaFace wrapper (internally builds the bloco)
     var params = model_mod.BlocoRetinaFaceParametros(320, 6, 3, 3, "cpu", 32, 16, 0.01, 0.5)
