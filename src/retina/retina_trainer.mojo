@@ -31,6 +31,29 @@ fn _split_fields(line: String) -> List[String]:
     return fields^
 
 
+# Sanity-check an anchor vector (x, y, w, h). Returns True if anchor looks reasonable.
+fn _anchor_sane(var a: List[Float32], var max_width: Int, var max_height: Int) -> Bool:
+    try:
+        if len(a) < 4:
+            return False
+        for i in range(4):
+            # ensure numeric and not NaN/inf by simple comparisons
+            var v = a[i]
+            if v != v:
+                return False
+            # reject extreme integer sentinel values that may indicate corruption
+            if v < -1e12 or v > 1e12:
+                return False
+        # width/height must be positive and not absurdly large
+        if a[2] <= 0.0 or a[3] <= 0.0:
+            return False
+        if a[2] > Float32(max_width * 10) or a[3] > Float32(max_height * 10):
+            return False
+        return True
+    except _:
+        return False
+
+
 # Minimal retina trainer that uses RGB patches and the retina_model helpers.
 fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir: String, var altura: Int = 640, var largura: Int = 640,
                           var patch_size: Int = 64, var epocas: Int = 5, var taxa_aprendizado: Float32 = 0.0001,
@@ -124,6 +147,61 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
     print("[DEBUG] treinar_retina_minimal: before gerar_anchors, largura:", largura)
     var anchors = anchor_gen.gerar_anchors(largura)
     print("[DEBUG] treinar_retina_minimal: after gerar_anchors; anchors len:", len(anchors))
+    # snapshot anchors immediately after generation to detect later corruption
+    var anchors_snapshot = List[List[Float32]]()
+    for i in range(len(anchors)):
+        anchors_snapshot.append(anchors[i].copy()^)
+    # lightweight checksum to detect where anchors mutate (sum of first 100 anchors weighted)
+    var anchors_checksum: Float32 = Float32(0.0)
+    try:
+        var limit_ck = 100
+        if len(anchors) < limit_ck:
+            limit_ck = len(anchors)
+        for i in range(limit_ck):
+            var a_ck = anchors[i].copy()
+            for v in a_ck:
+                anchors_checksum = anchors_checksum + v * Float32(i + 1)
+    except _:
+        anchors_checksum = Float32(-1.0)
+    print("[DBG] anchors_checksum after generation:", anchors_checksum)
+    # quick scan for corrupted anchors right after generation
+    try:
+        var bad = 0
+        var bad_examples = List[Int]()
+        for i in range(len(anchors)):
+            try:
+                var ar = anchors[i].copy()
+                var ok = True
+                for v in ar:
+                    if v != v:
+                        ok = False
+                        break
+                if not ok:
+                    bad = bad + 1
+                    if len(bad_examples) < 10:
+                        bad_examples.append(i)
+            except _:
+                bad = bad + 1
+                if len(bad_examples) < 10:
+                    bad_examples.append(i)
+        if bad > 0:
+            try:
+                print("[DBG] gerar_anchors_scan: found", bad, "corrupted anchors immediately after generation; sample indices:")
+                for idx in bad_examples:
+                    try:
+                        print(idx)
+                    except _:
+                        pass
+                for idx in bad_examples:
+                    try:
+                        var aex = anchors[idx].copy()
+                        print("[DBG] gerar_anchors_scan: idx", idx, "vals:", aex[0], aex[1], aex[2], aex[3])
+                    except _:
+                        print("[DBG] gerar_anchors_scan: idx", idx, "(unable to format)")
+            except _:
+                pass
+    except _:
+        pass
 
     # build class lists from dataset_dir (expect structure: dataset_dir/train/<class>/*.bmp)
     print("[DEBUG] treinar_retina_minimal: about to build class lists from dataset_dir:", dataset_dir)
@@ -182,6 +260,47 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
         pass
 
     for ep in range(epocas):
+        # check anchors checksum at epoch start to detect mutation timing
+        # ensure `cur_ck` is always initialized outside the try/except
+        var cur_ck: Float32 = Float32(-2.0)
+        try:
+            cur_ck = Float32(0.0)
+            var limit_ck2 = 100
+            if len(anchors) < limit_ck2:
+                limit_ck2 = len(anchors)
+            for i in range(limit_ck2):
+                var a_ck2 = anchors[i].copy()
+                for v in a_ck2:
+                    cur_ck = cur_ck + v * Float32(i + 1)
+        except _:
+            cur_ck = Float32(-2.0)
+        if cur_ck != anchors_checksum:
+            print("[DBG-ERR] anchors checksum mismatch at epoch", ep, "gen_ck=", anchors_checksum, "cur_ck=", cur_ck)
+            # attempt to locate first differing anchor
+            try:
+                var first_diff = -1
+                var scan_lim = min(len(anchors), 200)
+                for ii in range(scan_lim):
+                    var orig = anchors_snapshot[ii].copy()
+                    var cur = anchors[ii].copy()
+                    var diff = False
+                    for jj in range(4):
+                        if orig[jj] != cur[jj]:
+                            diff = True
+                            break
+                    if diff:
+                        first_diff = ii
+                        break
+                print("[DBG-ERR] first differing anchor idx=", first_diff)
+                if first_diff >= 0:
+                    try:
+                        var osnap = anchors_snapshot[first_diff].copy()
+                        var ocurr = anchors[first_diff].copy()
+                        print("[DBG-ERR] snapshot=", osnap[0], osnap[1], osnap[2], osnap[3], "current=", ocurr[0], ocurr[1], ocurr[2], ocurr[3])
+                    except _:
+                        pass
+            except _:
+                pass
         var soma_loss: Float32 = 0.0
         var count_pos: Int = 0
         var iou_sum: Float32 = 0.0
@@ -217,9 +336,9 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
 
         var E = len(batch_paths)
         print("[DBG] treinar_retina_minimal: built batch_paths len=", E, "classes=", len(class_names), "samples_per_class=", samples_per_class, "randomize=", randomize)
-        # diagnostic clamp: process at most 4 images per epoch to reduce memory pressure
-        if E > 4:
-            E = 4
+        # diagnostic clamp: process only 1 image per epoch to isolate memory issues
+        if E > 1:
+            E = 1
         if E == 0:
             print("Nenhuma imagem para treinar; verifique DATASET")
             return "Falha: sem imagens"
@@ -274,16 +393,54 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                 if len(gt_box) == 4:
                     gt_list.append(gt_box.copy())
 
-                # call assigner with an explicit copy to avoid moving local ownership
-                var res = assigner.assignar_anchors(anchors, gt_list.copy())
+                # call assigner with explicit copies to avoid moving local ownership
+                var res = assigner.assignar_anchors(anchors.copy(), gt_list.copy())
                 # avoid copying large lists here (reduce peak memory)
-                var labels = res.labels
-                var targets = res.targets
+                var labels = res.labels.copy()
+                var targets = res.targets.copy()
+
+                # Diagnostic: print assigner sizes and a few sample anchors/labels
+                try:
+                    print("[DBG] assigner: anchors_len=", len(anchors), "labels_len=", len(labels), "targets_len=", len(targets))
+                    var max_show = 5
+                    var show_n = max_show if max_show < len(anchors) else len(anchors)
+                    for k in range(show_n):
+                        try:
+                            var ar = anchors[k].copy()
+                            print("[DBG] anchor[", k, "]:", ar[0], ar[1], ar[2], ar[3])
+                        except _:
+                            pass
+                    var show_lab = 10
+                    var show_lab_n = show_lab if show_lab < len(labels) else len(labels)
+                    for k in range(show_lab_n):
+                        try:
+                            print("[DBG] label[", k, "]=", labels[k])
+                        except _:
+                            pass
+                except _:
+                    pass
+
+                # Diagnostic: report basic /proc/meminfo lines (available on Linux/WSL)
+                try:
+                    var memtxt = arquivo_pkg.ler_arquivo_texto("/proc/meminfo")
+                    if len(memtxt) > 0:
+                        var memlines = memtxt.split("\n")
+                        if len(memlines) > 0:
+                            print("[DBG] /proc/meminfo:", memlines[0])
+                        if len(memlines) > 1:
+                            print("[DBG] /proc/meminfo:", memlines[1])
+                except _:
+                    pass
 
                 # for each positive anchor update small regression head and cls head
                 # limit processing of positive anchors per image to avoid peak memory spikes
                 var pos_processed: Int = 0
-                var _max_pos_per_image: Int = 32
+                var _max_pos_per_image: Int = 8
+
+                # allocate input tensor once per image and reuse to avoid repeated large allocations
+                var in_shape = List[Int](); in_shape.append(1); in_shape.append(patch_size * patch_size * 3)
+                var tensor_in = tensor_defs.Tensor(in_shape^, detector.bloco_cnn.tipo_computacao)
+
                 for a_idx in range(len(anchors)):
                     if labels[a_idx] != 1:
                         continue
@@ -294,6 +451,13 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                             print("[DBG] treinar_retina_minimal: reached max positive anchors for this image; skipping remaining positives")
                         break
                     var a = anchors[a_idx].copy()
+                    # defensive validation: skip anchors with nonsensical sizes or corrupted values
+                    if not _anchor_sane(a, largura, altura):
+                        try:
+                            print("[DBG] treinar_retina_minimal: skipping corrupted/invalid anchor a_idx", a_idx, "vals:", a[0], a[1], a[2], a[3])
+                        except _:
+                            print("[DBG] treinar_retina_minimal: skipping corrupted/invalid anchor a_idx", a_idx, "(unable to print values)")
+                        continue
                     var ax = Int(a[0] - a[2] / 2.0); var ay = Int(a[1] - a[3] / 2.0)
                     var aw = Int(a[2]); var ah = Int(a[3])
                     if ax < 0: ax = 0
@@ -304,19 +468,51 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                     # We no longer construct an intermediate `crop_rgb` patch (huge allocations).
                     # Instead the input tensor is filled directly from the flat BMP buffer below.
 
-                    var in_shape = List[Int](); in_shape.append(1); in_shape.append(patch_size * patch_size * 3)
-                    var tensor_in = tensor_defs.Tensor(in_shape^, detector.bloco_cnn.tipo_computacao)
-
                     # Use reference to flat buffer (avoid expensive full-copy)
-                    var bmp_flat = bmp.flat_pixels
+                    var bmp_flat = bmp.flat_pixels.copy()
                     var bmp_channels = bmp.channels
                     var bmp_w = bmp.width; var bmp_h = bmp.height
+                    # compare against snapshot to detect if anchors array was mutated
+                    try:
+                        var snap_w = anchors_snapshot[a_idx].copy()[2]
+                        var cur_w = anchors[a_idx].copy()[2]
+                        if (snap_w != snap_w) != (cur_w != cur_w) or snap_w != cur_w:
+                            try:
+                                var snap = anchors_snapshot[a_idx].copy()
+                                var cur = anchors[a_idx].copy()
+                                print("[DBG-ERR] treinar_retina_minimal: anchor mutated a_idx", a_idx, "snapshot=", snap[0], snap[1], snap[2], snap[3], "current=", cur[0], cur[1], cur[2], cur[3])
+                            except _:
+                                print("[DBG-ERR] treinar_retina_minimal: anchor mutated a_idx", a_idx, "(unable to format)")
+                    except _:
+                        pass
+                    # quick scan for NaN/Inf in the flat buffer (diagnostic)
+                    try:
+                        var nan_count: Int = 0
+                        var first_nan_idx: Int = -1
+                        for i in range(len(bmp_flat)):
+                            var vv = bmp_flat[i]
+                            if vv != vv:
+                                nan_count = nan_count + 1
+                                if first_nan_idx == -1:
+                                    first_nan_idx = i
+                                if nan_count >= 10:
+                                    break
+                        if nan_count > 0:
+                            print("[DBG-ERR] treinar_retina_minimal: bmp.flat_pixels contains NaN count=", nan_count, "first_idx=", first_nan_idx)
+                    except _:
+                        pass
                     # Fill tensor directly from BMP flat buffer via nearest-neighbor crop+resize
                     var yy0_local = ay; var xx0_local = ax
                     var src_h_local = ah; var src_w_local = aw
                     if src_h_local <= 0: src_h_local = 1
                     if src_w_local <= 0: src_w_local = 1
                     var dbg_oob_count = 0
+                    # sanity-check tensor_in storage size
+                    try:
+                        if len(tensor_in.dados) < patch_size * patch_size * 3:
+                            print("[DBG-ERR] treinar_retina_minimal: tensor_in.dados too small", len(tensor_in.dados), "expected", patch_size * patch_size * 3)
+                    except _:
+                        pass
                     for yy in range(patch_size):
                         var src_y = (yy * src_h_local) // patch_size
                         if src_y < 0: src_y = 0
@@ -334,17 +530,25 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                             var base = (yy * patch_size + xx) * 3
                             var idx_flat = (img_y * bmp_w + img_x) * bmp_channels
                             if idx_flat + 2 < len(bmp_flat) and idx_flat >= 0:
-                                tensor_in.dados[base + 0] = bmp_flat[idx_flat + 0]
-                                tensor_in.dados[base + 1] = bmp_flat[idx_flat + 1]
-                                tensor_in.dados[base + 2] = bmp_flat[idx_flat + 2]
+                                # guard write into tensor_in to avoid corrupting other memory
+                                if base + 2 < len(tensor_in.dados) and base >= 0:
+                                    tensor_in.dados[base + 0] = bmp_flat[idx_flat + 0]
+                                    tensor_in.dados[base + 1] = bmp_flat[idx_flat + 1]
+                                    tensor_in.dados[base + 2] = bmp_flat[idx_flat + 2]
+                                else:
+                                    if dbg_oob_count < 5:
+                                        print("[DBG-ERR] treinar_retina_minimal: tensor_in write OOB; base", base, "tensor_len", len(tensor_in.dados))
+                                    dbg_oob_count = dbg_oob_count + 1
                             else:
                                 # detailed diagnostic print for first few occurrences per anchor
                                 if dbg_oob_count < 5:
                                     print("[DBG-ERR] treinar_retina_minimal: flat access OOB; img_x", img_x, "img_y", img_y, "idx_flat", idx_flat, "flat_len", len(bmp_flat), "bmp_w", bmp_w, "bmp_h", bmp_h, "bmp_ch", bmp_channels, "ax,ay,aw,ah", ax, ay, aw, ah, "patch_size", patch_size, "yy,xx", yy, xx)
                                 dbg_oob_count = dbg_oob_count + 1
-                                tensor_in.dados[base + 0] = 0.0
-                                tensor_in.dados[base + 1] = 0.0
-                                tensor_in.dados[base + 2] = 0.0
+                                if base + 2 < len(tensor_in.dados) and base >= 0:
+                                    tensor_in.dados[base + 0] = 0.0
+                                    tensor_in.dados[base + 1] = 0.0
+                                    tensor_in.dados[base + 2] = 0.0
+                            
 
                     var feats = cnn_pkg.extrair_features(detector.bloco_cnn, tensor_in)
                     var D = 0
