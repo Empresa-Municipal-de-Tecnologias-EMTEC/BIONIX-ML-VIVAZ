@@ -35,9 +35,9 @@ def extract_embedding(item: String, dim: Int = 512) -> List[Float32]:
         var zeros = List[Float32]()
         for _ in range(dim):
             zeros.append(Float32(0.0))
-        return zeros
+        return zeros^
     var inv = Float32(1.0) / (norm ** Float32(0.5))
     var out = List[Float32]()
     for v in vec:
         out.append(v * inv)
-    return out
+    return out^

@@ -34,7 +34,7 @@ fn _split_fields(line: String) -> List[String]:
 # Minimal retina trainer that uses RGB patches and the retina_model helpers.
 fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir: String, var altura: Int = 640, var largura: Int = 640,
                           var patch_size: Int = 64, var epocas: Int = 5, var taxa_aprendizado: Float32 = 0.0001,
-                          var batch_size: Int = 4) raises -> String:
+                          var batch_size: Int = 4, var samples_per_class: Int = 1, var randomize: Bool = True) raises -> String:
 
     print("[DEBUG] treinar_retina_minimal: entrada chamada; altura:", altura, "largura:", largura, "patch_size:", patch_size, "epocas:", epocas)
     try:
@@ -187,19 +187,36 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
         var iou_sum: Float32 = 0.0
         var count_iou: Int = 0
 
-        # build a mini-batch list: one image per class this epoch (safer for memory)
+        # build mini-batch list. Default: sample `samples_per_class` images per class.
+        # If `randomize` is True, pick random images per class; otherwise use round-robin pointers.
         var batch_paths = List[String]()
         for c in range(len(class_names)):
             var imgs = class_images[c].copy()
-            if len(imgs) == 0:
+            var nimgs = len(imgs)
+            if nimgs == 0:
                 continue
-            var ptr = class_ptrs[c]
-            if ptr >= len(imgs):
-                ptr = 0
-            batch_paths.append(imgs[ptr])
-            class_ptrs[c] = ptr + 1
+            # number of samples to draw for this class
+            var to_draw = samples_per_class
+            if to_draw <= 0:
+                to_draw = 1
+            if randomize:
+                # simple pseudo-random selection using LCG seeded by epoch and class
+                var seed = (ep * 1664525 + c * 1013904223) & 0x7fffffff
+                for s in range(min(to_draw, nimgs)):
+                    seed = (1103515245 * seed + 12345) & 0x7fffffff
+                    var idx = seed % nimgs
+                    batch_paths.append(imgs[idx])
+            else:
+                var ptr = class_ptrs[c]
+                for s in range(min(to_draw, nimgs)):
+                    if ptr >= nimgs:
+                        ptr = 0
+                    batch_paths.append(imgs[ptr])
+                    ptr = ptr + 1
+                class_ptrs[c] = ptr
 
         var E = len(batch_paths)
+        print("[DBG] treinar_retina_minimal: built batch_paths len=", E, "classes=", len(class_names), "samples_per_class=", samples_per_class, "randomize=", randomize)
         # diagnostic clamp: process at most 4 images per epoch to reduce memory pressure
         if E > 4:
             E = 4
@@ -215,16 +232,11 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                 var bmp = dados_pkg.carregar_bmp_rgb(path)
                 if bmp.width == 0:
                     continue
-                # prefer flat-buffer resize to avoid excessive nested allocations
-                try:
-                    print("[DEBUG] treinar_retina_minimal: before flat resize; bmp.width=", bmp.width, "bmp.height=", bmp.height, "bmp.channels=", bmp.channels, "flat_len=", len(bmp.flat_pixels))
-                    img_matrix = graficos_pkg.bmp.redimensionar_matriz_rgb_nearest_from_flat(bmp.flat_pixels.copy(), bmp.width, bmp.height, bmp.channels, altura, largura)
-                except _:
-                    # fallback to nested resize
-                    try:
-                        img_matrix = graficos_pkg.redimensionar_matriz_rgb_nearest(bmp.pixels.copy(), altura, largura)
-                    except _:
-                        continue
+                # Do not pre-resize the full image (high peak allocations).
+                # We'll attempt flat-buffer crops first; only if that fails we'll
+                # lazily construct a nested `img_matrix` for the fallback path.
+                img_matrix = List[List[List[Float32]]]()
+                print("[DEBUG] treinar_retina_minimal: deferred full-image resize; bmp.width=", bmp.width, "bmp.height=", bmp.height, "bmp.channels=", bmp.channels, "flat_len=", len(bmp.flat_pixels))
 
                 # load ground-truth box if exists
                 var tx0: Float32 = 0.0; var ty0: Float32 = 0.0; var tx1: Float32 = 0.0; var ty1: Float32 = 0.0
@@ -260,17 +272,27 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
 
                 var gt_list = List[List[Int]]()
                 if len(gt_box) == 4:
-                    gt_list.append(gt_box^)
+                    gt_list.append(gt_box.copy())
 
-                # receive AssignResult from assigner and copy its lists (explicit copy to avoid move/destruction errors)
-                var res = assigner.assignar_anchors(anchors, gt_list^)
-                var labels = res.labels.copy()
-                var targets = res.targets.copy()
+                # call assigner with an explicit copy to avoid moving local ownership
+                var res = assigner.assignar_anchors(anchors, gt_list.copy())
+                # avoid copying large lists here (reduce peak memory)
+                var labels = res.labels
+                var targets = res.targets
 
                 # for each positive anchor update small regression head and cls head
+                # limit processing of positive anchors per image to avoid peak memory spikes
+                var pos_processed: Int = 0
+                var _max_pos_per_image: Int = 32
                 for a_idx in range(len(anchors)):
                     if labels[a_idx] != 1:
                         continue
+                    pos_processed = pos_processed + 1
+                    if pos_processed > _max_pos_per_image:
+                        # diagnostic - too many positives, skip remaining to reduce memory
+                        if pos_processed == _max_pos_per_image + 1:
+                            print("[DBG] treinar_retina_minimal: reached max positive anchors for this image; skipping remaining positives")
+                        break
                     var a = anchors[a_idx].copy()
                     var ax = Int(a[0] - a[2] / 2.0); var ay = Int(a[1] - a[3] / 2.0)
                     var aw = Int(a[2]); var ah = Int(a[3])
@@ -278,46 +300,48 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                     if ay < 0: ay = 0
                     if ax + aw > largura: aw = max(1, largura - ax)
                     if ay + ah > altura: ah = max(1, altura - ay)
-                    # crop directly from the BMP flat buffer when possible to avoid extra copies
-                    var crop_rgb = List[List[List[Float32]]]()
-                    # Prefer flat-buffer based crop+resize to minimize intermediate allocations.
-                    try:
-                        crop_rgb = graficos_pkg.bmp.crop_and_resize_from_flat(bmp.flat_pixels, bmp.width, bmp.height, bmp.channels, ax, ay, ax + aw - 1, ay + ah - 1, patch_size, patch_size)^
-                        if len(crop_rgb) == 0:
-                            # fallback to nested path only if flat path failed
-                            crop_rgb = graficos_pkg.crop_and_resize_rgb(img_matrix, ax, ay, ax + aw - 1, ay + ah - 1, patch_size, patch_size)^
-                    except _:
-                        crop_rgb = graficos_pkg.crop_and_resize_rgb(img_matrix, ax, ay, ax + aw - 1, ay + ah - 1, patch_size, patch_size)^
+                    print("[DBG] anchor positive: a_idx", a_idx, "ax,ay,aw,ah:", ax, ay, aw, ah, "bmp_w,h,channels:", bmp.width, bmp.height, bmp.channels, "flat_len:", len(bmp.flat_pixels))
+                    # We no longer construct an intermediate `crop_rgb` patch (huge allocations).
+                    # Instead the input tensor is filled directly from the flat BMP buffer below.
 
                     var in_shape = List[Int](); in_shape.append(1); in_shape.append(patch_size * patch_size * 3)
                     var tensor_in = tensor_defs.Tensor(in_shape^, detector.bloco_cnn.tipo_computacao)
 
+                    # Use reference to flat buffer (avoid expensive full-copy)
+                    var bmp_flat = bmp.flat_pixels
+                    var bmp_channels = bmp.channels
+                    var bmp_w = bmp.width; var bmp_h = bmp.height
                     # Fill tensor directly from BMP flat buffer via nearest-neighbor crop+resize
                     var yy0_local = ay; var xx0_local = ax
                     var src_h_local = ah; var src_w_local = aw
                     if src_h_local <= 0: src_h_local = 1
                     if src_w_local <= 0: src_w_local = 1
+                    var dbg_oob_count = 0
                     for yy in range(patch_size):
                         var src_y = (yy * src_h_local) // patch_size
                         if src_y < 0: src_y = 0
                         if src_y >= src_h_local: src_y = src_h_local - 1
                         var img_y = yy0_local + src_y
                         if img_y < 0: img_y = 0
-                        if img_y >= altura: img_y = altura - 1
+                        if img_y >= bmp_h: img_y = bmp_h - 1
                         for xx in range(patch_size):
                             var src_x = (xx * src_w_local) // patch_size
                             if src_x < 0: src_x = 0
                             if src_x >= src_w_local: src_x = src_w_local - 1
                             var img_x = xx0_local + src_x
                             if img_x < 0: img_x = 0
-                            if img_x >= largura: img_x = largura - 1
+                            if img_x >= bmp_w: img_x = bmp_w - 1
                             var base = (yy * patch_size + xx) * 3
-                            var idx_flat = (img_y * largura + img_x) * bmp.channels
-                            if idx_flat + 2 < len(bmp.flat_pixels) and idx_flat >= 0:
-                                tensor_in.dados[base + 0] = bmp.flat_pixels[idx_flat + 0]
-                                tensor_in.dados[base + 1] = bmp.flat_pixels[idx_flat + 1]
-                                tensor_in.dados[base + 2] = bmp.flat_pixels[idx_flat + 2]
+                            var idx_flat = (img_y * bmp_w + img_x) * bmp_channels
+                            if idx_flat + 2 < len(bmp_flat) and idx_flat >= 0:
+                                tensor_in.dados[base + 0] = bmp_flat[idx_flat + 0]
+                                tensor_in.dados[base + 1] = bmp_flat[idx_flat + 1]
+                                tensor_in.dados[base + 2] = bmp_flat[idx_flat + 2]
                             else:
+                                # detailed diagnostic print for first few occurrences per anchor
+                                if dbg_oob_count < 5:
+                                    print("[DBG-ERR] treinar_retina_minimal: flat access OOB; img_x", img_x, "img_y", img_y, "idx_flat", idx_flat, "flat_len", len(bmp_flat), "bmp_w", bmp_w, "bmp_h", bmp_h, "bmp_ch", bmp_channels, "ax,ay,aw,ah", ax, ay, aw, ah, "patch_size", patch_size, "yy,xx", yy, xx)
+                                dbg_oob_count = dbg_oob_count + 1
                                 tensor_in.dados[base + 0] = 0.0
                                 tensor_in.dados[base + 1] = 0.0
                                 tensor_in.dados[base + 2] = 0.0
