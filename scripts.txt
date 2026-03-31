@@ -37,3 +37,13 @@ wsl bash -ic "pixi run run_retina_train_debug_run"
 Nesse diretório:
 
 /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src
+
+----------------------------------------
+
+A sintaxe pra executar o pixi pra você é assim:
+
+wsl bash -ic "pixi run run_retina_train_debug"
+
+Nesse diretório:
+
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src
