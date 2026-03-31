@@ -439,8 +439,7 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
 
                 # allocate input tensor once per image and reuse to avoid repeated large allocations
                 var in_shape = List[Int](); in_shape.append(1); in_shape.append(patch_size * patch_size * 3)
-                var tensor_in = tensor_defs.Tensor(in_shape^, detector.bloco_cnn.tipo_computacao)
-
+                
                 for a_idx in range(len(anchors)):
                     if labels[a_idx] != 1:
                         continue
@@ -450,6 +449,10 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                         if pos_processed == _max_pos_per_image + 1:
                             print("[DBG] treinar_retina_minimal: reached max positive anchors for this image; skipping remaining positives")
                         break
+                    
+                    # Create a fresh tensor for each anchor to isolate memory
+                    var tensor_in = tensor_defs.Tensor(in_shape.copy(), detector.bloco_cnn.tipo_computacao)
+
                     var a = anchors[a_idx].copy()
                     # defensive validation: skip anchors with nonsensical sizes or corrupted values
                     if not _anchor_sane(a, largura, altura):
@@ -464,39 +467,19 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                     if ay < 0: ay = 0
                     if ax + aw > largura: aw = max(1, largura - ax)
                     if ay + ah > altura: ah = max(1, altura - ay)
-                    print("[DBG] anchor positive: a_idx", a_idx, "ax,ay,aw,ah:", ax, ay, aw, ah, "bmp_w,h,channels:", bmp.width, bmp.height, bmp.channels, "flat_len:", len(bmp.flat_pixels))
-                    # We no longer construct an intermediate `crop_rgb` patch (huge allocations).
-                    # Instead the input tensor is filled directly from the flat BMP buffer below.
-
-                    # Use reference to flat buffer (avoid expensive full-copy)
+                    
+                    # Use local copy of pixels
                     var bmp_flat = bmp.flat_pixels.copy()
                     var bmp_channels = bmp.channels
                     var bmp_w = bmp.width; var bmp_h = bmp.height
-                    # compare against snapshot to detect if anchors array was mutated
-                    try:
-                        var snap_w = anchors_snapshot[a_idx].copy()[2]
-                        var cur_w = anchors[a_idx].copy()[2]
-                        if (snap_w != snap_w) != (cur_w != cur_w) or snap_w != cur_w:
-                            try:
-                                var snap = anchors_snapshot[a_idx].copy()
-                                var cur = anchors[a_idx].copy()
-                                print("[DBG-ERR] treinar_retina_minimal: anchor mutated a_idx", a_idx, "snapshot=", snap[0], snap[1], snap[2], snap[3], "current=", cur[0], cur[1], cur[2], cur[3])
-                            except _:
-                                print("[DBG-ERR] treinar_retina_minimal: anchor mutated a_idx", a_idx, "(unable to format)")
-                    except _:
-                        pass
+                    
                     # Fill tensor directly from BMP flat buffer via nearest-neighbor crop+resize
                     var yy0_local = ay; var xx0_local = ax
                     var src_h_local = ah; var src_w_local = aw
                     if src_h_local <= 0: src_h_local = 1
                     if src_w_local <= 0: src_w_local = 1
                     var dbg_oob_count = 0
-                    # sanity-check tensor_in storage size
-                    try:
-                        if len(tensor_in.dados) < patch_size * patch_size * 3:
-                            print("[DBG-ERR] treinar_retina_minimal: tensor_in.dados too small", len(tensor_in.dados), "expected", patch_size * patch_size * 3)
-                    except _:
-                        pass
+                    
                     var tensor_len = len(tensor_in.dados)
                     var flat_len = len(bmp_flat)
                     for yy in range(patch_size):
@@ -526,16 +509,13 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                                     tensor_in.dados[base + 0] = 0.0
                                     tensor_in.dados[base + 1] = 0.0
                                     tensor_in.dados[base + 2] = 0.0
-                                    if dbg_oob_count < 1:
-                                        print("[DBG-ERR] flat access OOB at", idx_flat, "len", flat_len)
-                                    dbg_oob_count = dbg_oob_count + 1
                             else:
-                                if dbg_oob_count < 1:
-                                    print("[DBG-ERR] tensor_in write OOB at", base, "len", tensor_len)
                                 dbg_oob_count = dbg_oob_count + 1
-                            
+                    
+                    if dbg_oob_count > 0:
+                        print("[DBG-ERR] treinar_retina_minimal: OOB detected in crop, count=", dbg_oob_count)
 
-                    var feats = cnn_pkg.extrair_features(detector.bloco_cnn, tensor_in)
+                    var feats = detector.bloco_cnn.extrair_features(tensor_in)
                     var D = 0
                     try:
                         D = feats.formato[1]
