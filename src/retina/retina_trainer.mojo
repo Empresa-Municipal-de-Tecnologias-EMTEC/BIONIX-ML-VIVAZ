@@ -32,7 +32,7 @@ fn _split_fields(line: String) -> List[String]:
 
 
 # Sanity-check an anchor vector (x, y, w, h). Returns True if anchor looks reasonable.
-fn _anchor_sane(var a: List[Float32], var max_width: Int, var max_height: Int) -> Bool:
+fn _anchor_sane(a: List[Float32], var max_width: Int, var max_height: Int) -> Bool:
     try:
         if len(a) < 4:
             return False
@@ -485,22 +485,6 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                                 print("[DBG-ERR] treinar_retina_minimal: anchor mutated a_idx", a_idx, "(unable to format)")
                     except _:
                         pass
-                    # quick scan for NaN/Inf in the flat buffer (diagnostic)
-                    try:
-                        var nan_count: Int = 0
-                        var first_nan_idx: Int = -1
-                        for i in range(len(bmp_flat)):
-                            var vv = bmp_flat[i]
-                            if vv != vv:
-                                nan_count = nan_count + 1
-                                if first_nan_idx == -1:
-                                    first_nan_idx = i
-                                if nan_count >= 10:
-                                    break
-                        if nan_count > 0:
-                            print("[DBG-ERR] treinar_retina_minimal: bmp.flat_pixels contains NaN count=", nan_count, "first_idx=", first_nan_idx)
-                    except _:
-                        pass
                     # Fill tensor directly from BMP flat buffer via nearest-neighbor crop+resize
                     var yy0_local = ay; var xx0_local = ax
                     var src_h_local = ah; var src_w_local = aw
@@ -513,6 +497,8 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                             print("[DBG-ERR] treinar_retina_minimal: tensor_in.dados too small", len(tensor_in.dados), "expected", patch_size * patch_size * 3)
                     except _:
                         pass
+                    var tensor_len = len(tensor_in.dados)
+                    var flat_len = len(bmp_flat)
                     for yy in range(patch_size):
                         var src_y = (yy * src_h_local) // patch_size
                         if src_y < 0: src_y = 0
@@ -527,27 +513,26 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                             var img_x = xx0_local + src_x
                             if img_x < 0: img_x = 0
                             if img_x >= bmp_w: img_x = bmp_w - 1
+                            
                             var base = (yy * patch_size + xx) * 3
                             var idx_flat = (img_y * bmp_w + img_x) * bmp_channels
-                            if idx_flat + 2 < len(bmp_flat) and idx_flat >= 0:
-                                # guard write into tensor_in to avoid corrupting other memory
-                                if base + 2 < len(tensor_in.dados) and base >= 0:
+                            
+                            if base + 2 < tensor_len and base >= 0:
+                                if idx_flat + 2 < flat_len and idx_flat >= 0:
                                     tensor_in.dados[base + 0] = bmp_flat[idx_flat + 0]
                                     tensor_in.dados[base + 1] = bmp_flat[idx_flat + 1]
                                     tensor_in.dados[base + 2] = bmp_flat[idx_flat + 2]
                                 else:
-                                    if dbg_oob_count < 5:
-                                        print("[DBG-ERR] treinar_retina_minimal: tensor_in write OOB; base", base, "tensor_len", len(tensor_in.dados))
-                                    dbg_oob_count = dbg_oob_count + 1
-                            else:
-                                # detailed diagnostic print for first few occurrences per anchor
-                                if dbg_oob_count < 5:
-                                    print("[DBG-ERR] treinar_retina_minimal: flat access OOB; img_x", img_x, "img_y", img_y, "idx_flat", idx_flat, "flat_len", len(bmp_flat), "bmp_w", bmp_w, "bmp_h", bmp_h, "bmp_ch", bmp_channels, "ax,ay,aw,ah", ax, ay, aw, ah, "patch_size", patch_size, "yy,xx", yy, xx)
-                                dbg_oob_count = dbg_oob_count + 1
-                                if base + 2 < len(tensor_in.dados) and base >= 0:
                                     tensor_in.dados[base + 0] = 0.0
                                     tensor_in.dados[base + 1] = 0.0
                                     tensor_in.dados[base + 2] = 0.0
+                                    if dbg_oob_count < 1:
+                                        print("[DBG-ERR] flat access OOB at", idx_flat, "len", flat_len)
+                                    dbg_oob_count = dbg_oob_count + 1
+                            else:
+                                if dbg_oob_count < 1:
+                                    print("[DBG-ERR] tensor_in write OOB at", base, "len", tensor_len)
+                                dbg_oob_count = dbg_oob_count + 1
                             
 
                     var feats = cnn_pkg.extrair_features(detector.bloco_cnn, tensor_in)
