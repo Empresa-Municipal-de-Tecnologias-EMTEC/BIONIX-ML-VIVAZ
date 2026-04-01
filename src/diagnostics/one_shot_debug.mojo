@@ -1,19 +1,25 @@
 import bionix_ml.uteis.arquivo as arquivo_io
+import os
 
-# Single movable instrumentation point. Call `debug_marker(desc, context)` to emit
-# a single-line marker to /tmp/one_shot_debug.log. This file is intentionally
-# lightweight and will not be invoked by default; we'll move calls to this
-# function manually to focus debugging on one location at a time.
+# Lightweight one-shot helpers kept for backwards compatibility.
+import diagnostics.logger as logger
 
 fn debug_marker(var desc: String, var context: String):
+    # Deprecated wrapper: forward to centralized logger.marker
     try:
-        var path = String("/tmp/one_shot_debug.log")
-        var cur = arquivo_io.ler_texto_seguro(path)
-        var out_line = String("")
-        if len(cur) > 0:
-            out_line = String(cur) + String("\n") + desc + String(" ") + context
-        else:
-            out_line = desc + String(" ") + context
-        _ = arquivo_io.gravar_texto_seguro(path, out_line)
+        logger.marker(desc, context)
+    except _:
+        pass
+
+fn debug_marker_verbose(var desc: String, var context: String):
+    # Deprecated wrapper: forward to centralized logger.marker_verbose
+    try:
+        logger.marker_verbose(desc, context)
+    except _:
+        pass
+
+fn debug_error(var desc: String, var context: String):
+    try:
+        logger.error_log(desc, context)
     except _:
         pass

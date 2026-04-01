@@ -53,3 +53,36 @@ Como progrediremos (próximas ações):
 - [ ] Implementar endpoint HTTP com segurança básica e testes de integração
 
 Atualize manualmente as checkboxes ao concluir itens ou peça para eu marcar.
+
+----------------------------------------------------------------------
+HISTÓRICO DE BUGS / ENGENHARIA
+
+[RESOLVIDO] Crash de memória durante treino com imagens coloridas (RetinaFace)
+  Causa raiz: BlocoCNN criado com dimensões 320×320 (tamanho da imagem completa)
+  mas recebia tensores de 32×32×3=3072 floats. O método extrair_features() tentava
+  ler 102400 elementos, corrompendo o heap → NaN nos anchors → crash do alocador.
+
+  Arquivos modificados:
+    src/retina/retina_model.mojo   — BlocoCNN usa patch_size×patch_size (não input_size)
+                                     inferir(): conversão RGB→grayscale antes do CNN
+    src/retina/retina_trainer.mojo — tensor_in [1, patch*patch] com conversão RGB→gray
+                                     removido limitador diagnóstico (E > 1)
+                                     checkpoint anterior agora é carregado corretamente
+    src/run_retina_train.mojo      — simplificado, removido harness de diagnóstico
+
+ESTRUTURA DE MODELOS (planejada):
+  MODELO/
+    detector/    ← RetinaFace (checkpoint, pesos, metadata)
+    reconhecedor/ ← ArcFace   (futuro)
+
+ROADMAP DE INTEGRAÇÃO (futuro):
+  - API HTTP: POST /detectar, POST /embedding, POST /verificar
+  - WebAssembly/browser: pasta browser/ com index.html, demo sem servidor
+
+COMANDOS DE EXECUÇÃO:
+  wsl bash -ic "pixi run run_retina_train_debug"       # build + run
+  wsl bash -ic "pixi run run_retina_train_debug_build" # só build
+  wsl bash -ic "pixi run run_retina_train_debug_run"   # só run
+  wsl bash -ic "pixi run run_retina_infer"             # inferência
+  Diretório: /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src
+
