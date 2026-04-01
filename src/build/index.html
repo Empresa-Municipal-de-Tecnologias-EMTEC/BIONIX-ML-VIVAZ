@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bionix – Reconhecimento Facial</title>
+  <style>
+    :root { --bg:#0d1117; --surface:#161b22; --border:#30363d;
+            --accent:#58a6ff; --ok:#3fb950; --warn:#f0883e; --danger:#f85149; }
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body { background:var(--bg); color:#e6edf3; font-family:'Segoe UI',system-ui,sans-serif;
+           display:flex; flex-direction:column; align-items:center; min-height:100vh;
+           padding:24px 16px; }
+    h1 { font-size:1.5rem; color:var(--accent); margin-bottom:4px; }
+    .sub { color:#8b949e; font-size:.85rem; margin-bottom:24px; }
+    .card { background:var(--surface); border:1px solid var(--border); border-radius:12px;
+            padding:20px; width:100%; max-width:560px; margin-bottom:16px; }
+    .card h2 { font-size:.9rem; color:#8b949e; text-transform:uppercase;
+               letter-spacing:.06em; margin-bottom:12px; }
+    video, canvas { border-radius:8px; background:#000; display:block; width:100%; }
+    canvas { display:none; }
+    .row { display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+    button { background:var(--accent); color:#0d1117; border:none; border-radius:6px;
+             padding:8px 18px; font-size:.9rem; font-weight:600; cursor:pointer; }
+    button:disabled { opacity:.4; cursor:not-allowed; }
+    button.secondary { background:transparent; color:var(--accent); border:1px solid var(--accent); }
+    .status { font-size:.85rem; padding:6px 10px; border-radius:6px;
+              background:rgba(88,166,255,.1); color:var(--accent); flex:1; }
+    .status.ok     { background:rgba(63,185,80,.1);  color:var(--ok); }
+    .status.warn   { background:rgba(240,136,62,.1); color:var(--warn); }
+    .status.danger { background:rgba(248,81,73,.1);  color:var(--danger); }
+    .result { font-size:1.2rem; font-weight:700; color:var(--ok); text-align:center;
+              padding:12px; border-radius:8px; background:rgba(63,185,80,.08); margin-top:10px; }
+    .result .score { font-size:.85rem; color:#8b949e; font-weight:400; }
+    #progress { width:100%; height:4px; background:var(--border); border-radius:2px; margin-top:8px; }
+    #progress-bar { height:100%; background:var(--accent); border-radius:2px;
+                    width:0%; transition:width .3s; }
+    .log { font-size:.75rem; color:#6e7681; font-family:monospace; max-height:80px;
+           overflow-y:auto; margin-top:10px; }
+    .overlay-canvas { position:absolute; top:0; left:0; width:100%; border-radius:8px; }
+    .video-wrap { position:relative; width:100%; }
+  </style>
+</head>
+<body>
+  <h1>Bionix Face ID</h1>
+  <p class="sub">WebAssembly · ArcFace · Tempo-real</p>
+
+  <!-- Status de carregamento -->
+  <div class="card">
+    <h2>Inicialização</h2>
+    <div id="status" class="status">Aguardando...</div>
+    <div id="progress"><div id="progress-bar"></div></div>
+    <div id="log" class="log"></div>
+  </div>
+
+  <!-- Câmera -->
+  <div class="card">
+    <h2>Camera</h2>
+    <div class="video-wrap">
+      <video id="video" autoplay playsinline muted></video>
+      <canvas id="overlay" class="overlay-canvas"></canvas>
+    </div>
+    <canvas id="cap" width="64" height="64"></canvas>
+    <div class="row" style="margin-top:12px">
+      <button id="btn-cam" onclick="startCamera()">Abrir Câmera</button>
+      <button id="btn-id"  onclick="identify()" disabled>Identificar</button>
+      <button id="btn-live" class="secondary" onclick="toggleLive()" disabled>Live OFF</button>
+    </div>
+  </div>
+
+  <!-- Resultado -->
+  <div class="card">
+    <h2>Resultado</h2>
+    <div id="result" class="result" style="display:none"></div>
+    <div id="placeholder" style="color:#6e7681; font-size:.85rem">Capture um frame para identificar.</div>
+  </div>
+
+  <!-- Verificação de par -->
+  <div class="card">
+    <h2>Verificar Par (A vs B)</h2>
+    <div class="row">
+      <div><label style="font-size:.8rem;color:#8b949e">Imagem A</label><br>
+        <input type="file" id="fileA" accept=".bmp,image/*" style="margin-top:4px;color:#e6edf3"></div>
+      <div><label style="font-size:.8rem;color:#8b949e">Imagem B</label><br>
+        <input type="file" id="fileB" accept=".bmp,image/*" style="margin-top:4px;color:#e6edf3"></div>
+    </div>
+    <button onclick="verifyPair()" style="margin-top:12px" id="btn-pair" disabled>Verificar Par</button>
+    <div id="pair-result" style="margin-top:10px; font-size:.9rem; color:#8b949e"></div>
+  </div>
+
+  <script>
+    /* ── Config ─────────────────────────────────────────────────────────────── */
+    const WASM_JS      = 'arcface.js';
+    const BUNDLE_BIN   = 'arcface_bundle.bin';
+    const GALLERY_BIN  = 'arcface_gallery.bin';
+    const THRESHOLD    = 0.55;
+    const LIVE_INTERVAL_MS = 800;
+
+    /* ── Estado ─────────────────────────────────────────────────────────────── */
+    let Module = null, wasmReady = false;
+    let liveTimer = null, liveOn = false;
+    const video = document.getElementById('video');
+    const cap   = document.getElementById('cap');
+    const capCtx = cap.getContext('2d');
+    const overlay = document.getElementById('overlay');
+    const ovCtx  = overlay.getContext('2d');
+
+    function log(msg) {
+      const el = document.getElementById('log');
+      el.innerHTML += msg + '<br>';
+      el.scrollTop = el.scrollHeight;
+      console.log('[Bionix]', msg);
+    }
+    function setStatus(msg, cls='') {
+      const el = document.getElementById('status');
+      el.textContent = msg; el.className = 'status ' + cls;
+    }
+    function setProgress(pct) {
+      document.getElementById('progress-bar').style.width = pct + '%';
+    }
+
+    /* ── Carrega WASM + pesos ────────────────────────────────────────────────── */
+    async function init() {
+      setStatus('Carregando módulo WASM...'); setProgress(10);
+      try {
+        await new Promise((res, rej) => {
+          const s = document.createElement('script');
+          s.src = WASM_JS;
+          s.onload = () => {
+            BionixModule().then(m => { Module = m; res(); }).catch(rej);
+          };
+          s.onerror = rej;
+          document.head.appendChild(s);
+        });
+        log('✓ WASM carregado');
+        setProgress(30);
+      } catch(e) {
+        setStatus('Erro ao carregar WASM: ' + e, 'danger');
+        return;
+      }
+
+      // Carrega bundle de pesos
+      setStatus('Carregando pesos do modelo...'); setProgress(40);
+      try {
+        const r = await fetch(BUNDLE_BIN);
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        const buf  = await r.arrayBuffer();
+        const data = new Uint8Array(buf);
+        const ptr  = Module._bionix_malloc(data.length);
+        Module.HEAPU8.set(data, ptr);
+        const ok = Module._bionix_load_bundle(ptr, data.length);
+        Module._bionix_free(ptr);
+        if (!ok) throw new Error('bundle inválido');
+        log('✓ Pesos carregados (' + (data.length / 1024).toFixed(0) + ' KB)');
+        setProgress(70);
+      } catch(e) {
+        setStatus('Erro ao carregar pesos: ' + e, 'danger');
+        log('→ Execute: pixi run build_wasm_bundle');
+        return;
+      }
+
+      // Carrega galeria
+      setStatus('Carregando galeria...'); setProgress(80);
+      try {
+        const r = await fetch(GALLERY_BIN);
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        const buf  = await r.arrayBuffer();
+        const data = new Uint8Array(buf);
+        const ptr  = Module._bionix_malloc(data.length);
+        Module.HEAPU8.set(data, ptr);
+        const n = Module._bionix_load_gallery(ptr, data.length);
+        Module._bionix_free(ptr);
+        log('✓ Galeria: ' + n + ' identidades');
+        setProgress(100);
+      } catch(e) {
+        log('⚠ Galeria não encontrada — identificação desabilitada');
+      }
+
+      wasmReady = true;
+      setStatus('Pronto!', 'ok');
+      document.getElementById('btn-pair').disabled = false;
+    }
+
+    /* ── Câmera ─────────────────────────────────────────────────────────────── */
+    async function startCamera() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode:'user' } });
+        video.srcObject = stream;
+        video.onloadedmetadata = () => {
+          overlay.width  = video.videoWidth  || video.clientWidth;
+          overlay.height = video.videoHeight || video.clientHeight;
+        };
+        document.getElementById('btn-cam').disabled = true;
+        document.getElementById('btn-id').disabled  = !wasmReady;
+        document.getElementById('btn-live').disabled = !wasmReady;
+        log('✓ Câmera aberta');
+      } catch(e) {
+        setStatus('Câmera indisponível: ' + e.message, 'warn');
+      }
+    }
+
+    /* ── Captura frame 64×64 ────────────────────────────────────────────────── */
+    function captureRGBA() {
+      capCtx.drawImage(video, 0, 0, 64, 64);
+      return capCtx.getImageData(0, 0, 64, 64).data; // Uint8ClampedArray RGBA
+    }
+
+    /* ── Identificação ──────────────────────────────────────────────────────── */
+    function identify() {
+      if (!wasmReady || !Module) return;
+      const rgba = captureRGBA();
+      const ptr  = Module._bionix_malloc(rgba.length);
+      Module.HEAPU8.set(rgba, ptr);
+
+      // Aloca float para score de saída
+      const scorePtr = Module._bionix_malloc(4);
+      const idx = Module._bionix_identify_rgba(ptr, 64, 64, THRESHOLD, scorePtr);
+      const score = Module.HEAPF32[scorePtr >> 2];
+      Module._bionix_free(ptr);
+      Module._bionix_free(scorePtr);
+
+      showResult(idx, score);
+      drawBox(idx >= 0);
+    }
+
+    function showResult(idx, score) {
+      const r = document.getElementById('result');
+      const p = document.getElementById('placeholder');
+      p.style.display = 'none';
+      r.style.display = 'block';
+      if (idx < 0) {
+        r.style.color = 'var(--danger)';
+        r.innerHTML = '🚫 Desconhecido <span class="score">(score: ' + score.toFixed(3) + ')</span>';
+      } else {
+        const name = Module.UTF8ToString(Module._bionix_get_name(idx));
+        r.style.color = 'var(--ok)';
+        r.innerHTML = '✅ ' + name + '<span class="score"> (score: ' + score.toFixed(3) + ')</span>';
+      }
+    }
+
+    function drawBox(found) {
+      overlay.width  = video.videoWidth  || video.clientWidth;
+      overlay.height = video.videoHeight || video.clientHeight;
+      ovCtx.clearRect(0, 0, overlay.width, overlay.height);
+      ovCtx.strokeStyle = found ? '#3fb950' : '#f85149';
+      ovCtx.lineWidth = 3;
+      const m = 0.1;
+      ovCtx.strokeRect(
+        overlay.width  * m, overlay.height * m,
+        overlay.width  * (1-2*m), overlay.height * (1-2*m)
+      );
+    }
+
+    /* ── Modo live ──────────────────────────────────────────────────────────── */
+    function toggleLive() {
+      const btn = document.getElementById('btn-live');
+      if (liveOn) {
+        clearInterval(liveTimer); liveOn = false;
+        btn.textContent = 'Live OFF';
+        btn.classList.remove('secondary');
+      } else {
+        liveOn = true;
+        btn.textContent = 'Live ON';
+        btn.classList.add('secondary');
+        liveTimer = setInterval(identify, LIVE_INTERVAL_MS);
+      }
+    }
+
+    /* ── Verificação de par via WASM ─────────────────────────────────────────── */
+    async function imageToRGBA64(file) {
+      return new Promise((res) => {
+        const img = new Image();
+        const url = URL.createObjectURL(file);
+        img.onload = () => {
+          const c = document.createElement('canvas');
+          c.width = 64; c.height = 64;
+          const ctx = c.getContext('2d');
+          ctx.drawImage(img, 0, 0, 64, 64);
+          URL.revokeObjectURL(url);
+          res(ctx.getImageData(0, 0, 64, 64).data);
+        };
+        img.src = url;
+      });
+    }
+
+    async function verifyPair() {
+      const fileA = document.getElementById('fileA').files[0];
+      const fileB = document.getElementById('fileB').files[0];
+      if (!fileA || !fileB) { alert('Selecione as duas imagens.'); return; }
+      if (!wasmReady) { alert('Módulo não carregado.'); return; }
+
+      const rgbaA = await imageToRGBA64(fileA);
+      const rgbaB = await imageToRGBA64(fileB);
+      const E = Module._bionix_embed_dim();
+
+      // Calcula embeddings
+      const pA = Module._bionix_malloc(rgbaA.length), embA = Module._bionix_malloc(E*4);
+      const pB = Module._bionix_malloc(rgbaB.length), embB = Module._bionix_malloc(E*4);
+      Module.HEAPU8.set(rgbaA, pA); Module._bionix_embed_rgba(pA, 64, 64, embA);
+      Module.HEAPU8.set(rgbaB, pB); Module._bionix_embed_rgba(pB, 64, 64, embB);
+
+      // Ponteiros para float arrays no heap
+      const sim = Module._bionix_cosine_sim(embA, embB);
+      Module._bionix_free(pA); Module._bionix_free(embA);
+      Module._bionix_free(pB); Module._bionix_free(embB);
+
+      const mesma = sim >= THRESHOLD;
+      const el = document.getElementById('pair-result');
+      el.style.color = mesma ? 'var(--ok)' : 'var(--danger)';
+      el.textContent = (mesma ? '✅ Mesma pessoa' : '❌ Pessoas diferentes') +
+                       ' — similaridade: ' + sim.toFixed(4);
+    }
+
+    /* ── Bootstrap ──────────────────────────────────────────────────────────── */
+    window.addEventListener('load', init);
+  </script>
+</body>
+</html>
