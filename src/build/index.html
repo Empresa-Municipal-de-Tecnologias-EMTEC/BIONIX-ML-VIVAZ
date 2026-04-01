@@ -18,7 +18,7 @@
     .card h2 { font-size:.9rem; color:#8b949e; text-transform:uppercase;
                letter-spacing:.06em; margin-bottom:12px; }
     video, canvas { border-radius:8px; background:#000; display:block; width:100%; }
-    canvas { display:none; }
+    #cap { display:none; }
     .row { display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
     button { background:var(--accent); color:#0d1117; border:none; border-radius:6px;
              padding:8px 18px; font-size:.9rem; font-weight:600; cursor:pointer; }
@@ -46,6 +46,10 @@
                                color:var(--ok); border:1px solid rgba(63,185,80,.3); }
     #face-indicator.lost     { display:block; background:rgba(248,81,73,.1);
                                color:var(--danger); border:1px solid rgba(248,81,73,.2); }
+    .cap-thumb { width:80px; height:80px; border:2px solid var(--border); border-radius:6px; background:#111; }
+    .cap-slot  { text-align:center; }
+    .cap-label { font-size:.75rem; color:#8b949e; margin-top:4px; }
+    .vs-sep    { font-size:1.2rem; color:#6e7681; align-self:center; padding:0 6px; }
   </style>
 </head>
 <body>
@@ -70,30 +74,32 @@
     <canvas id="cap" width="64" height="64"></canvas>
     <div class="row" style="margin-top:12px">
       <button id="btn-cam" onclick="startCamera()">Abrir Câmera</button>
-      <button id="btn-id"  onclick="identify()" disabled>Identificar</button>
+      <button id="btn-id"  onclick="identify()" disabled>Identificar galeria</button>
       <button id="btn-live" class="secondary" onclick="toggleLive()" disabled>Live OFF</button>
+      <button id="btn-capture" onclick="captureStep()" disabled>📷 Capturar A</button>
+    </div>
+    <!-- Comparação A vs B por câmera -->
+    <div id="cap-row" class="row" style="display:none; margin-top:14px; align-items:flex-start; flex-wrap:nowrap;">
+      <div class="cap-slot">
+        <canvas id="thumb-a" width="80" height="80" class="cap-thumb"></canvas>
+        <div class="cap-label" id="lbl-a">A — vazio</div>
+      </div>
+      <div class="vs-sep">vs</div>
+      <div class="cap-slot">
+        <canvas id="thumb-b" width="80" height="80" class="cap-thumb"></canvas>
+        <div class="cap-label" id="lbl-b">B — vazio</div>
+      </div>
+      <div id="cap-sim" style="flex:1; font-size:.85rem; padding-left:10px; align-self:center; line-height:1.6;"></div>
+      <button class="secondary" onclick="clearCaptures()" style="padding:6px 10px; align-self:center; margin-left:auto;">🔄</button>
     </div>
     <div id="face-indicator"></div>
   </div>
 
-  <!-- Resultado -->
+  <!-- Resultado — identificação galeria -->
   <div class="card">
-    <h2>Resultado</h2>
+    <h2>Resultado — Galeria</h2>
     <div id="result" class="result" style="display:none"></div>
-    <div id="placeholder" style="color:#6e7681; font-size:.85rem">Capture um frame para identificar.</div>
-  </div>
-
-  <!-- Verificação de par -->
-  <div class="card">
-    <h2>Verificar Par (A vs B)</h2>
-    <div class="row">
-      <div><label style="font-size:.8rem;color:#8b949e">Imagem A</label><br>
-        <input type="file" id="fileA" accept=".bmp,image/*" style="margin-top:4px;color:#e6edf3"></div>
-      <div><label style="font-size:.8rem;color:#8b949e">Imagem B</label><br>
-        <input type="file" id="fileB" accept=".bmp,image/*" style="margin-top:4px;color:#e6edf3"></div>
-    </div>
-    <button onclick="verifyPair()" style="margin-top:12px" id="btn-pair" disabled>Verificar Par</button>
-    <div id="pair-result" style="margin-top:10px; font-size:.9rem; color:#8b949e"></div>
+    <div id="placeholder" style="color:#6e7681; font-size:.85rem">Clique em "Identificar galeria" para verificar na galeria treinada.</div>
   </div>
 
   <script>
@@ -109,6 +115,8 @@
     let Module = null, wasmReady = false;
     let liveTimer = null, liveOn = false;
     let facePresent = false;
+    let captureA_emb = null, captureB_emb = null, captureState = 0;
+    let liveAnimFrame = null, livePulse = 0;
     const video = document.getElementById('video');
     const cap   = document.getElementById('cap');
     const capCtx = cap.getContext('2d');
@@ -201,8 +209,9 @@
           overlay.height = video.videoHeight || video.clientHeight;
         };
         document.getElementById('btn-cam').disabled = true;
-        document.getElementById('btn-id').disabled  = !wasmReady;
-        document.getElementById('btn-live').disabled = !wasmReady;
+        document.getElementById('btn-id').disabled      = !wasmReady;
+        document.getElementById('btn-live').disabled    = !wasmReady;
+        document.getElementById('btn-capture').disabled = !wasmReady;
         log('✓ Câmera aberta');
       } catch(e) {
         setStatus('Câmera indisponível: ' + e.message, 'warn');
@@ -230,7 +239,7 @@
       Module._bionix_free(scorePtr);
 
       showResult(idx, score);
-      drawBox(idx >= 0);
+      if (!liveOn) drawStaticBox(idx >= 0);
       _updateFacePresence(idx, score);
     }
 
@@ -284,16 +293,30 @@
       }
     }
 
-    function drawBox(found) {
-      overlay.width  = video.videoWidth  || video.clientWidth;
-      overlay.height = video.videoHeight || video.clientHeight;
-      ovCtx.clearRect(0, 0, overlay.width, overlay.height);
-      ovCtx.strokeStyle = found ? '#3fb950' : '#f85149';
+    function _drawCorners(color, x, y, w, h) {
+      const L = Math.min(w, h) * 0.18;
+      ovCtx.strokeStyle = color;
       ovCtx.lineWidth = 3;
-      const m = 0.1;
-      ovCtx.strokeRect(
-        overlay.width  * m, overlay.height * m,
-        overlay.width  * (1-2*m), overlay.height * (1-2*m)
+      ovCtx.lineCap = 'square';
+      const segs = [
+        [x,     y+L,   x,   y,   x+L,   y    ],
+        [x+w-L, y,     x+w, y,   x+w,   y+L  ],
+        [x,     y+h-L, x,   y+h, x+L,   y+h  ],
+        [x+w-L, y+h,   x+w, y+h, x+w,   y+h-L]
+      ];
+      for (const [x1,y1,cx,cy,x2,y2] of segs) {
+        ovCtx.beginPath(); ovCtx.moveTo(x1,y1); ovCtx.lineTo(cx,cy); ovCtx.lineTo(x2,y2);
+        ovCtx.stroke();
+      }
+    }
+
+    function drawStaticBox(found) {
+      ovCtx.clearRect(0, 0, overlay.width, overlay.height);
+      const m = 0.15;
+      _drawCorners(
+        found ? '#3fb950' : '#f85149',
+        overlay.width * m, overlay.height * m,
+        overlay.width * (1-2*m), overlay.height * (1-2*m)
       );
     }
 
@@ -302,59 +325,93 @@
       const btn = document.getElementById('btn-live');
       if (liveOn) {
         clearInterval(liveTimer); liveOn = false;
-        btn.textContent = 'Live OFF';
-        btn.classList.remove('secondary');
+        btn.textContent = 'Live OFF'; btn.classList.remove('secondary');
+        if (liveAnimFrame) { cancelAnimationFrame(liveAnimFrame); liveAnimFrame = null; }
+        ovCtx.clearRect(0, 0, overlay.width, overlay.height);
       } else {
         liveOn = true;
-        btn.textContent = 'Live ON';
-        btn.classList.add('secondary');
+        btn.textContent = 'Live ON'; btn.classList.add('secondary');
         liveTimer = setInterval(identify, LIVE_INTERVAL_MS);
+        liveLoop();
       }
     }
 
-    /* ── Verificação de par via WASM ─────────────────────────────────────────── */
-    async function imageToRGBA64(file) {
-      return new Promise((res) => {
-        const img = new Image();
-        const url = URL.createObjectURL(file);
-        img.onload = () => {
-          const c = document.createElement('canvas');
-          c.width = 64; c.height = 64;
-          const ctx = c.getContext('2d');
-          ctx.drawImage(img, 0, 0, 64, 64);
-          URL.revokeObjectURL(url);
-          res(ctx.getImageData(0, 0, 64, 64).data);
-        };
-        img.src = url;
-      });
+    /* ── Animação overlay live (requestAnimationFrame 60 fps) ──────────── */
+    function liveLoop() {
+      if (!liveOn) { liveAnimFrame = null; return; }
+      liveAnimFrame = requestAnimationFrame(liveLoop);
+      livePulse = (livePulse + 3) % 360;
+      const a = (0.55 + 0.45 * Math.sin(livePulse * Math.PI / 180)).toFixed(2);
+      ovCtx.clearRect(0, 0, overlay.width, overlay.height);
+      const color = facePresent ? `rgba(63,185,80,${a})` : `rgba(88,166,255,${a})`;
+      const m = 0.15;
+      _drawCorners(color, overlay.width*m, overlay.height*m,
+                   overlay.width*(1-2*m), overlay.height*(1-2*m));
     }
 
-    async function verifyPair() {
-      const fileA = document.getElementById('fileA').files[0];
-      const fileB = document.getElementById('fileB').files[0];
-      if (!fileA || !fileB) { alert('Selecione as duas imagens.'); return; }
-      if (!wasmReady) { alert('Módulo não carregado.'); return; }
+    /* ── Captura A / B e comparação por câmera ──────────────────────────── */
+    function _computeEmb(rgba) {
+      const E   = Module._bionix_embed_dim();
+      const ptr = Module._bionix_malloc(rgba.length);
+      const ep  = Module._bionix_malloc(E * 4);
+      Module.HEAPU8.set(rgba, ptr);
+      Module._bionix_embed_rgba(ptr, 64, 64, ep);
+      Module._bionix_free(ptr);
+      const emb = new Float32Array(Module.HEAPF32.buffer, ep, E).slice();
+      Module._bionix_free(ep);
+      return emb;
+    }
 
-      const rgbaA = await imageToRGBA64(fileA);
-      const rgbaB = await imageToRGBA64(fileB);
-      const E = Module._bionix_embed_dim();
+    function _drawThumb(canvasId, rgba) {
+      const off = document.createElement('canvas');
+      off.width = 64; off.height = 64;
+      off.getContext('2d').putImageData(new ImageData(new Uint8ClampedArray(rgba), 64, 64), 0, 0);
+      const c = document.getElementById(canvasId);
+      c.getContext('2d').drawImage(off, 0, 0, 80, 80);
+    }
 
-      // Calcula embeddings
-      const pA = Module._bionix_malloc(rgbaA.length), embA = Module._bionix_malloc(E*4);
-      const pB = Module._bionix_malloc(rgbaB.length), embB = Module._bionix_malloc(E*4);
-      Module.HEAPU8.set(rgbaA, pA); Module._bionix_embed_rgba(pA, 64, 64, embA);
-      Module.HEAPU8.set(rgbaB, pB); Module._bionix_embed_rgba(pB, 64, 64, embB);
+    function _embSim(a, b) {
+      let dot=0, na=0, nb=0;
+      for (let i=0; i<a.length; i++) { dot+=a[i]*b[i]; na+=a[i]*a[i]; nb+=b[i]*b[i]; }
+      return (na>0 && nb>0) ? dot / (Math.sqrt(na) * Math.sqrt(nb)) : 0;
+    }
 
-      // Ponteiros para float arrays no heap
-      const sim = Module._bionix_cosine_sim(embA, embB);
-      Module._bionix_free(pA); Module._bionix_free(embA);
-      Module._bionix_free(pB); Module._bionix_free(embB);
+    function captureStep() {
+      if (!wasmReady || !Module || !video.srcObject) return;
+      const rgba = captureRGBA();
+      if (captureState === 0) {
+        captureA_emb = _computeEmb(rgba);
+        _drawThumb('thumb-a', rgba);
+        document.getElementById('lbl-a').textContent = 'A — capturado';
+        document.getElementById('cap-sim').innerHTML  = '';
+        document.getElementById('cap-row').style.display = 'flex';
+        document.getElementById('btn-capture').textContent = '📷 Capturar B';
+        captureState = 1;
+      } else {
+        captureB_emb = _computeEmb(rgba);
+        _drawThumb('thumb-b', rgba);
+        document.getElementById('lbl-b').textContent = 'B — capturado';
+        const sim   = _embSim(captureA_emb, captureB_emb);
+        const mesma = sim >= THRESHOLD;
+        document.getElementById('cap-sim').innerHTML =
+          (mesma ? '<span style="color:var(--ok)">✅ Mesma pessoa</span>'
+                 : '<span style="color:var(--danger)">❌ Pessoas diferentes</span>') +
+          '<br><span style="font-size:.8rem;color:#8b949e">sim: ' + sim.toFixed(4) + '</span>';
+        document.getElementById('btn-capture').textContent = '📷 Capturar A';
+        captureState = 0;
+      }
+    }
 
-      const mesma = sim >= THRESHOLD;
-      const el = document.getElementById('pair-result');
-      el.style.color = mesma ? 'var(--ok)' : 'var(--danger)';
-      el.textContent = (mesma ? '✅ Mesma pessoa' : '❌ Pessoas diferentes') +
-                       ' — similaridade: ' + sim.toFixed(4);
+    function clearCaptures() {
+      captureA_emb = captureB_emb = null; captureState = 0;
+      document.getElementById('cap-row').style.display = 'none';
+      document.getElementById('btn-capture').textContent = '📷 Capturar A';
+      document.getElementById('cap-sim').innerHTML = '';
+      ['thumb-a','thumb-b'].forEach(id => {
+        document.getElementById(id).getContext('2d').clearRect(0, 0, 80, 80);
+      });
+      document.getElementById('lbl-a').textContent = 'A — vazio';
+      document.getElementById('lbl-b').textContent = 'B — vazio';
     }
 
     /* ── Bootstrap ──────────────────────────────────────────────────────────── */
