@@ -10,5 +10,5 @@ fn main() raises -> None:
     print("Iniciando treino RetinaFace... epocas=", epocas, " early_stop=", early_stop)
     var params = model_mod.BlocoRetinaFaceParametros(320, 6, 3, 3, "cpu", 32, 16, 0.01, 0.5)
     var detector = model_mod.RetinaFace(params^, os.path.join("MODELO", "retina_modelo"))
-    var result = detector.treinar("DATASET", 320, 320, 32, epocas, 0.0001, 4, early_stop)
+    var result = detector.treinar("DATASET", 320, 320, 32, epocas, 0.05, 8, 128, early_stop)
     print("Treino finalizado:", result)

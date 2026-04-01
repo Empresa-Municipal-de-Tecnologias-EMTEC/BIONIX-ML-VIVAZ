@@ -45,8 +45,9 @@ fn _split_fields(line: String) -> List[String]:
 fn treinar_arcface(mut modelo: arc_model.ArcFace,
                    var dataset_dir: String,
                    var epocas: Int = 5,
-                   var taxa_aprendizado: Float32 = 0.0001,
-                   var batch_size: Int = 4) raises -> String:
+                   var taxa_aprendizado: Float32 = 0.05,
+                   var batch_size_inicio: Int = 8,
+                   var batch_size_fim: Int = 128) raises -> String:
 
     var ps = modelo.parametros.patch_size
     var E  = modelo.parametros.embed_dim
@@ -56,6 +57,26 @@ fn treinar_arcface(mut modelo: arc_model.ArcFace,
     var ep_inicio = 0
     if modelo.treinamento_epoca >= 0:
         ep_inicio = modelo.treinamento_epoca + 1
+    # Verifica compatibilidade de parâmetros; ignora estado salvo se diferentes
+    try:
+        var state_txt = arquivo_pkg.ler_arquivo_texto(os.path.join(modelo.diretorio_modelo, "arcface_state.txt"))
+        var saved_patch = -1
+        var saved_embed = -1
+        for L in state_txt.split("\n"):
+            try:
+                if L.startswith("patch_size:"):
+                    saved_patch = Int(L[11:])
+                elif L.startswith("embed_dim:"):
+                    saved_embed = Int(L[10:])
+            except _:
+                continue
+        if (saved_patch > 0 and saved_patch != ps) or (saved_embed > 0 and saved_embed != E):
+            print("[WARN] Parâmetros ArcFace diferentes do checkpoint (patch=", saved_patch, " embed=", saved_embed, "). Ignorando estado anterior.")
+            modelo.treinamento_epoca = -1
+            ep_inicio = 0
+            modelo.heads_inicializadas = False
+    except _:
+        pass
     print("ArcFace treino: dataset=", dataset_dir, " epocas=", epocas, " lr=", taxa_aprendizado)
     if ep_inicio > 0:
         print("Retomando da epoca", ep_inicio)
@@ -101,8 +122,10 @@ fn treinar_arcface(mut modelo: arc_model.ArcFace,
 
     # ── LR schedule ────────────────────────────────────────────────────────────
     var lr_atual  = taxa_aprendizado
+    var lr_inicial = taxa_aprendizado
     var best_loss: Float32 = 1e30
     var sched_wait: Int = 0
+    var min_lr: Float32 = 1e-4
 
     # ── Percorre épocas ────────────────────────────────────────────────────────
     for ep in range(ep_inicio, ep_inicio + epocas):
@@ -111,14 +134,28 @@ fn treinar_arcface(mut modelo: arc_model.ArcFace,
         var soma_loss: Float32 = 0.0
         var count: Int = 0
 
-        # Percorre imagens de cada classe (round-robin, 1 img/classe/época)
-        for c in range(C):
+        # Escalonamento dinâmico: mais amostras por classe conforme LR diminui
+        var lr_range_arc = lr_inicial - min_lr
+        var arc_batch_atual: Int
+        if lr_range_arc > 0.0:
+            var t_arc = (lr_inicial - lr_atual) / lr_range_arc
+            if t_arc < 0.0: t_arc = 0.0
+            if t_arc > 1.0: t_arc = 1.0
+            arc_batch_atual = batch_size_inicio + Int(Float32(batch_size_fim - batch_size_inicio) * t_arc)
+        else:
+            arc_batch_atual = batch_size_fim
+        var n_per_class = max(1, arc_batch_atual // max(1, C))
+
+        # Percorre imagens de cada classe (n_per_class amostras por classe)
+        for cs in range(C * n_per_class):
+            var c = cs % C
+            var s_idx = cs // C
             var imgs = class_images[c].copy()
             if len(imgs) == 0:
                 continue
 
             # Seleciona imagem via LCG (pseudo-aleatório)
-            var seed = (ep * 1664525 + c * 1013904223 + 12345) & 0x7fffffff
+            var seed = (ep * 1664525 + c * 1013904223 + s_idx * 22695477 + 12345) & 0x7fffffff
             var idx  = seed % len(imgs)
             var img_path = imgs[idx]
 
@@ -297,8 +334,8 @@ fn treinar_arcface(mut modelo: arc_model.ArcFace,
             sched_wait = sched_wait + 1
             if sched_wait >= 3:
                 lr_atual = lr_atual * 0.5
-                if lr_atual < 1e-7:
-                    lr_atual = 1e-7
+                if lr_atual < min_lr:
+                    lr_atual = min_lr
                 sched_wait = 0
                 print("LR reduzido para", lr_atual)
 

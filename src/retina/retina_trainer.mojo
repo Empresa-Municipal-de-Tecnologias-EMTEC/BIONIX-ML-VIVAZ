@@ -57,19 +57,20 @@ fn _anchor_sane(a: List[Float32], var max_width: Int, var max_height: Int) -> Bo
 
 # Minimal retina trainer that uses RGB patches and the retina_model helpers.
 fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir: String, var altura: Int = 640, var largura: Int = 640,
-                          var patch_size: Int = 64, var epocas: Int = 5, var taxa_aprendizado: Float32 = 0.0001,
-                          var batch_size: Int = 4, var samples_per_class: Int = 1, var randomize: Bool = True,
+                          var patch_size: Int = 64, var epocas: Int = 5, var taxa_aprendizado: Float32 = 0.05,
+                          var batch_size_inicio: Int = 8, var batch_size_fim: Int = 128, var samples_per_class: Int = 1, var randomize: Bool = True,
                           var early_stop: Bool = True) raises -> String:
 
     print("Iniciando treino: altura=", altura, " largura=", largura, " patch=", patch_size, " epocas=", epocas)
 
     # scheduler (ReduceLROnPlateau-like)
     var lr_atual = taxa_aprendizado
+    var lr_inicial = taxa_aprendizado
     var best_loss: Float32 = 1e30
     var scheduler_wait: Int = 0
     var scheduler_patience: Int = 2
     var scheduler_factor: Float32 = 0.5
-    var min_lr: Float32 = 1e-7
+    var min_lr: Float32 = 1e-4
     var min_delta: Float32 = 1e-6
     # IoU-based early stopping params
     var best_iou: Float32 = 0.0
@@ -96,6 +97,26 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
     # Carrega checkpoint anterior se existir (pesos treinados em sessões anteriores)
     try:
         _ = model_pkg.carregar_checkpoint(detector.bloco_cnn, export_dir)
+    except _:
+        pass
+    # Verifica se parâmetros persistidos são compatíveis; se não, ignora estado salvo
+    try:
+        var state_txt = arquivo_pkg.ler_arquivo_texto(os.path.join(export_dir, "retina_state.txt"))
+        var saved_input_size = -1
+        var saved_patch_size = -1
+        for L in state_txt.split("\n"):
+            try:
+                if L.startswith("input_size:"):
+                    saved_input_size = Int(L[11:])
+                elif L.startswith("patch_size:"):
+                    saved_patch_size = Int(L[11:])
+            except _:
+                continue
+        if (saved_input_size > 0 and saved_input_size != largura) or (saved_patch_size > 0 and saved_patch_size != patch_size):
+            print("[WARN] Parâmetros diferentes do checkpoint (input_size=", saved_input_size, " patch_size=", saved_patch_size, "). Ignorando estado anterior.")
+            detector.treinamento_epoca = -1
+            detector.treinamento_lr = taxa_aprendizado
+            head_initialized = False
     except _:
         pass
     try:
@@ -278,7 +299,19 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
         var iou_sum: Float32 = 0.0
         var count_iou: Int = 0
 
-        # build mini-batch list. Default: sample `samples_per_class` images per class.
+        # Escalonamento dinâmico do lote: batch_size_inicio→batch_size_fim conforme LR cai
+        var batch_size_atual: Int
+        var lr_range = lr_inicial - min_lr
+        if lr_range > 0.0:
+            var t = (lr_inicial - lr_atual) / lr_range
+            if t < 0.0: t = 0.0
+            if t > 1.0: t = 1.0
+            batch_size_atual = batch_size_inicio + Int(Float32(batch_size_fim - batch_size_inicio) * t)
+        else:
+            batch_size_atual = batch_size_fim
+        var samples_per_class_atual = max(1, batch_size_atual // max(1, len(class_names)))
+
+        # build mini-batch list. Default: sample `samples_per_class_atual` images per class.
         # If `randomize` is True, pick random images per class; otherwise use round-robin pointers.
         var batch_paths = List[String]()
         for c in range(len(class_names)):
@@ -287,7 +320,7 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
             if nimgs == 0:
                 continue
             # number of samples to draw for this class
-            var to_draw = samples_per_class
+            var to_draw = samples_per_class_atual
             if to_draw <= 0:
                 to_draw = 1
             if randomize:
@@ -310,8 +343,8 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
         if E == 0:
             print("Nenhuma imagem para treinar; verifique DATASET")
             return "Falha: sem imagens"
-        for bstart in range(0, E, batch_size):
-            var bend = bstart + batch_size
+        for bstart in range(0, E, batch_size_inicio):
+            var bend = bstart + batch_size_inicio
             if bend > E:
                 bend = E
             for i in range(bstart, bend):

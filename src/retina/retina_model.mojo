@@ -218,6 +218,8 @@ struct RetinaFace(Movable):
                 state_lines.append("epoch:" + String(self.treinamento_epoca))
                 state_lines.append("lr:" + String(self.treinamento_lr))
                 state_lines.append("meta:" + self.treinamento_meta)
+                state_lines.append("input_size:" + String(self.parametros.input_size))
+                state_lines.append("patch_size:" + String(self.parametros.patch_size))
                 uteis.gravar_texto_seguro(os.path.join(model_dir, "retina_state.txt"), String("\n").join(state_lines.copy()))
             except _:
                 pass
@@ -414,12 +416,12 @@ struct RetinaFace(Movable):
         return kept_boxes^
 
     fn treinar(mut self, var dataset_dir: String, var altura: Int = 640, var largura: Int = 640,
-               var patch_size: Int = 64, var epocas: Int = 5, var taxa_aprendizado: Float32 = 0.0001,
-               var batch_size: Int = 4, var early_stop: Bool = True) -> String:
+               var patch_size: Int = 64, var epocas: Int = 5, var taxa_aprendizado: Float32 = 0.05,
+               var batch_size: Int = 8, var batch_size_fim: Int = 128, var early_stop: Bool = True) -> String:
         # Import trainer lazily to avoid circular import at module load time
         try:
             import retina.retina_trainer as trainer
-            return trainer.treinar_retina_minimal(self, dataset_dir, altura, largura, patch_size, epocas, taxa_aprendizado, batch_size, 1, True, early_stop)
+            return trainer.treinar_retina_minimal(self, dataset_dir, altura, largura, patch_size, epocas, taxa_aprendizado, batch_size, batch_size_fim, 1, True, early_stop)
         except _:
             # Fallback: if import fails, return error string
             return "Falha: não foi possível iniciar treinador"
