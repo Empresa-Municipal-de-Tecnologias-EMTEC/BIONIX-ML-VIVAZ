@@ -112,8 +112,14 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                     saved_patch_size = Int(L[11:])
             except _:
                 continue
-        if (saved_input_size > 0 and saved_input_size != largura) or (saved_patch_size > 0 and saved_patch_size != patch_size):
-            print("[WARN] Parâmetros diferentes do checkpoint (input_size=", saved_input_size, " patch_size=", saved_patch_size, "). Ignorando estado anterior.")
+        # Checkpoint antigo (sem campos de params) -> resetar pra evitar pesos ruins
+        if saved_input_size == -1 and saved_patch_size == -1:
+            print("[WARN] Checkpoint sem metadados de parametros (formato antigo). Ignorando estado anterior.")
+            detector.treinamento_epoca = -1
+            detector.treinamento_lr = taxa_aprendizado
+            head_initialized = False
+        elif (saved_input_size > 0 and saved_input_size != largura) or (saved_patch_size > 0 and saved_patch_size != patch_size):
+            print("[WARN] Parametros diferentes do checkpoint (input_size=", saved_input_size, " patch_size=", saved_patch_size, "). Ignorando estado anterior.")
             detector.treinamento_epoca = -1
             detector.treinamento_lr = taxa_aprendizado
             head_initialized = False
@@ -557,10 +563,19 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                             detector.bloco_cnn.peso_saida = tensor_defs.Tensor(shape_w^, detector.bloco_cnn.tipo_computacao)
                             var shape_b = List[Int](); shape_b.append(1); shape_b.append(4)
                             detector.bloco_cnn.bias_saida = tensor_defs.Tensor(shape_b^, detector.bloco_cnn.tipo_computacao)
+                            # dx/dy channels: tiny weights, zero bias (no displacement prior)
+                            # dw/dh channels: near-zero weights + bias=+1.0 to prevent exp() collapse
                             for k in range(len(detector.bloco_cnn.peso_saida.dados)):
-                                detector.bloco_cnn.peso_saida.dados[k] = 0.001
+                                var col = k % 4
+                                if col == 2 or col == 3:
+                                    detector.bloco_cnn.peso_saida.dados[k] = 1e-5
+                                else:
+                                    detector.bloco_cnn.peso_saida.dados[k] = 0.001
                             for k in range(len(detector.bloco_cnn.bias_saida.dados)):
-                                detector.bloco_cnn.bias_saida.dados[k] = 0.0
+                                if k == 2 or k == 3:
+                                    detector.bloco_cnn.bias_saida.dados[k] = 1.0
+                                else:
+                                    detector.bloco_cnn.bias_saida.dados[k] = 0.0
                         if not head_initialized:
                             var shape_cw = List[Int](); shape_cw.append(D); shape_cw.append(1)
                             head_peso_cls = tensor_defs.Tensor(shape_cw^, detector.bloco_cnn.tipo_computacao)
