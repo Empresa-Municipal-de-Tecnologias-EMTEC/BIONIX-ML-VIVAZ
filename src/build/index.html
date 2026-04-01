@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bionix – Reconhecimento Facial</title>
+  <title>Bionix – Vivaz</title>
   <style>
     :root { --bg:#0d1117; --surface:#161b22; --border:#30363d;
             --accent:#58a6ff; --ok:#3fb950; --warn:#f0883e; --danger:#f85149; }
@@ -56,8 +56,8 @@
   </style>
 </head>
 <body>
-  <h1>Bionix Face ID</h1>
-  <p class="sub">WebAssembly · ArcFace · Tempo-real</p>
+  <h1>Bionix Vivaz</h1>
+  <p class="sub">Detecção e reconhecimento facial em tempo real</p>
 
   <!-- Status de carregamento -->
   <div class="card">
@@ -120,6 +120,8 @@
     let facePresent = false;
     let captureA_emb = null, captureB_emb = null, captureState = 0;
     let liveAnimFrame = null, livePulse = 0;
+    let faceBox = null;        // {x, y, width, height} em coords do vídeo
+    let faceDetector = null;   // FaceDetector API (Chrome/Edge)
     const video = document.getElementById('video');
     const cap   = document.getElementById('cap');
     const capCtx = cap.getContext('2d');
@@ -199,6 +201,13 @@
 
       wasmReady = true;
       setStatus('Pronto!', 'ok');
+      // Tenta inicializar o detector de rosto nativo do browser
+      if ('FaceDetector' in window) {
+        try { faceDetector = new FaceDetector({ fastMode: true, maxDetectedFaces: 1 }); log('✓ FaceDetector disponível'); }
+        catch(e) { log('⚠ FaceDetector indisponível: ' + e); }
+      } else {
+        log('⚠ FaceDetector não suportado neste browser');
+      }
       // enable camera buttons if camera is already open
       if (video.srcObject) {
         document.getElementById('btn-id').disabled      = false;
@@ -256,6 +265,17 @@
       showResult(idx, score);
       if (!liveOn) drawStaticBox(idx >= 0);
       _updateFacePresence(idx, score);
+      // Detecta posição do rosto para animação live
+      if (liveOn && faceDetector && video.readyState >= 2) {
+        faceDetector.detect(video).then(faces => {
+          if (faces.length > 0) {
+            const b = faces[0].boundingBox;
+            faceBox = { x: b.x, y: b.y, width: b.width, height: b.height };
+          } else {
+            faceBox = null;
+          }
+        }).catch(() => { faceBox = null; });
+      }
     }
 
     function _updateFacePresence(idx, score) {
@@ -364,9 +384,21 @@
       const a = (0.55 + 0.45 * Math.sin(livePulse * Math.PI / 180)).toFixed(2);
       ovCtx.clearRect(0, 0, overlay.width, overlay.height);
       const color = facePresent ? `rgba(63,185,80,${a})` : `rgba(88,166,255,${a})`;
-      const m = 0.15;
-      _drawCorners(color, overlay.width*m, overlay.height*m,
-                   overlay.width*(1-2*m), overlay.height*(1-2*m));
+      if (faceBox && overlay.width > 0) {
+        // Converte coords do vídeo para coords do overlay (podem diferir se CSS escalou)
+        const scaleX = overlay.width  / (video.videoWidth  || overlay.width);
+        const scaleY = overlay.height / (video.videoHeight || overlay.height);
+        const pad = 10;
+        _drawCorners(color,
+          faceBox.x * scaleX - pad,
+          faceBox.y * scaleY - pad,
+          faceBox.width  * scaleX + pad * 2,
+          faceBox.height * scaleY + pad * 2);
+      } else {
+        const m = 0.15;
+        _drawCorners(color, overlay.width*m, overlay.height*m,
+                     overlay.width*(1-2*m), overlay.height*(1-2*m));
+      }
     }
 
     /* ── Captura A / B e comparação por câmera ──────────────────────────── */
