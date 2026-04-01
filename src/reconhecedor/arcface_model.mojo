@@ -269,9 +269,10 @@ struct ArcFace(Movable):
 
     # Treina o modelo. Chama arcface_trainer.treinar_arcface.
     fn treinar(mut self, var dataset_dir: String, var epocas: Int = 5,
-               var lr: Float32 = 0.0001, var batch_size: Int = 4) -> String:
+               var lr: Float32 = 0.05, var batch_size: Int = 8,
+               var batch_size_fim: Int = 128) -> String:
         try:
             import reconhecedor.arcface_trainer as trainer
-            return trainer.treinar_arcface(self, dataset_dir, epocas, lr, batch_size)
+            return trainer.treinar_arcface(self, dataset_dir, epocas, lr, batch_size, batch_size_fim)
         except e:
             return "Falha: " + String(e)
