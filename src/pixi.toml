@@ -25,3 +25,11 @@ compilar_api = { cmd = "mkdir -p build && mojo build -I ../../BIONIX-ML -o build
 compilar_debug = { cmd = "mkdir -p build && mojo build -debug-level=line-tables -I ../../BIONIX-ML -o build/principal_debug principal.mojo" }
 run_test_crop = "mojo -I ../../BIONIX-ML test_crop_call.mojo"
 run_crop_harness = "mojo -I ../../BIONIX-ML run_crop_harness.mojo"
+run_arcface_train = "mojo -I ../../BIONIX-ML run_arcface_train.mojo"
+run_arcface_train_debug = { cmd = "mojo build -debug-level=line-tables -I ../../BIONIX-ML -o ./run_arcface_train run_arcface_train.mojo && ./run_arcface_train" }
+run_arcface_train_debug_build = { cmd = "mojo build -debug-level=line-tables -I ../../BIONIX-ML -o ./run_arcface_train run_arcface_train.mojo" }
+run_arcface_train_debug_run = { cmd = "./run_arcface_train" }
+run_arcface_infer = "mojo -I ../../BIONIX-ML run_arcface_infer.mojo"
+run_arcface_infer_debug = { cmd = "mojo build -debug-level=line-tables -I ../../BIONIX-ML -o ./run_arcface_infer run_arcface_infer.mojo && ./run_arcface_infer" }
+run_arcface_infer_debug_build = { cmd = "mojo build -debug-level=line-tables -I ../../BIONIX-ML -o ./run_arcface_infer run_arcface_infer.mojo" }
+run_arcface_infer_debug_run = { cmd = "./run_arcface_infer" }
