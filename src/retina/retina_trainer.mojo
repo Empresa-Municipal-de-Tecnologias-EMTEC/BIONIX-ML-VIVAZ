@@ -58,7 +58,8 @@ fn _anchor_sane(a: List[Float32], var max_width: Int, var max_height: Int) -> Bo
 # Minimal retina trainer that uses RGB patches and the retina_model helpers.
 fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir: String, var altura: Int = 640, var largura: Int = 640,
                           var patch_size: Int = 64, var epocas: Int = 5, var taxa_aprendizado: Float32 = 0.0001,
-                          var batch_size: Int = 4, var samples_per_class: Int = 1, var randomize: Bool = True) raises -> String:
+                          var batch_size: Int = 4, var samples_per_class: Int = 1, var randomize: Bool = True,
+                          var early_stop: Bool = True) raises -> String:
 
     print("Iniciando treino: altura=", altura, " largura=", largura, " patch=", patch_size, " epocas=", epocas)
 
@@ -290,8 +291,8 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
             if to_draw <= 0:
                 to_draw = 1
             if randomize:
-                # simple pseudo-random selection using LCG seeded by epoch and class
-                var seed = (ep * 1664525 + c * 1013904223) & 0x7fffffff
+                # LCG seeded by epoch, class and a constant offset to avoid seed=0 when ep=c=0
+                var seed = (ep * 1664525 + c * 1013904223 + 0xabcdef) & 0x7fffffff
                 for s in range(min(to_draw, nimgs)):
                     seed = (1103515245 * seed + 12345) & 0x7fffffff
                     var idx = seed % nimgs
@@ -627,8 +628,11 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                     var imgs = class_images[c].copy()
                     if len(imgs) == 0:
                         continue
-                    # pick first available image for the class
-                    var img_path = imgs[0]
+                    # pick validation image varying by epoch and class (not always imgs[0])
+                    var val_seed = (ep * 1664525 + c * 1013904223 + 0xdeadbeef) & 0x7fffffff
+                    val_seed = (1103515245 * val_seed + 12345) & 0x7fffffff
+                    var val_idx = val_seed % len(imgs)
+                    var img_path = imgs[val_idx]
                     var bmp = dados_pkg.carregar_bmp_rgb(img_path, largura, altura)
                     if bmp.width == 0:
                         continue
@@ -768,12 +772,12 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                 iou_consec_count = 0
 
             # Check target consecutive condition
-            if best_iou >= iou_target and iou_consec_count >= iou_consec_required:
+            if early_stop and best_iou >= iou_target and iou_consec_count >= iou_consec_required:
                 print("Early stopping: reached IoU target", best_iou, "at epoch", ep)
                 break
 
             # Patience-based stop
-            if iou_patience_count >= iou_patience:
+            if early_stop and iou_patience_count >= iou_patience:
                 print("Early stopping: no IoU improvement for", iou_patience, "epochs. Best IoU:", best_iou)
                 break
         except _:
