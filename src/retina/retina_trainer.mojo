@@ -713,6 +713,40 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                         _ = uteis.gravar_texto_seguro(sample_path, String("\n").join(lines_out^))
                     except _:
                         pass
+
+                    # save visual BMP overlay: GT=verde, pred=azul
+                    try:
+                        var flat_rgb = List[Int]()
+                        for y in range(bmp.height):
+                            for x in range(bmp.width):
+                                var rv = Int(bmp.pixels[y][x][0] * 255.0)
+                                var gv = Int(bmp.pixels[y][x][1] * 255.0)
+                                var bv = Int(bmp.pixels[y][x][2] * 255.0)
+                                if rv < 0: rv = 0
+                                if rv > 255: rv = 255
+                                if gv < 0: gv = 0
+                                if gv > 255: gv = 255
+                                if bv < 0: bv = 0
+                                if bv > 255: bv = 255
+                                flat_rgb.append(rv)
+                                flat_rgb.append(gv)
+                                flat_rgb.append(bv)
+                        # GT box em verde (somente se parsou)
+                        if s_parsed and s_gt_x0 < s_gt_x1 and s_gt_y0 < s_gt_y1:
+                            var gt_coords = List[Int]()
+                            gt_coords.append(s_gt_x0); gt_coords.append(s_gt_y0)
+                            gt_coords.append(s_gt_x1); gt_coords.append(s_gt_y1)
+                            graficos_pkg.draw_bbox_on_flat_rgb(flat_rgb, bmp.width, bmp.height, gt_coords^, 0, 220, 0)
+                        # pred box em azul
+                        if len(boxes) > 0:
+                            var pred_coords = boxes[0].copy()
+                            graficos_pkg.draw_bbox_on_flat_rgb(flat_rgb, bmp.width, bmp.height, pred_coords^, 0, 0, 220)
+                        var bmp_out_path = os.path.join(export_dir, "epoch_samples", "epoch_" + String(ep) + "_class_" + class_names[c] + ".bmp")
+                        var bmp_bytes = graficos_pkg.bmp.gerar_bmp_24bits_de_rgb(flat_rgb^, bmp.width, bmp.height)
+                        dados_pkg.gravar_arquivo_binario(bmp_out_path, bmp_bytes^)
+                        print("[VIS] epoch", ep, "class", class_names[c], "->", bmp_out_path)
+                    except _:
+                        pass
                 except _:
                     pass
         except _:

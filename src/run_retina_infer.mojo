@@ -10,7 +10,7 @@ fn main() raises -> None:
     var model_root = os.path.join("MODELO", "retina_modelo")
     var out_dir = os.path.join(model_root, "validacao_inferencia")
     try:
-        infer_pkg.validar_10_classes(model_root, "DATASET", out_dir, 640, 8, 10)
+        infer_pkg.validar_10_classes(model_root, "DATASET", out_dir, 320, 8, 10)
     except _:
         print("[RUN] exceção ao executar validar_10_classes")
     print("Inferência de validação concluída. Saída:", out_dir)
