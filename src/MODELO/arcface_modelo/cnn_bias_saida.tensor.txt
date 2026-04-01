@@ -1,0 +1,3 @@
+tipo=cpu
+formato=1,1
+dados=0.0

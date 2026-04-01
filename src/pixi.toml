@@ -33,3 +33,21 @@ run_arcface_infer = "mojo -I ../../BIONIX-ML run_arcface_infer.mojo"
 run_arcface_infer_debug = { cmd = "mojo build -debug-level=line-tables -I ../../BIONIX-ML -o ./run_arcface_infer run_arcface_infer.mojo && ./run_arcface_infer" }
 run_arcface_infer_debug_build = { cmd = "mojo build -debug-level=line-tables -I ../../BIONIX-ML -o ./run_arcface_infer run_arcface_infer.mojo" }
 run_arcface_infer_debug_run = { cmd = "./run_arcface_infer" }
+
+# ── API HTTP ──────────────────────────────────────────────────────────────────
+build_api = { cmd = "mkdir -p build && mojo build -I ../../BIONIX-ML -o build/bionix_api api/run_api_server.mojo && cp -r MODELO build/ && cp build/index.html build/ 2>/dev/null || true" }
+build_api_debug = { cmd = "mkdir -p build && mojo build -debug-level=line-tables -I ../../BIONIX-ML -o build/bionix_api_debug api/run_api_server.mojo" }
+run_api = { cmd = "./build/bionix_api 8080 DATASET" }
+run_api_debug = { cmd = "./build/bionix_api_debug 8080 DATASET" }
+
+# ── WASM – bundle de pesos (requer modelo treinado em MODELO/) ────────────────
+build_wasm_bundle = { cmd = "mkdir -p build && mojo build -I ../../BIONIX-ML -o ./bionix_bundle_tool wasm/build_bundle.mojo && ./bionix_bundle_tool && rm -f ./bionix_bundle_tool" }
+build_wasm_bundle_debug = { cmd = "mkdir -p build && mojo build -debug-level=line-tables -I ../../BIONIX-ML -o ./bionix_bundle_tool wasm/build_bundle.mojo && ./bionix_bundle_tool && rm -f ./bionix_bundle_tool" }
+
+# ── WASM – módulo C (requer emcc do Emscripten) ───────────────────────────────
+build_wasm = { cmd = "mkdir -p build && cd wasm && make && cd .." }
+build_wasm_debug = { cmd = "mkdir -p build && cd wasm && make debug && cd .." }
+clean_wasm = { cmd = "cd wasm && make clean && cd .." }
+
+# ── Distribuição completa ─────────────────────────────────────────────────────
+dist = { cmd = "pixi run build_wasm_bundle && pixi run build_wasm && pixi run build_api" }
