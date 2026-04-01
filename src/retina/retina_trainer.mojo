@@ -12,10 +12,10 @@ import retina.retina_assigner as assigner
 import retina.retina_utils as retina_utils
 import os
 import math
-import diagnostics.one_shot_debug as osd
+import diagnostics.logger as logger
 
 
-# Simple field-splitting helper
+# Separador de campos: divide string por espaço, tab ou vírgula
 fn _split_fields(line: String) -> List[String]:
     var fields = List[String]()
     var cur = String("")
@@ -60,20 +60,7 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                           var patch_size: Int = 64, var epocas: Int = 5, var taxa_aprendizado: Float32 = 0.0001,
                           var batch_size: Int = 4, var samples_per_class: Int = 1, var randomize: Bool = True) raises -> String:
 
-    print("[DEBUG] treinar_retina_minimal: entrada chamada; altura:", altura, "largura:", largura, "patch_size:", patch_size, "epocas:", epocas)
-    try:
-        var h = -1; var w = -1
-        try:
-            h = detector.bloco_cnn.altura
-        except _:
-            h = -1
-        try:
-            w = detector.bloco_cnn.largura
-        except _:
-            w = -1
-        print("[DEBUG] treinar_retina_minimal: detector.bloco_cnn dimensions maybe -> altura:", h, "largura:", w)
-    except _:
-        pass
+    print("Iniciando treino: altura=", altura, " largura=", largura, " patch=", patch_size, " epocas=", epocas)
 
     # scheduler (ReduceLROnPlateau-like)
     var lr_atual = taxa_aprendizado
@@ -105,20 +92,13 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
     var head_bias_cls = tensor_defs.Tensor(List[Int](), detector.bloco_cnn.tipo_computacao)
     var head_initialized = False
 
-    # Try loading any existing saved regression/classification heads
-    # TEMPORARY: skip checkpoint load to isolate OOM cause (set to False to enable load)
-    var _skip_checkpoint_load = True
-    if not _skip_checkpoint_load:
-        try:
-            print("[DEBUG] treinar_retina_minimal: calling model_pkg.carregar_checkpoint with", export_dir)
-            _ = model_pkg.carregar_checkpoint(detector.bloco_cnn, export_dir)
-            print("[DEBUG] treinar_retina_minimal: returned from model_pkg.carregar_checkpoint")
-        except _:
-            pass
-    else:
-        print("[DEBUG] treinar_retina_minimal: skipping model_pkg.carregar_checkpoint (temp)")
+    # Carrega checkpoint anterior se existir (pesos treinados em sessões anteriores)
     try:
-        # attempt to read canonical classification head files
+        _ = model_pkg.carregar_checkpoint(detector.bloco_cnn, export_dir)
+    except _:
+        pass
+    try:
+        # Tenta carregar cabeças de classificação salvas
         var raw_w = arquivo_pkg.ler_arquivo_binario(os.path.join(export_dir, "peso_cls.bin"))
         var raw_b = arquivo_pkg.ler_arquivo_binario(os.path.join(export_dir, "bias_cls.bin"))
         if len(raw_w) > 0:
@@ -145,9 +125,8 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
         pass
 
     # anchors (fixed for image size)
-    print("[DEBUG] treinar_retina_minimal: before gerar_anchors, largura:", largura)
     var anchors = anchor_gen.gerar_anchors(largura)
-    print("[DEBUG] treinar_retina_minimal: after gerar_anchors; anchors len:", len(anchors))
+    print("Anchors gerados:", len(anchors))
     # snapshot anchors immediately after generation to detect later corruption
     var anchors_snapshot = List[List[Float32]]()
     for i in range(len(anchors)):
@@ -164,7 +143,8 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                 anchors_checksum = anchors_checksum + v * Float32(i + 1)
     except _:
         anchors_checksum = Float32(-1.0)
-    print("[DBG] anchors_checksum after generation:", anchors_checksum)
+    import diagnostics.logger as logger
+    logger.console_print("[DBG] anchors_checksum after generation:", String(anchors_checksum))
     # quick scan for corrupted anchors right after generation
     try:
         var bad = 0
@@ -184,6 +164,36 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
             except _:
                 bad = bad + 1
                 if len(bad_examples) < 10:
+                    # If we have a one-shot debug log, also print its tail to help correlate
+                    try:
+                        var log_path = String("/tmp/one_shot_debug.log")
+                        if os.path.exists(log_path):
+                            try:
+                                var raw = arquivo_pkg.ler_arquivo_texto(log_path)
+                                var lines = List[String]()
+                                var cur = String("")
+                                for ch in raw:
+                                    if ch == '\n':
+                                        lines.append(cur)
+                                        cur = String("")
+                                    else:
+                                        cur = cur + String(ch)
+                                if len(cur) > 0:
+                                    lines.append(cur)
+                                var tail = 200
+                                var start = len(lines) - tail
+                                if start < 0:
+                                    start = 0
+                                print("[DBG] one_shot_debug tail (last", len(lines) - start, "lines):")
+                                for i in range(start, len(lines)):
+                                    try:
+                                        print(lines[i])
+                                    except _:
+                                        pass
+                            except _:
+                                pass
+                    except _:
+                        pass
                     bad_examples.append(i)
         if bad > 0:
             try:
@@ -205,16 +215,12 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
         pass
 
     # build class lists from dataset_dir (expect structure: dataset_dir/train/<class>/*.bmp)
-    print("[DEBUG] treinar_retina_minimal: about to build class lists from dataset_dir:", dataset_dir)
     var train_root = os.path.join(dataset_dir, "train")
     if not os.path.exists(train_root):
         train_root = dataset_dir
     var class_names = List[String]()
     var class_images = List[List[String]]()
     var total_images: Int = 0
-    var _limit_dataset_scan = True
-    var _limit_total_images: Int = 500
-    var _stop_scan: Bool = False
     try:
         for cls in os.listdir(train_root):
             var pcls = os.path.join(train_root, cls)
@@ -228,17 +234,11 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                         imgs.append(os.path.join(pcls, f))
             except _:
                 pass
-            # compute length before transferring ownership into class_images
             var imgs_len = len(imgs)
             class_images.append(imgs^)
             total_images = total_images + imgs_len
-            print("[DEBUG] treinar_retina_minimal: class", cls, "images:", imgs_len, "total_images:", total_images)
-            if _limit_dataset_scan and total_images > _limit_total_images:
-                print("[DEBUG] treinar_retina_minimal: reached total_images limit (", total_images, ") - stopping scan")
-                _stop_scan = True
-            if _stop_scan:
+            if total_images > 500:
                 break
-            print("[DEBUG] treinar_retina_minimal: built class lists; classes:", len(class_names))
     except _:
         pass
     var class_ptrs = List[Int]()
@@ -336,10 +336,6 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                 class_ptrs[c] = ptr
 
         var E = len(batch_paths)
-        print("[DBG] treinar_retina_minimal: built batch_paths len=", E, "classes=", len(class_names), "samples_per_class=", samples_per_class, "randomize=", randomize)
-        # diagnostic clamp: process only 1 image per epoch to isolate memory issues
-        if E > 1:
-            E = 1
         if E == 0:
             print("Nenhuma imagem para treinar; verifique DATASET")
             return "Falha: sem imagens"
@@ -469,8 +465,8 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                 var pos_processed: Int = 0
                 var _max_pos_per_image: Int = 8
 
-                # allocate input tensor once per image and reuse to avoid repeated large allocations
-                var in_shape = List[Int](); in_shape.append(1); in_shape.append(patch_size * patch_size * 3)
+                # Tensor grayscale [1, patch*patch] — tamanho correto para BlocoCNN de patch_size×patch_size
+                var in_shape = List[Int](); in_shape.append(1); in_shape.append(patch_size * patch_size)
                 
                 for a_idx in range(len(anchors)):
                     if labels[a_idx] != 1:
@@ -493,7 +489,7 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                             for vv2 in a_ckv2:
                                 pre_anchor_ck = pre_anchor_ck + vv2 * Float32(i_ck2 + 1)
                         if pre_anchor_ck != anchors_checksum:
-                            print("[DBG-ERR] anchors checksum changed before anchor processing a_idx=", a_idx, "gen_ck=", anchors_checksum, "pre_anchor_ck=", pre_anchor_ck)
+                            logger.error_log(String("anchors_checksum_changed_before_anchor"), String("a_idx=") + String(a_idx) + String(" gen_ck=") + String(anchors_checksum) + String(" pre_anchor_ck=") + String(pre_anchor_ck))
                             # locate first diff near reported idx
                             try:
                                 var first_diff3 = -1
@@ -506,7 +502,7 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                                             d3 = True; break
                                     if d3:
                                         first_diff3 = ii; break
-                                print("[DBG-ERR] first differing anchor near pre-anchor detect idx=", first_diff3)
+                                logger.error_log(String("first_differing_anchor_pre_anchor"), String(first_diff3))
                                 # recent write-trace disabled (instrumentation removed)
                             except _:
                                 pass
@@ -537,14 +533,11 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                     var bmp_channels = bmp.channels
                     var bmp_w = bmp.width; var bmp_h = bmp.height
                     
-                    # Fill tensor directly from BMP flat buffer via nearest-neighbor crop+resize
+                    # Redimensiona região da anchor para patch_size×patch_size e converte para escala de cinza
                     var yy0_local = ay; var xx0_local = ax
                     var src_h_local = ah; var src_w_local = aw
                     if src_h_local <= 0: src_h_local = 1
                     if src_w_local <= 0: src_w_local = 1
-                    var dbg_oob_count = 0
-                    
-                    var tensor_len = len(tensor_in.dados)
                     var flat_len = len(bmp_flat)
                     for yy in range(patch_size):
                         var src_y = (yy * src_h_local) // patch_size
@@ -560,30 +553,13 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                             var img_x = xx0_local + src_x
                             if img_x < 0: img_x = 0
                             if img_x >= bmp_w: img_x = bmp_w - 1
-                            
-                            var base = (yy * patch_size + xx) * 3
                             var idx_flat = (img_y * bmp_w + img_x) * bmp_channels
-                            
-                            if base + 2 < tensor_len and base >= 0:
-                                if idx_flat + 2 < flat_len and idx_flat >= 0:
-                                            # log the attempted write for debugging
-                                            # one-shot debug: mark this write (very small, movable)
-                                            try:
-                                                osd.debug_marker(String("trainer_tensor_write"), String("img=") + path + String(" a_idx=") + String(a_idx) + String(" base=") + String(base) + String(" idx_flat=") + String(idx_flat))
-                                            except _:
-                                                pass
-                                            tensor_in.dados[base + 0] = bmp_flat[idx_flat + 0]
-                                            tensor_in.dados[base + 1] = bmp_flat[idx_flat + 1]
-                                            tensor_in.dados[base + 2] = bmp_flat[idx_flat + 2]
-                                else:
-                                            tensor_in.dados[base + 0] = 0.0
-                                            tensor_in.dados[base + 1] = 0.0
-                                            tensor_in.dados[base + 2] = 0.0
-                            else:
-                                dbg_oob_count = dbg_oob_count + 1
-                    
-                    if dbg_oob_count > 0:
-                        print("[DBG-ERR] treinar_retina_minimal: OOB detected in crop, count=", dbg_oob_count)
+                            var r: Float32 = 0.0; var g: Float32 = 0.0; var b: Float32 = 0.0
+                            if bmp_channels >= 3 and idx_flat + 2 < flat_len:
+                                r = bmp_flat[idx_flat + 0]; g = bmp_flat[idx_flat + 1]; b = bmp_flat[idx_flat + 2]
+                            elif idx_flat < flat_len:
+                                r = bmp_flat[idx_flat]; g = r; b = r
+                            tensor_in.dados[yy * patch_size + xx] = Float32(0.299) * r + Float32(0.587) * g + Float32(0.114) * b
 
                     var feats = cnn_pkg.extrair_features(detector.bloco_cnn, tensor_in)
                     var D = 0
@@ -592,24 +568,38 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                     except _:
                         D = 0
 
-                    # initialize heads from features on first positive
-                    if not head_initialized and D > 0:
-                        var shape_w = List[Int](); shape_w.append(D); shape_w.append(4)
-                        detector.bloco_cnn.peso_saida = tensor_defs.Tensor(shape_w^, detector.bloco_cnn.tipo_computacao)
-                        var shape_b = List[Int](); shape_b.append(1); shape_b.append(4)
-                        detector.bloco_cnn.bias_saida = tensor_defs.Tensor(shape_b^, detector.bloco_cnn.tipo_computacao)
-                        for k in range(len(detector.bloco_cnn.peso_saida.dados)):
-                            detector.bloco_cnn.peso_saida.dados[k] = 0.001
-                        for k in range(len(detector.bloco_cnn.bias_saida.dados)):
-                            detector.bloco_cnn.bias_saida.dados[k] = 0.0
-                        var shape_cw = List[Int](); shape_cw.append(D); shape_cw.append(1)
-                        head_peso_cls = tensor_defs.Tensor(shape_cw^, detector.bloco_cnn.tipo_computacao)
-                        var shape_cb = List[Int](); shape_cb.append(1); shape_cb.append(1)
-                        head_bias_cls = tensor_defs.Tensor(shape_cb^, detector.bloco_cnn.tipo_computacao)
-                        for k in range(len(head_peso_cls.dados)):
-                            head_peso_cls.dados[k] = 0.001
-                        head_bias_cls.dados[0] = 0.0
-                        head_initialized = True
+                    # Ensure regression head has correct shape [D, 4] regardless of whether
+                    # the classification head was loaded from a checkpoint. This guards against
+                    # the case where head_initialized=True (cls head loaded) but peso_saida still
+                    # has its default shape [D, 1] from BlocoCNN.__init__ — which would cause
+                    # OOB writes of the form dados[d*4+j] on a 1-column buffer.
+                    if D > 0:
+                        var reg_shape_ok = False
+                        try:
+                            reg_shape_ok = (len(detector.bloco_cnn.peso_saida.formato) == 2 and
+                                            detector.bloco_cnn.peso_saida.formato[0] == D and
+                                            detector.bloco_cnn.peso_saida.formato[1] == 4)
+                        except _:
+                            reg_shape_ok = False
+                        if not reg_shape_ok:
+                            var shape_w = List[Int](); shape_w.append(D); shape_w.append(4)
+                            detector.bloco_cnn.peso_saida = tensor_defs.Tensor(shape_w^, detector.bloco_cnn.tipo_computacao)
+                            var shape_b = List[Int](); shape_b.append(1); shape_b.append(4)
+                            detector.bloco_cnn.bias_saida = tensor_defs.Tensor(shape_b^, detector.bloco_cnn.tipo_computacao)
+                            for k in range(len(detector.bloco_cnn.peso_saida.dados)):
+                                detector.bloco_cnn.peso_saida.dados[k] = 0.001
+                            for k in range(len(detector.bloco_cnn.bias_saida.dados)):
+                                detector.bloco_cnn.bias_saida.dados[k] = 0.0
+                            print("[DBG] regression head reinitialized: D=", D, "shape=[D,4]")
+                        if not head_initialized:
+                            var shape_cw = List[Int](); shape_cw.append(D); shape_cw.append(1)
+                            head_peso_cls = tensor_defs.Tensor(shape_cw^, detector.bloco_cnn.tipo_computacao)
+                            var shape_cb = List[Int](); shape_cb.append(1); shape_cb.append(1)
+                            head_bias_cls = tensor_defs.Tensor(shape_cb^, detector.bloco_cnn.tipo_computacao)
+                            for k in range(len(head_peso_cls.dados)):
+                                head_peso_cls.dados[k] = 0.001
+                            head_bias_cls.dados[0] = 0.0
+                            head_initialized = True
 
                     # compute prediction and simple L1 update
                     var pred = List[Float32]()

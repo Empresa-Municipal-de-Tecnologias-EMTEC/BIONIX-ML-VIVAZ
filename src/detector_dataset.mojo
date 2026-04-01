@@ -4,7 +4,9 @@ import bionix_ml.uteis as uteis
 import bionix_ml.computacao as computacao_pkg
 import bionix_ml.nucleo.Tensor as tensor_defs
 import os
-# diagnostics.write_trace instrumentation removed; keep file available for later one-shot usage
+import diagnostics.one_shot_debug as osd
+import diagnostics.logger as logger
+import bionix_ml.uteis.arquivo as arquivo_io
 
 # Dataset loader: reads dataset tree with .bmp + .txt (.box) files and yields crops as tensors
 fn carregar_dataset_detector_pouro(var dir_dataset: String, var altura: Int, var largura: Int, var tipo: String, var max_classes: Int = 100000) -> List[tensor_defs.Tensor]:
@@ -125,11 +127,30 @@ fn carregar_dataset_detector_pouro(var dir_dataset: String, var altura: Int, var
     var x_t = tensor_defs.Tensor(formato_x^, tipo)
     var y_t = tensor_defs.Tensor(formato_y^, tipo)
     var idx = 0
+    # one-shot activation: create file /tmp/one_shot_detector_target with an integer
+    # to enable logging only for that sample index (reduces noise)
+    var one_shot_enable = False
+    var one_shot_target = -1
+    try:
+        var s = arquivo_io.ler_texto_seguro(String("/tmp/one_shot_detector_target"))
+        if len(s) > 0:
+            try:
+                one_shot_target = Int(s.strip())
+                one_shot_enable = True
+            except _:
+                one_shot_enable = False
+    except _:
+        one_shot_enable = False
     for p in positivos:
         for yy in range(altura):
             for xx in range(largura):
                 var out_idx = idx * features + yy * largura + xx
-                # original behavior: write pixel into tensor (debug instrumentation removed)
+                if one_shot_enable:
+                    if idx == one_shot_target:
+                        try:
+                            logger.marker(String("detector_x_t_write"), String("img=") + bmp_path + String(" idx=") + String(idx) + String(" out_idx=") + String(out_idx))
+                        except _:
+                            pass
                 x_t.dados[out_idx] = p[yy][xx]
         y_t.dados[idx] = 1.0
         idx = idx + 1
@@ -137,7 +158,12 @@ fn carregar_dataset_detector_pouro(var dir_dataset: String, var altura: Int, var
         for yy in range(altura):
             for xx in range(largura):
                 var out_idx = idx * features + yy * largura + xx
-                # original behavior: write pixel into tensor (debug instrumentation removed)
+                if one_shot_enable:
+                    if idx == one_shot_target:
+                        try:
+                            logger.marker(String("detector_x_t_write_neg"), String("img=") + bmp_path + String(" idx=") + String(idx) + String(" out_idx=") + String(out_idx))
+                        except _:
+                            pass
                 x_t.dados[out_idx] = n[yy][xx]
         y_t.dados[idx] = 0.0
         idx = idx + 1
@@ -242,15 +268,35 @@ fn carregar_dataset_detector_bbox_color(var dir_dataset: String, var altura: Int
     var x_t = tensor_defs.Tensor(formato_x^, tipo)
     var y_t = tensor_defs.Tensor(formato_y^, tipo)
     var idx = 0
+    # one-shot activation for color loader: read target sample idx from /tmp/one_shot_detector_target
+    var one_shot_enable = False
+    var one_shot_target = -1
+    try:
+        var s = arquivo_io.ler_texto_seguro(String("/tmp/one_shot_detector_target"))
+        if len(s) > 0:
+            try:
+                one_shot_target = Int(s.strip())
+                one_shot_enable = True
+            except _:
+                one_shot_enable = False
+    except _:
+        one_shot_enable = False
     for p in features_list:
         # p is [H][W][3]
         for yy in range(altura):
             for xx in range(largura):
                 var pix = p[yy][xx]
                 # order R,G,B channels
-                x_t.dados[idx * features + (yy * largura + xx) * 3 + 0] = pix[0]
-                x_t.dados[idx * features + (yy * largura + xx) * 3 + 1] = pix[1]
-                x_t.dados[idx * features + (yy * largura + xx) * 3 + 2] = pix[2]
+                var base_idx = idx * features + (yy * largura + xx) * 3
+                if one_shot_enable:
+                    if idx == one_shot_target:
+                        try:
+                            logger.marker(String("detector_x_t_write_color"), String("img=") + bmp_path + String(" idx=") + String(idx) + String(" base=") + String(base_idx))
+                        except _:
+                            pass
+                x_t.dados[base_idx + 0] = pix[0]
+                x_t.dados[base_idx + 1] = pix[1]
+                x_t.dados[base_idx + 2] = pix[2]
         var tb = bboxes_list[idx]
         for j in range(4):
             y_t.dados[idx * 4 + j] = tb[j]
@@ -403,10 +449,31 @@ fn carregar_dataset_detector_bbox(var dir_dataset: String, var altura: Int, var 
     var x_t = tensor_defs.Tensor(formato_x^, tipo)
     var y_t = tensor_defs.Tensor(formato_y^, tipo)
     var idx = 0
+    # one-shot activation for full-image grayscale loader: read target sample idx from /tmp/one_shot_detector_target
+    var one_shot_enable = False
+    var one_shot_target = -1
+    try:
+        var s = arquivo_io.ler_texto_seguro(String("/tmp/one_shot_detector_target"))
+        if len(s) > 0:
+            try:
+                one_shot_target = Int(s.strip())
+                one_shot_enable = True
+            except _:
+                one_shot_enable = False
+    except _:
+        one_shot_enable = False
+
     for p in features_list:
         for yy in range(altura):
             for xx in range(largura):
-                x_t.dados[idx * features + yy * largura + xx] = p[yy][xx]
+                var out_idx = idx * features + yy * largura + xx
+                if one_shot_enable:
+                    if idx == one_shot_target:
+                        try:
+                            logger.marker(String("detector_x_t_write_full_gray"), String("img=") + bmp_path + String(" idx=") + String(idx) + String(" out_idx=") + String(out_idx))
+                        except _:
+                            pass
+                x_t.dados[out_idx] = p[yy][xx]
         var tb = bboxes_list[idx]
         for j in range(4):
             y_t.dados[idx * 4 + j] = tb[j]

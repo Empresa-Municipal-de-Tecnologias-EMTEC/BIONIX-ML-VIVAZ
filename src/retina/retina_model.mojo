@@ -102,9 +102,9 @@ struct RetinaFace(Movable):
         print("[DEBUG] RetinaFace.__init__: start; parametros.input_size=", parametros_in.input_size)
         self.parametros = parametros_in^
         # create underlying CNN block (may allocate memory)
-        print("[DEBUG] RetinaFace.__init__: criando bloco_cnn via model_pkg.criar_bloco_detector()")
-        self.bloco_cnn = model_pkg.criar_bloco_detector(self.parametros.input_size, self.parametros.input_size, self.parametros.num_filtros, self.parametros.kernel_h, self.parametros.kernel_w, contexto_defs.criar_contexto_padrao(self.parametros.tipo_ctx))
-        print("[DEBUG] RetinaFace.__init__: bloco_cnn criado")
+        # BlocoCNN é dimensionado para patch_size×patch_size (não input_size)
+        # pois processa crops de anchors, não a imagem completa
+        self.bloco_cnn = model_pkg.criar_bloco_detector(self.parametros.patch_size, self.parametros.patch_size, self.parametros.num_filtros, self.parametros.kernel_h, self.parametros.kernel_w, contexto_defs.criar_contexto_padrao(self.parametros.tipo_ctx))
         # placeholder head tensors (initialized lazily)
         self.cabeca_classificacao_peso = tensor_defs.Tensor(List[Int](), self.bloco_cnn.tipo_computacao)
         self.cabeca_classificacao_bias = tensor_defs.Tensor(List[Int](), self.bloco_cnn.tipo_computacao)
@@ -331,16 +331,14 @@ struct RetinaFace(Movable):
             if ay + ah > in_size: ah = max(1, in_size - ay)
 
             var patch_rgb = graficos_pkg.crop_and_resize_rgb(img_pixels, ax, ay, ax + aw - 1, ay + ah - 1, patch_size, patch_size)
+            # Tensor grayscale [1, patch*patch] — BlocoCNN processa escala de cinza
             var in_shape = List[Int]()
-            in_shape.append(1); in_shape.append(patch_size * patch_size * 3)
+            in_shape.append(1); in_shape.append(patch_size * patch_size)
             var tensor_in = tensor_defs_local.Tensor(in_shape^, self.bloco_cnn.tipo_computacao)
             for yy in range(patch_size):
                 for xx in range(patch_size):
                     var pix = patch_rgb[yy][xx].copy()
-                    var base = (yy * patch_size + xx) * 3
-                    tensor_in.dados[base + 0] = pix[0]
-                    tensor_in.dados[base + 1] = pix[1]
-                    tensor_in.dados[base + 2] = pix[2]
+                    tensor_in.dados[yy * patch_size + xx] = Float32(0.299) * pix[0] + Float32(0.587) * pix[1] + Float32(0.114) * pix[2]
 
             var feats_t = tensor_defs_local.Tensor(List[Int](), self.bloco_cnn.tipo_computacao)
             try:
