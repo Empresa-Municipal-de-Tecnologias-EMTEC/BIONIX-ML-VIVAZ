@@ -6,54 +6,293 @@
 
 Modelos e APIs para detecção e reconhecimento facial construídos sobre o framework **BIONIX-ML**.
 
-Este repositório contém um modelo denominado *Vivaz* que expõe:
+O repositório contém dois sistemas:
 
-- uma API HTTP para inferência (endpoints para detecção e reconhecimento);
-- pipes nomeados (named pipes) para integração local e passagem de imagens/atributos entre processos.
+- **Detector RetinaFace** — localiza faces em imagens BMP, produz bounding boxes.
+- **Reconhecedor ArcFace** — extrai embeddings de face de 128 dimensões e identifica ou verifica pessoas.
 
-Importante: o repositório `BIONIX-ML` deve estar clonado como diretório irmão para que os imports `src.*` resolvam corretamente.
+Ambos são expostos de três formas:
+- **API HTTP** (`api/run_api_server.mojo`) — servidor TCP/HTTP sequencial com 8 endpoints.
+- **Módulo WebAssembly** (`wasm/arcface_wasm.c`) — inferência ArcFace compilada com Emscripten para rodar direto no browser.
+- **Demo browser** (`build/index.html`) — página standalone com câmera em tempo-real, modo live e verificação de par.
+
+Importante: o repositório `BIONIX-ML` deve estar clonado como diretório irmão.
 
 Repositório do framework principal: https://github.com/Empresa-Municipal-de-Tecnologias-EMTEC/BIONIX-ML
 
-## Execução
+---
 
-1. Garanta o layout de diretórios ou, preferencialmente, declare a dependência via `pixi.toml` e importe `bionix_ml.*` nos seus módulos:
+## Pré-requisitos
+
+| Ferramenta | Versão mínima | Finalidade |
+|---|---|---|
+| [pixi](https://prefix.dev/) | qualquer | gerenciador de ambiente / tasks |
+| Mojo (via pixi) | 0.25.6 | compilar todos os módulos `.mojo` |
+| Python 3.8+ | — | converter imagens do dataset |
+| [Pillow](https://pypi.org/project/Pillow/) | — | `convert_images_to_bmp.py` |
+| [Emscripten](https://emscripten.org/docs/getting_started/downloads.html) | 3.x | compilar o módulo WASM (opcional) |
+
+O pixi instala o Mojo automaticamente. Tudo mais é opcional conforme os módulos que serão usados.
+
+---
+
+## Layout de diretórios
 
 ```
 parent/
-├─ BIONIX-ML/
+├─ BIONIX-ML/          ← framework (deve existir como irmão)
 └─ BIONIX-ML-VIVAZ/
+   ├─ src/
+   │   ├─ run_retina_train.mojo   ← treino do detector
+   │   ├─ run_retina_infer.mojo   ← inferência do detector
+   │   ├─ run_arcface_train.mojo  ← treino do reconhecedor
+   │   ├─ run_arcface_infer.mojo  ← inferência do reconhecedor
+   │   ├─ reconhecedor/           ← pacote ArcFace
+   │   ├─ retina/                 ← pacote RetinaFace
+   │   ├─ api/                    ← servidor HTTP
+   │   ├─ wasm/                   ← módulo WebAssembly (C + Makefile)
+   │   ├─ DATASET/                ← dataset local (ignorado pelo git)
+   │   ├─ MODELO/                 ← checkpoints (ignorado pelo git)
+   │   └─ build/                  ← artefatos compilados + index.html
+   └─ convert_images_to_bmp.py
 ```
 
-Exemplo de `pixi.toml` do consumidor:
+---
 
-```toml
-[dependencies]
-bionix_ml = { path = "../BIONIX-ML" }
-```
-
-Exemplo de import (Mojo):
-
-```mojo
-import bionix_ml.computacao as computacao_pkg
-```
-
-Observação: apontar para `../BIONIX-ML/src` mantém compatibilidade com imports `src.*` legados, mas não é o fluxo recomendado — migre para `bionix_ml.*`.
-
-2. Em WSL/Linux (recomendado) rode:
+## Configuração do ambiente
 
 ```bash
-# compila comandos configurados no pixi
-pixi run compilar
+# 1. Clone os dois repositórios lado a lado
+git clone <url>/BIONIX-ML
+git clone <url>/BIONIX-ML-VIVAZ
 
-# executa o serviço e captura logs
-pixi run executar > log.log 2>&1
+# 2. Instale o pixi (se ainda não tiver)
+curl -fsSL https://pixi.sh/install.sh | bash
 
-# examinar logs
-cat log.log
+# 3. Entre na pasta src do projeto e instale o ambiente Mojo
+cd BIONIX-ML-VIVAZ/src
+pixi install
 ```
 
-Observação: o projeto assume integração com módulos do `BIONIX-ML/src` — mantenha o repositório principal disponível no mesmo nível ou ajuste as dependências conforme descrito acima.
+---
+
+## Detector de faces (RetinaFace)
+
+### Treinar
+
+```bash
+# Interpretado (mais rápido para iterar)
+cd src
+pixi run run_retina_train
+
+# Compilado com debug (build + executa)
+pixi run run_retina_train_debug
+
+# Só compilar (separado da execução)
+pixi run run_retina_train_debug_build
+./run_retina_train
+```
+
+O modelo é salvo em `MODELO/retina_modelo/`.
+
+### Inferir
+
+```bash
+pixi run run_retina_infer
+```
+
+---
+
+## Reconhecedor de faces (ArcFace)
+
+### Treinar
+
+```bash
+cd src
+
+# Interpretado
+pixi run run_arcface_train
+
+# Compilado + debug
+pixi run run_arcface_train_debug
+
+# Só compilar
+pixi run run_arcface_train_debug_build
+./run_arcface_train
+```
+
+Os checkpoints são salvos em `MODELO/arcface_modelo/`:
+
+```
+arcface_state.txt        ← epoch, lr, patch_size, embed_dim, num_classes
+kernels.bin              ← pesos da camada CNN
+proj_peso.bin            ← matriz de projeção (D→128)
+proj_bias.bin
+cls_peso.bin             ← cabeça de classificação
+cls_bias.bin
+cnn_peso_saida.tensor.txt
+```
+
+### Inferir / identificar
+
+```bash
+# Interpretado
+pixi run run_arcface_infer
+
+# Compilado + debug
+pixi run run_arcface_infer_debug
+```
+
+O script constrói uma galeria a partir de `DATASET/` e identifica faces chamando `bionix_identify_rgba`.
+
+---
+
+## API HTTP
+
+O servidor expõe 8 endpoints na porta 8080 (padrão). Aceita imagens **BMP** no corpo das requisições.
+
+### Endpoints
+
+| Método | Caminho | Corpo | Resposta |
+|---|---|---|---|
+| GET | `/health` | — | `{"status":"ok","version":"1.0.0"}` |
+| POST | `/detectar` | BMP bytes | `{"boxes":[[x0,y0,x1,y1],...]}` |
+| POST | `/identificar` | BMP bytes | `{"identidade":"nome","score":0.95,"box":[...]}` |
+| POST | `/verificar_par` | `uint32_LE(tam_A)` + BMP_A + BMP_B | `{"mesma_pessoa":true,"score":0.92}` |
+| POST | `/embedding` | BMP bytes | `{"embedding":[...128 floats]}` |
+| GET | `/galeria` | — | `{"identidades":["A","B",...],"total":46}` |
+| POST | `/galeria/construir` | — | `{"ok":true,"classes":46}` |
+| POST | `/galeria/adicionar` | `byte(name_len)` + nome + BMP bytes | `{"ok":true,"galeria_size":47}` |
+
+### Compilar e executar
+
+```bash
+cd src
+
+# Compilar versão release (move também os pesos de MODELO/ para build/)
+pixi run build_api
+
+# Compilar versão debug
+pixi run build_api_debug
+
+# Executar (porta 8080, dataset em DATASET/)
+pixi run run_api
+
+# Ou diretamente com argumentos customizados
+./build/bionix_api <porta> <caminho_dataset>
+```
+
+### Exemplos curl
+
+```bash
+# Health check
+curl http://localhost:8080/health
+
+# Detectar faces em uma imagem
+curl -X POST --data-binary @foto.bmp http://localhost:8080/detectar
+
+# Identificar quem está na foto
+curl -X POST --data-binary @foto.bmp http://localhost:8080/identificar
+
+# Verificar se duas fotos são da mesma pessoa
+# (corpo: 4 bytes LE com tamanho da foto A, depois foto A, depois foto B)
+python3 -c "
+import struct, sys
+a = open('face_a.bmp','rb').read()
+b = open('face_b.bmp','rb').read()
+sys.stdout.buffer.write(struct.pack('<I', len(a)) + a + b)
+" | curl -X POST --data-binary @- http://localhost:8080/verificar_par
+```
+
+---
+
+## Módulo WebAssembly
+
+O módulo `wasm/arcface_wasm.c` implementa o mesmo pipeline de inferência ArcFace em C puro para rodar no browser via Emscripten.
+
+### Pré-requisito: Emscripten
+
+```bash
+# Via apt (Ubuntu/Debian)
+sudo apt install emscripten
+
+# Ou via emsdk
+git clone https://github.com/emscripten-core/emsdk.git
+cd emsdk && ./emsdk install latest && ./emsdk activate latest
+source ./emsdk_env.sh
+```
+
+### Exportar pesos (bundle binário)
+
+O bundle concentra todos os pesos do modelo ArcFace em um único arquivo para download pelo browser.
+**Requer modelo treinado em `MODELO/arcface_modelo/`.**
+
+```bash
+cd src
+pixi run build_wasm_bundle
+# Gera em build/:
+#   arcface_bundle.bin   ← pesos CNN + projeção + classificação (~3.8 MB)
+#   arcface_gallery.bin  ← embeddings da galeria
+#   arcface_gallery.json ← nomes das identidades
+```
+
+### Compilar o módulo WASM
+
+```bash
+pixi run build_wasm        # release (otimizado)
+pixi run build_wasm_debug  # debug com asserts Emscripten
+# Gera em build/:
+#   arcface.js    ← glue JavaScript do Emscripten
+#   arcface.wasm  ← binário WebAssembly
+```
+
+### Demo browser
+
+Após gerar os artefatos acima, sirva a pasta `build/` com qualquer servidor HTTP estático:
+
+```bash
+cd src/build
+
+# Python (mais simples)
+python3 -m http.server 9000
+
+# Node
+npx serve .
+```
+
+Abra `http://localhost:9000/index.html`. A página:
+- Carrega o modelo WASM e pesos automaticamente.
+- Abre a câmera e identifica faces em tempo-real (modo live) ou a cada clique em **Identificar**.
+- Permite verificar se dois arquivos de imagem são da mesma pessoa (**Verificar Par**).
+
+---
+
+## Distribuição completa
+
+Para gerar todos os artefatos de uma vez (bundle + WASM + API):
+
+```bash
+cd src
+pixi run dist
+```
+
+Conteúdo resultante de `build/`:
+
+```
+build/
+├─ bionix_api          ← binário da API HTTP
+├─ arcface.js          ← glue Emscripten
+├─ arcface.wasm        ← módulo WebAssembly
+├─ arcface_bundle.bin  ← pesos do modelo (WASM)
+├─ arcface_gallery.bin ← galeria de embeddings
+├─ arcface_gallery.json
+├─ index.html          ← demo browser
+└─ MODELO/             ← pesos para a API nativa
+   ├─ arcface_modelo/
+   └─ retina_modelo/
+```
+
+---
 
 ## Dataset
 
