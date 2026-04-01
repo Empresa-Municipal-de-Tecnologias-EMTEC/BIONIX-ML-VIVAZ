@@ -144,7 +144,6 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
     except _:
         anchors_checksum = Float32(-1.0)
     import diagnostics.logger as logger
-    logger.console_print("[DBG] anchors_checksum after generation:", String(anchors_checksum))
     # quick scan for corrupted anchors right after generation
     try:
         var bad = 0
@@ -164,36 +163,6 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
             except _:
                 bad = bad + 1
                 if len(bad_examples) < 10:
-                    # If we have a one-shot debug log, also print its tail to help correlate
-                    try:
-                        var log_path = String("/tmp/one_shot_debug.log")
-                        if os.path.exists(log_path):
-                            try:
-                                var raw = arquivo_pkg.ler_arquivo_texto(log_path)
-                                var lines = List[String]()
-                                var cur = String("")
-                                for ch in raw:
-                                    if ch == '\n':
-                                        lines.append(cur)
-                                        cur = String("")
-                                    else:
-                                        cur = cur + String(ch)
-                                if len(cur) > 0:
-                                    lines.append(cur)
-                                var tail = 200
-                                var start = len(lines) - tail
-                                if start < 0:
-                                    start = 0
-                                print("[DBG] one_shot_debug tail (last", len(lines) - start, "lines):")
-                                for i in range(start, len(lines)):
-                                    try:
-                                        print(lines[i])
-                                    except _:
-                                        pass
-                            except _:
-                                pass
-                    except _:
-                        pass
                     bad_examples.append(i)
         if bad > 0:
             try:
@@ -261,6 +230,7 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
         pass
 
     for ep in range(epocas):
+        print("Epoca", ep, "/", epocas - 1, "iniciando...")
         # check anchors checksum at epoch start to detect mutation timing
         # ensure `cur_ck` is always initialized outside the try/except
         var cur_ck: Float32 = Float32(-2.0)
@@ -352,7 +322,6 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                 # We'll attempt flat-buffer crops first; only if that fails we'll
                 # lazily construct a nested `img_matrix` for the fallback path.
                 img_matrix = List[List[List[Float32]]]()
-                print("[DEBUG] treinar_retina_minimal: deferred full-image resize; bmp.width=", bmp.width, "bmp.height=", bmp.height, "bmp.channels=", bmp.channels, "flat_len=", len(bmp.flat_pixels))
 
                 # load ground-truth box if exists
                 var tx0: Float32 = 0.0; var ty0: Float32 = 0.0; var tx1: Float32 = 0.0; var ty1: Float32 = 0.0
@@ -427,36 +396,11 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                 except _:
                     pass
 
-                # Diagnostic: print assigner sizes and a few sample anchors/labels
-                try:
-                    print("[DBG] assigner: anchors_len=", len(anchors), "labels_len=", len(labels), "targets_len=", len(targets))
-                    var max_show = 5
-                    var show_n = max_show if max_show < len(anchors) else len(anchors)
-                    for k in range(show_n):
-                        try:
-                            var ar = anchors[k].copy()
-                            print("[DBG] anchor[", k, "]:", ar[0], ar[1], ar[2], ar[3])
-                        except _:
-                            pass
-                    var show_lab = 10
-                    var show_lab_n = show_lab if show_lab < len(labels) else len(labels)
-                    for k in range(show_lab_n):
-                        try:
-                            print("[DBG] label[", k, "]=", labels[k])
-                        except _:
-                            pass
-                except _:
-                    pass
-
                 # Diagnostic: report basic /proc/meminfo lines (available on Linux/WSL)
                 try:
                     var memtxt = arquivo_pkg.ler_arquivo_texto("/proc/meminfo")
                     if len(memtxt) > 0:
                         var memlines = memtxt.split("\n")
-                        if len(memlines) > 0:
-                            print("[DBG] /proc/meminfo:", memlines[0])
-                        if len(memlines) > 1:
-                            print("[DBG] /proc/meminfo:", memlines[1])
                 except _:
                     pass
 
@@ -473,9 +417,6 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                         continue
                     pos_processed = pos_processed + 1
                     if pos_processed > _max_pos_per_image:
-                        # diagnostic - too many positives, skip remaining to reduce memory
-                        if pos_processed == _max_pos_per_image + 1:
-                            print("[DBG] treinar_retina_minimal: reached max positive anchors for this image; skipping remaining positives")
                         break
                     
                     # Check anchors checksum immediately before processing this anchor
@@ -516,10 +457,6 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                     var a = anchors[a_idx].copy()
                     # defensive validation: skip anchors with nonsensical sizes or corrupted values
                     if not _anchor_sane(a, largura, altura):
-                        try:
-                            print("[DBG] treinar_retina_minimal: skipping corrupted/invalid anchor a_idx", a_idx, "vals:", a[0], a[1], a[2], a[3])
-                        except _:
-                            print("[DBG] treinar_retina_minimal: skipping corrupted/invalid anchor a_idx", a_idx, "(unable to print values)")
                         continue
                     var ax = Int(a[0] - a[2] / 2.0); var ay = Int(a[1] - a[3] / 2.0)
                     var aw = Int(a[2]); var ah = Int(a[3])
@@ -590,7 +527,6 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                                 detector.bloco_cnn.peso_saida.dados[k] = 0.001
                             for k in range(len(detector.bloco_cnn.bias_saida.dados)):
                                 detector.bloco_cnn.bias_saida.dados[k] = 0.0
-                            print("[DBG] regression head reinitialized: D=", D, "shape=[D,4]")
                         if not head_initialized:
                             var shape_cw = List[Int](); shape_cw.append(D); shape_cw.append(1)
                             head_peso_cls = tensor_defs.Tensor(shape_cw^, detector.bloco_cnn.tipo_computacao)
@@ -651,7 +587,6 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
 
         # save epoch state
         try:
-            print("DBG: about to salvar_estado_modelo for epoch", ep)
             var meta_lines = List[String]()
             meta_lines.append("epoch:" + String(ep))
             meta_lines.append("avg_loss:" + String(avg_loss))
@@ -672,7 +607,7 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
             detector.treinamento_epoca = ep
             detector.treinamento_lr = lr_atual
             _ = detector.salvar_workspace(export_dir)
-            print("DBG: returned from salvar_estado_modelo for epoch", ep)
+            print("Checkpoint salvo: epoca", ep)
         except _:
             pass
 
@@ -689,7 +624,6 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
             var limit = max_sample_classes if max_sample_classes < len(class_names) else len(class_names)
             for c in range(limit):
                 try:
-                    print("DBG: epoch_samples: processing class", c, "name", class_names[c])
                     var imgs = class_images[c].copy()
                     if len(imgs) == 0:
                         continue
@@ -749,8 +683,6 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
 
                     var boxes = List[List[Int]]()
                     try:
-                        print("DBG: calling detector.inferir for epoch sample class", class_names[c])
-                        # load bytes into detector heads if available
                         try:
                             if len(raw_w_bytes) > 0 and len(detector.cabeca_classificacao_peso.formato) >= 1:
                                 _ = detector.cabeca_classificacao_peso.carregar_dados_bytes_bin(raw_w_bytes.copy())
@@ -759,9 +691,7 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                         except _:
                             pass
                         boxes = detector.inferir(bmp.pixels.copy(), largura, 1)
-                        print("DBG: returned from detector.inferir for epoch sample class", class_names[c])
                     except _:
-                        print("DBG: detector.inferir raised for epoch sample class", class_names[c])
                         boxes = List[List[Int]]()
 
                     if len(boxes) == 0:
@@ -837,7 +767,6 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                                 continue
                             var img_path = os.path.join(pcls, f)
                             try:
-                                print("DBG: validation: processing image", img_path)
                                 var bmp = dados_pkg.carregar_bmp_rgb(img_path, largura, altura)
                                 if bmp.width == 0:
                                     continue
@@ -877,7 +806,6 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                                         raw_b_bytes = List[Int]()
                                 var boxes = List[List[Int]]()
                                 try:
-                                    print("DBG: calling detector.inferir for validation image", img_path)
                                     try:
                                         if len(raw_w_bytes) > 0 and len(detector.cabeca_classificacao_peso.formato) >= 1:
                                             _ = detector.cabeca_classificacao_peso.carregar_dados_bytes_bin(raw_w_bytes.copy())
@@ -886,9 +814,7 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                                     except _:
                                         pass
                                     boxes = detector.inferir(bmp.pixels.copy(), largura, 16)
-                                    print("DBG: returned from detector.inferir for validation image", img_path)
                                 except _:
-                                    print("DBG: detector.inferir raised for validation image", img_path)
                                     boxes = List[List[Int]]()
 
                                 # print detailed per-image diagnostics (only during validation)

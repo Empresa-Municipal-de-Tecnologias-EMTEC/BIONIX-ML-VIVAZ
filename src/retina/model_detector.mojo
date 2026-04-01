@@ -26,9 +26,7 @@ fn criar_bloco_detector(
     var perda_id: Int = tipos_mlp.perda_padrao_id(1),
     var tipo: String = "cpu",
 ) -> cnn_pkg.BlocoCNN:
-    print("[DEBUG] criar_bloco_detector: parametros -> altura:", altura, "largura:", largura, "num_filtros:", num_filtros, "kernel:", kernel_h, "x", kernel_w)
     var bloco = cnn_pkg.BlocoCNN(altura, largura, num_filtros, kernel_h, kernel_w, contexto.copy(), ativacao_id, perda_id, tipo)
-    print("[DEBUG] criar_bloco_detector: BlocoCNN instanciado")
     return bloco^
 
 
@@ -124,7 +122,6 @@ fn treinar_detector_color_com_saida(
                     var sample_pred = List[Float32]()
                     for k in range(4):
                         sample_pred.append(preds.dados[k])
-                    print("[DEBUG] alvo_normalizado:", sample_target, "preds_raw:", sample_pred)
             except _:
                 pass
 
@@ -243,16 +240,11 @@ fn salvar_checkpoint(mut bloco: cnn_pkg.BlocoCNN, var model_dir: String) -> Bool
 
 fn carregar_checkpoint(mut bloco: cnn_pkg.BlocoCNN, var model_dir: String) -> Bool:
     try:
-        print("[DEBUG] model_detector.carregar_checkpoint: model_dir=", model_dir)
         if not os.path.isdir(model_dir):
-            print("[DEBUG] model_detector.carregar_checkpoint: model_dir does not exist")
             return False
         var driver = sessao_driver.driver_sessao_disco(model_dir)
         var storage = storage_sessao.criar_storage_sessao(driver)
-        print("[DEBUG] model_detector.carregar_checkpoint: calling cnn_impl._carregar_bloco_de_storage()")
         cnn_impl._carregar_bloco_de_storage(bloco, storage)
-        print("[DEBUG] model_detector.carregar_checkpoint: loaded checkpoint")
         return True
     except _:
-        print("[DEBUG] model_detector.carregar_checkpoint: exception during load")
         return False
