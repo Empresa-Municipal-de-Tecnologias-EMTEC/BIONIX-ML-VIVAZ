@@ -5,3 +5,5 @@
 .venv/
 # Ignore dataset folder used for local data
 DATASET/
+# Build output (binaries too large for GitHub)
+build/

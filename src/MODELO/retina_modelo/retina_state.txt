@@ -1,5 +1,5 @@
-epoch:0
-lr:0.05
+epoch:7
+lr:0.025
 meta:
 input_size:320
 patch_size:32
