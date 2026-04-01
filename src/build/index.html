@@ -39,6 +39,13 @@
            overflow-y:auto; margin-top:10px; }
     .overlay-canvas { position:absolute; top:0; left:0; width:100%; border-radius:8px; }
     .video-wrap { position:relative; width:100%; }
+    #face-indicator { display:none; margin-top:10px; padding:8px 14px; border-radius:8px;
+                      font-size:.9rem; font-weight:600; text-align:center;
+                      transition:background .3s,color .3s; }
+    #face-indicator.detected { display:block; background:rgba(63,185,80,.15);
+                               color:var(--ok); border:1px solid rgba(63,185,80,.3); }
+    #face-indicator.lost     { display:block; background:rgba(248,81,73,.1);
+                               color:var(--danger); border:1px solid rgba(248,81,73,.2); }
   </style>
 </head>
 <body>
@@ -66,6 +73,7 @@
       <button id="btn-id"  onclick="identify()" disabled>Identificar</button>
       <button id="btn-live" class="secondary" onclick="toggleLive()" disabled>Live OFF</button>
     </div>
+    <div id="face-indicator"></div>
   </div>
 
   <!-- Resultado -->
@@ -93,12 +101,14 @@
     const WASM_JS      = 'arcface.js';
     const BUNDLE_BIN   = 'arcface_bundle.bin';
     const GALLERY_BIN  = 'arcface_gallery.bin';
-    const THRESHOLD    = 0.55;
-    const LIVE_INTERVAL_MS = 800;
+    const THRESHOLD         = 0.55;
+    const PRESENCE_THRESHOLD = 0.20;   // score mínimo para considerar rosto presente
+    const LIVE_INTERVAL_MS   = 800;
 
     /* ── Estado ─────────────────────────────────────────────────────────────── */
     let Module = null, wasmReady = false;
     let liveTimer = null, liveOn = false;
+    let facePresent = false;
     const video = document.getElementById('video');
     const cap   = document.getElementById('cap');
     const capCtx = cap.getContext('2d');
@@ -221,6 +231,42 @@
 
       showResult(idx, score);
       drawBox(idx >= 0);
+      _updateFacePresence(idx, score);
+    }
+
+    function _updateFacePresence(idx, score) {
+      const hasFace = score >= PRESENCE_THRESHOLD;
+      const indicator = document.getElementById('face-indicator');
+      if (hasFace !== facePresent) {
+        facePresent = hasFace;
+        if (hasFace) {
+          const name = (idx >= 0 && Module)
+            ? Module.UTF8ToString(Module._bionix_get_name(idx))
+            : 'desconhecido';
+          indicator.className = 'detected';
+          indicator.textContent = '👤 Rosto detectado: ' + name +
+            ' (' + score.toFixed(3) + ')';
+          const ev = new CustomEvent('bionix:face-detected',
+            { bubbles:true, detail:{ name, score, idx } });
+          document.dispatchEvent(ev);
+          if (typeof window.onBionixFaceDetected === 'function')
+            window.onBionixFaceDetected(ev.detail);
+        } else {
+          indicator.className = 'lost';
+          indicator.textContent = '🚫 Nenhum rosto detectado';
+          const ev = new CustomEvent('bionix:face-lost', { bubbles:true, detail:{} });
+          document.dispatchEvent(ev);
+          if (typeof window.onBionixFaceLost === 'function')
+            window.onBionixFaceLost();
+        }
+      } else if (hasFace) {
+        // Atualiza nome mesmo sem mudança de estado
+        const name = (idx >= 0 && Module)
+          ? Module.UTF8ToString(Module._bionix_get_name(idx))
+          : 'desconhecido';
+        indicator.textContent = '👤 Rosto detectado: ' + name +
+          ' (' + score.toFixed(3) + ')';
+      }
     }
 
     function showResult(idx, score) {

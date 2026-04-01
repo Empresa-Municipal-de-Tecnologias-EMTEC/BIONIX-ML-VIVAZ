@@ -9,15 +9,16 @@
 #   make debug     — debug com asserts
 #   make clean
 
-OUTDIR   := ../../build
+OUTDIR   := ../build
 OUTBASE  := $(OUTDIR)/arcface
 SRC      := arcface_wasm.c
 
 EXPORTS := '["_bionix_load_bundle","_bionix_load_gallery", \
               "_bionix_embed_rgba","_bionix_cosine_sim", \
-              "_bionix_identify_rgba","_bionix_gallery_size", \
-              "_bionix_embed_dim","_bionix_get_name", \
-              "_bionix_is_ready","_bionix_malloc","_bionix_free", \
+              "_bionix_identify_rgba","_bionix_has_face_rgba", \
+              "_bionix_gallery_size","_bionix_embed_dim", \
+              "_bionix_get_name","_bionix_is_ready", \
+              "_bionix_malloc","_bionix_free", \
               "_malloc","_free"]'
 
 RUNTIME  := '["ccall","cwrap","getValue","setValue","UTF8ToString","HEAPU8","HEAPF32"]'
@@ -27,7 +28,9 @@ CFLAGS_COMMON := -I. \
   -s EXPORTED_FUNCTIONS=$(EXPORTS) \
   -s EXPORTED_RUNTIME_METHODS=$(RUNTIME) \
   -s ALLOW_MEMORY_GROWTH=1 \
+  -s INITIAL_MEMORY=32MB \
   -s MAXIMUM_MEMORY=256MB \
+  -s STACK_SIZE=262144 \
   -s MODULARIZE=1 \
   -s EXPORT_NAME='BionixModule' \
   -s ENVIRONMENT='web' \

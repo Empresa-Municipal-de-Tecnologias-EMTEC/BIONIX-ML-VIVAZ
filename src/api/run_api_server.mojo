@@ -103,12 +103,12 @@ fn _parse_content_length(buf: UnsafePointer[UInt8], hdr_end: Int) -> Int:
     var tb = tag.as_bytes()
     var tn = len(tb)
     for i in range(hdr_end - tn):
-        var match = True
+        var found = True
         for j in range(tn):
             if buf[i + j] != tb[j]:
-                match = False
+                found = False
                 break
-        if match:
+        if found:
             var val = 0
             var k = i + tn
             while k < hdr_end:

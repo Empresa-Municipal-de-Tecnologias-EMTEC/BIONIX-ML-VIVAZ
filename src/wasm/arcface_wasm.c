@@ -28,9 +28,7 @@
 #define MAX_KERNEL_H    7
 #define MAX_KERNEL_W    7
 #define MAX_PATCH     128
-#define MAX_FEAT    32768
-#define MAX_EMBED     512
-#define MAX_CLASSES  4096
+#define MAX_CLASSES_STATIC 512
 #define MAX_NAME_LEN  256
 
 /* ── Estado global do modelo ────────────────────────────────────────────── */
@@ -44,15 +42,18 @@ static int   g_feat_dim     = 0;
 static int   g_num_classes  = 0;
 
 static float g_kernels[MAX_KERNELS][MAX_KERNEL_H * MAX_KERNEL_W];
-static float g_proj_peso[MAX_FEAT * MAX_EMBED];   /* [D × E] row-major */
-static float g_proj_bias[MAX_EMBED];
-static float g_cls_peso [MAX_EMBED * MAX_CLASSES]; /* [E × C] row-major */
-static float g_cls_bias [MAX_CLASSES];
+
+/* Pesos grandes alocados dinamicamente no primeiro load */
+static float* g_proj_peso  = NULL;   /* [feat_dim × embed_dim] */
+static float* g_proj_bias  = NULL;   /* [embed_dim] */
+static float* g_cls_peso   = NULL;   /* [embed_dim × num_classes] */
+static float* g_cls_bias   = NULL;   /* [num_classes] */
+static float* g_feats_buf  = NULL;   /* work buffer [feat_dim] — reutilizado por thread */
 
 /* ── Estado da galeria ──────────────────────────────────────────────────── */
-static int   g_gallery_n    = 0;
-static float g_gallery_embs[MAX_CLASSES * MAX_EMBED];  /* [N × E] */
-static char  g_gallery_names[MAX_CLASSES][MAX_NAME_LEN];
+static int    g_gallery_n   = 0;
+static float* g_gallery_embs = NULL;  /* [n × embed_dim] dinâmico */
+static char   g_gallery_names[MAX_CLASSES_STATIC][MAX_NAME_LEN];
 
 /* ── Helpers internos ──────────────────────────────────────────────────── */
 static inline float _read_f32le(const uint8_t* p) {
@@ -118,11 +119,15 @@ static void _embed_rgb_pixels(const float* rgb_f, int w, int h, float* out_emb) 
     int D   = g_feat_dim;
     int E   = g_embed_dim;
 
-    /* Buffers alocados na pilha — patch_size ≤ 128 → safe */
-    float gray[MAX_PATCH * MAX_PATCH];
-    float conv_buf[MAX_PATCH * MAX_PATCH];
-    float pool_buf[MAX_PATCH * MAX_PATCH / 4];
-    float feats [MAX_FEAT];
+    /* Buffers no heap — evita stack overflow para patch_size grandes */
+    float* gray     = (float*)malloc(ps * ps * sizeof(float));
+    float* conv_buf = (float*)malloc(ps * ps * sizeof(float));
+    float* pool_buf = (float*)malloc((ps/2) * (ps/2) * sizeof(float));
+    float* feats    = g_feats_buf;   /* pré-alocado em bionix_load_bundle */
+    if (!gray || !conv_buf || !pool_buf || !feats) {
+        free(gray); free(conv_buf); free(pool_buf);
+        return;
+    }
 
     /* Grayscale + resize bilinear para ps×ps */
     float sx = (float)(w) / ps;
@@ -161,20 +166,22 @@ static void _embed_rgb_pixels(const float* rgb_f, int w, int h, float* out_emb) 
         off += pool_n;
     }
 
-    /* Projeção linear [D → E] */
-    float proj[MAX_EMBED];
+    /* Projeção linear [D → E] — proj reutiliza out_emb como buffer temporário */
     for (int e = 0; e < E; e++) {
         float s = g_proj_bias[e];
         for (int d = 0; d < D; d++)
             s += feats[d] * g_proj_peso[d * E + e];
-        proj[e] = s;
+        out_emb[e] = s;
     }
 
-    /* L2-normalização */
+    /* L2-normalização in-place */
     float norm = 1e-8f;
-    for (int e = 0; e < E; e++) norm += proj[e] * proj[e];
+    for (int e = 0; e < E; e++) norm += out_emb[e] * out_emb[e];
     norm = sqrtf(norm);
-    for (int e = 0; e < E; e++) out_emb[e] = proj[e] / norm;
+    for (int e = 0; e < E; e++) out_emb[e] /= norm;
+
+    free(gray); free(conv_buf); free(pool_buf);
+    /* feats aponta para g_feats_buf — não liberar aqui */
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -196,8 +203,6 @@ int bionix_load_bundle(const uint8_t* data, int len) {
     if (len < 24) return 0;
     if (data[0]!='B'||data[1]!='N'||data[2]!='F'||data[3]!='X') return 0;
 
-    /* Versão */
-    /* data[4] = version — ignoramos para compatibilidade futura */
     g_num_kernels = data[5];
     g_kernel_h    = data[6];
     g_kernel_w    = data[7];
@@ -205,6 +210,15 @@ int bionix_load_bundle(const uint8_t* data, int len) {
     g_embed_dim   = (int)_read_u16le(&data[10]);
     g_feat_dim    = (int)_read_u32le(&data[12]);
     g_num_classes = (int)_read_u32le(&data[16]);
+
+    /* Aloca / re-aloca pesos dinâmicos */
+    free(g_proj_peso); free(g_proj_bias); free(g_cls_peso); free(g_cls_bias); free(g_feats_buf);
+    g_proj_peso = (float*)malloc(g_feat_dim * g_embed_dim * sizeof(float));
+    g_proj_bias = (float*)malloc(g_embed_dim * sizeof(float));
+    g_cls_peso  = (float*)malloc(g_embed_dim * g_num_classes * sizeof(float));
+    g_cls_bias  = (float*)malloc(g_num_classes * sizeof(float));
+    g_feats_buf = (float*)malloc(g_feat_dim * sizeof(float));
+    if (!g_proj_peso || !g_proj_bias || !g_feats_buf) return 0;
 
     int offset = 24;
     int ksize  = g_kernel_h * g_kernel_w;
@@ -248,7 +262,10 @@ int bionix_load_gallery(const uint8_t* data, int len) {
     if (len < 8) return 0;
     int n = (int)_read_u32le(&data[0]);
     int E = (int)_read_u32le(&data[4]);
-    if (n <= 0 || n > MAX_CLASSES || E != g_embed_dim) return 0;
+    if (n <= 0 || n >= MAX_CLASSES_STATIC || E != g_embed_dim) return 0;
+    free(g_gallery_embs);
+    g_gallery_embs = (float*)malloc(n * E * sizeof(float));
+    if (!g_gallery_embs) return 0;
     int off = 8;
     for (int i = 0; i < n; i++) {
         if (off >= len) break;
@@ -300,9 +317,10 @@ EMSCRIPTEN_KEEPALIVE
 int bionix_identify_rgba(const uint8_t* rgba, int w, int h,
                           float threshold, float* out_score) {
     if (!g_ready || !rgba || w <= 0 || h <= 0) { if(out_score)*out_score=0.0f; return -1; }
-    float emb[MAX_EMBED];
+    float* emb = (float*)malloc(g_embed_dim * sizeof(float));
+    if (!emb) { if(out_score)*out_score=0.0f; return -1; }
     bionix_embed_rgba(rgba, w, h, emb);
-    if (g_gallery_n == 0) { if(out_score)*out_score=0.0f; return -1; }
+    if (g_gallery_n == 0) { if(out_score)*out_score=0.0f; free(emb); return -1; }
     int   best_idx  = -1;
     float best_sim  = -1.0f;
     int   E = g_embed_dim;
@@ -310,6 +328,7 @@ int bionix_identify_rgba(const uint8_t* rgba, int w, int h,
         float s = bionix_cosine_sim(emb, &g_gallery_embs[i * E]);
         if (s > best_sim) { best_sim = s; best_idx = i; }
     }
+    free(emb);
     if (out_score) *out_score = best_sim;
     return (best_sim >= threshold) ? best_idx : -1;
 }
@@ -321,4 +340,26 @@ EMSCRIPTEN_KEEPALIVE
 const char* bionix_get_name(int idx) {
     if (idx < 0 || idx >= g_gallery_n) return "desconhecido";
     return g_gallery_names[idx];
+}
+
+/*
+ * Detecta presença de rosto usando um threshold baixo contra qualquer entrada
+ * da galeria. Retorna 1 se houver match mínimo, 0 caso contrário.
+ * Parâmetro `presence_threshold` — use ~0.2 para presença geral de rosto.
+ */
+EMSCRIPTEN_KEEPALIVE
+int bionix_has_face_rgba(const uint8_t* rgba, int w, int h, float presence_threshold) {
+    if (!g_ready || !rgba || w <= 0 || h <= 0 || g_gallery_n == 0) return 0;
+    /* embed_dim tipicamente 128; aloca no heap para evitar stack overflow */
+    float* emb = (float*)malloc(g_embed_dim * sizeof(float));
+    if (!emb) return 0;
+    bionix_embed_rgba(rgba, w, h, emb);
+    int   E = g_embed_dim;
+    float best = -1.0f;
+    for (int i = 0; i < g_gallery_n; i++) {
+        float s = bionix_cosine_sim(emb, &g_gallery_embs[i * E]);
+        if (s > best) best = s;
+    }
+    free(emb);
+    return (best >= presence_threshold) ? 1 : 0;
 }

@@ -37,28 +37,21 @@ import bionix_ml.uteis as uteis
 import os
 import math
 
-# ─── Helpers de escrita binária ───────────────────────────────────────────────
+# ─── Helpers: acumulam bytes em List[UInt8] ───────────────────────────────────
 
-fn _wb(f: FileHandle, v: Int):
-    var b = List[UInt8]()
-    b.append(UInt8(v & 0xFF))
-    f.write_bytes(b)
+fn _wb(mut buf: List[UInt8], v: Int):
+    buf.append(UInt8(v & 0xFF))
 
-fn _wu16(f: FileHandle, v: Int):
-    var b = List[UInt8]()
-    b.append(UInt8(v & 0xFF))
-    b.append(UInt8((v >> 8) & 0xFF))
-    f.write_bytes(b)
+fn _wu16(mut buf: List[UInt8], v: Int):
+    buf.append(UInt8(v & 0xFF))
+    buf.append(UInt8((v >> 8) & 0xFF))
 
-fn _wu32(f: FileHandle, v: Int):
-    var b = List[UInt8]()
-    b.append(UInt8(v & 0xFF))
-    b.append(UInt8((v >> 8) & 0xFF))
-    b.append(UInt8((v >> 16) & 0xFF))
-    b.append(UInt8((v >> 24) & 0xFF))
-    f.write_bytes(b)
+fn _wu32(mut buf: List[UInt8], v: Int):
+    buf.append(UInt8(v & 0xFF))
+    buf.append(UInt8((v >> 8)  & 0xFF))
+    buf.append(UInt8((v >> 16) & 0xFF))
+    buf.append(UInt8((v >> 24) & 0xFF))
 
-# Converte Float32 para bytes LE usando a mesma lógica do Tensor.dados_bytes_bin()
 fn _float32_bits(var v: Float32) -> Int:
     if v == 0.0: return 0
     var af = v
@@ -72,31 +65,21 @@ fn _float32_bits(var v: Float32) -> Int:
     var frac_bits = Int(frac * Float64(1 << 23)) & 0x7FFFFF
     return (sign << 31) | ((exp_bits & 0xFF) << 23) | frac_bits
 
-fn _write_f32(f: FileHandle, v: Float32):
+fn _wf32(mut buf: List[UInt8], v: Float32):
     var bits = _float32_bits(v)
-    var b = List[UInt8]()
-    b.append(UInt8(bits & 0xFF))
-    b.append(UInt8((bits >> 8) & 0xFF))
-    b.append(UInt8((bits >> 16) & 0xFF))
-    b.append(UInt8((bits >> 24) & 0xFF))
-    f.write_bytes(b)
+    buf.append(UInt8(bits & 0xFF))
+    buf.append(UInt8((bits >> 8)  & 0xFF))
+    buf.append(UInt8((bits >> 16) & 0xFF))
+    buf.append(UInt8((bits >> 24) & 0xFF))
 
-fn _write_f32_list(f: FileHandle, data: List[Float32]):
-    var b = List[UInt8](capacity=len(data) * 4)
+fn _wf32_list(mut buf: List[UInt8], data: List[Float32]):
     for v in data:
-        var bits = _float32_bits(v)
-        b.append(UInt8(bits & 0xFF))
-        b.append(UInt8((bits >> 8) & 0xFF))
-        b.append(UInt8((bits >> 16) & 0xFF))
-        b.append(UInt8((bits >> 24) & 0xFF))
-    f.write_bytes(b)
+        _wf32(buf, v)
 
-fn _write_str_bytes(f: FileHandle, s: String):
-    var b = List[UInt8]()
+fn _wstr(mut buf: List[UInt8], s: String):
     var sb = s.as_bytes()
     for c in sb:
-        b.append(c)
-    f.write_bytes(b)
+        buf.append(c)
 
 # ─── Exportação dos pesos ─────────────────────────────────────────────────────
 
@@ -135,33 +118,35 @@ fn main() raises:
 
     # ── Escreve arcface_bundle.bin ────────────────────────────────────────────
     var bundle_path = os.path.join(build_dir, "arcface_bundle.bin")
-    var f = open(bundle_path, "wb")
+    var bundle_buf = List[UInt8](capacity=64 * 1024 * 1024)  # 64 MB cap
 
     # Header 24 bytes
-    _write_str_bytes(f, "BNFX")    # magic
-    _wb(f, 1)                      # version
-    _wb(f, num_k)                  # num_kernels
-    _wb(f, kh)                     # kernel_h
-    _wb(f, kw)                     # kernel_w
-    _wu16(f, ps)                   # patch_size
-    _wu16(f, E)                    # embed_dim
-    _wu32(f, D)                    # feat_dim
-    _wu32(f, C)                    # num_classes
-    _wu32(f, 0)                    # reserved
+    _wstr(bundle_buf, "BNFX")     # magic
+    _wb(bundle_buf, 1)             # version
+    _wb(bundle_buf, num_k)         # num_kernels
+    _wb(bundle_buf, kh)            # kernel_h
+    _wb(bundle_buf, kw)            # kernel_w
+    _wu16(bundle_buf, ps)          # patch_size
+    _wu16(bundle_buf, E)           # embed_dim
+    _wu32(bundle_buf, D)           # feat_dim
+    _wu32(bundle_buf, C)           # num_classes
+    _wu32(bundle_buf, 0)           # reserved
 
     # Kernels
     for ki in range(num_k):
-        _write_f32_list(f, arcface.bloco_cnn.kernels[ki].dados)
+        _wf32_list(bundle_buf, arcface.bloco_cnn.kernels[ki].dados)
 
     # proj_peso [D × E], proj_bias [E]
-    _write_f32_list(f, arcface.proj_peso.dados)
-    _write_f32_list(f, arcface.proj_bias.dados)
+    _wf32_list(bundle_buf, arcface.proj_peso.dados)
+    _wf32_list(bundle_buf, arcface.proj_bias.dados)
 
     # cls_peso [E × C], cls_bias [C]
-    _write_f32_list(f, arcface.cls_peso.dados)
-    _write_f32_list(f, arcface.cls_bias.dados)
+    _wf32_list(bundle_buf, arcface.cls_peso.dados)
+    _wf32_list(bundle_buf, arcface.cls_bias.dados)
 
-    f.close()
+    var bundle_f = open(bundle_path, "w")
+    bundle_f.write_bytes(bundle_buf)
+    bundle_f.close()
     print("  Bundle gravado:", bundle_path)
 
     # ── Constrói galeria e exporta ────────────────────────────────────────────
@@ -174,19 +159,19 @@ fn main() raises:
 
     # arcface_gallery.bin
     var gallery_path = os.path.join(build_dir, "arcface_gallery.bin")
-    var gf = open(gallery_path, "wb")
-    _wu32(gf, galeria.tamanho())
-    _wu32(gf, E)
+    var gallery_buf  = List[UInt8](capacity=galeria.tamanho() * (E * 4 + 256))
+    _wu32(gallery_buf, galeria.tamanho())
+    _wu32(gallery_buf, E)
     for i in range(galeria.tamanho()):
         var nome = galeria.nomes[i]
         var nb   = nome.as_bytes()
-        _wb(gf, min(len(nb), 255))
+        _wb(gallery_buf, min(len(nb), 255))
         for j in range(min(len(nb), 255)):
-            var b = List[UInt8]()
-            b.append(nb[j])
-            gf.write_bytes(b)
-        _write_f32_list(gf, galeria.embeddings[i])
-    gf.close()
+            gallery_buf.append(nb[j])
+        _wf32_list(gallery_buf, galeria.embeddings[i])
+    var gallery_f = open(gallery_path, "w")
+    gallery_f.write_bytes(gallery_buf)
+    gallery_f.close()
     print("  Galeria bin gravada:", gallery_path)
 
     # arcface_gallery.json  (só nomes)
