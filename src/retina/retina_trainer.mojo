@@ -573,6 +573,14 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                     except _:
                         D = 0
 
+                    # Normalized weight learning rate: divides by squared feature L2-norm so that
+                    # the net prediction change per step ≈ lr_atual * err (same magnitude as bias),
+                    # preventing the D-feature dot product from overshooting its target each iteration.
+                    var feat_norm_sq: Float32 = 0.0
+                    for d_ns in range(D):
+                        feat_norm_sq = feat_norm_sq + feats.dados[d_ns] * feats.dados[d_ns]
+                    var lr_w = lr_atual / max(Float32(1.0), feat_norm_sq)
+
                     # Ensure regression head has correct shape [D, 4] regardless of whether
                     # the classification head was loaded from a checkpoint. This guards against
                     # the case where head_initialized=True (cls head loaded) but peso_saida still
@@ -628,7 +636,7 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                                 var cg_n = feats.dados[d_n] * cls_err_n
                                 if cg_n > 10.0: cg_n = 10.0
                                 if cg_n < -10.0: cg_n = -10.0
-                                head_peso_cls.dados[d_n] = head_peso_cls.dados[d_n] - lr_atual * cg_n
+                                head_peso_cls.dados[d_n] = head_peso_cls.dados[d_n] - lr_w * cg_n
                             head_bias_cls.dados[0] = head_bias_cls.dados[0] - lr_atual * cls_err_n
                         continue
 
@@ -650,6 +658,10 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                         var dx = pred[0]; var dy = pred[1]; var dw = pred[2]; var dh = pred[3]
                         var cx = a[0] + dx * a[2]
                         var cy = a[1] + dy * a[3]
+                        if dw > 4.0: dw = 4.0
+                        if dw < -4.0: dw = -4.0
+                        if dh > 4.0: dh = 4.0
+                        if dh < -4.0: dh = -4.0
                         var w = a[2] * Float32(math.exp(Float64(dw)))
                         var h = a[3] * Float32(math.exp(Float64(dh)))
                         var px0 = cx - w/2.0; var py0 = cy - h/2.0; var px1 = cx + w/2.0; var py1 = cy + h/2.0
@@ -670,7 +682,7 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                             var grad_w = feats.dados[d] * err
                             if grad_w > 100.0: grad_w = 100.0
                             if grad_w < -100.0: grad_w = -100.0
-                            detector.bloco_cnn.peso_saida.dados[d * 4 + j] = detector.bloco_cnn.peso_saida.dados[d * 4 + j] - lr_atual * grad_w
+                            detector.bloco_cnn.peso_saida.dados[d * 4 + j] = detector.bloco_cnn.peso_saida.dados[d * 4 + j] - lr_w * grad_w
                         detector.bloco_cnn.bias_saida.dados[j] = detector.bloco_cnn.bias_saida.dados[j] - lr_atual * err
                         soma_loss = soma_loss + abs(err)
                     # Cls head: positive anchor → target=1
@@ -686,7 +698,7 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                             var cg_p = feats.dados[d_p] * cls_err_p
                             if cg_p > 10.0: cg_p = 10.0
                             if cg_p < -10.0: cg_p = -10.0
-                            head_peso_cls.dados[d_p] = head_peso_cls.dados[d_p] - lr_atual * cg_p
+                            head_peso_cls.dados[d_p] = head_peso_cls.dados[d_p] - lr_w * cg_p
                         head_bias_cls.dados[0] = head_bias_cls.dados[0] - lr_atual * cls_err_p
                     count_pos = count_pos + 1
 
