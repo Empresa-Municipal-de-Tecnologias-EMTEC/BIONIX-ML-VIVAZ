@@ -180,10 +180,10 @@ fn treinar_arcface(mut modelo: arc_model.ArcFace,
                         if tx0 > 1.5 or ty0 > 1.5:
                             x0 = Int(tx0); y0 = Int(ty0); x1 = Int(tx1); y1 = Int(ty1)
                         else:
-                            x0 = Int(tx0 * Float32(bmp.width  - 1))
-                            y0 = Int(ty0 * Float32(bmp.height - 1))
-                            x1 = Int(tx1 * Float32(bmp.width  - 1))
-                            y1 = Int(ty1 * Float32(bmp.height - 1))
+                            x0 = Int(tx0 * Float32(bmp.width))
+                            y0 = Int(ty0 * Float32(bmp.height))
+                            x1 = Int(tx1 * Float32(bmp.width))
+                            y1 = Int(ty1 * Float32(bmp.height))
             except _:
                 pass
 

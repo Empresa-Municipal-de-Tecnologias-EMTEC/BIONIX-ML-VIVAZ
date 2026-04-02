@@ -383,12 +383,17 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                 var gt_x0: Int; var gt_y0: Int; var gt_x1: Int; var gt_y1: Int
                 if parsed:
                     if tx0 > 1.5 or ty0 > 1.5 or tx1 > 1.5 or ty1 > 1.5:
-                        gt_x0 = Int(tx0); gt_y0 = Int(ty0); gt_x1 = Int(tx1); gt_y1 = Int(ty1)
+                        # Pixel coords in original image space → scale to training resolution
+                        var sx = Float32(largura) / Float32(max(1, bmp.width))
+                        var sy = Float32(altura)  / Float32(max(1, bmp.height))
+                        gt_x0 = Int(tx0 * sx); gt_y0 = Int(ty0 * sy)
+                        gt_x1 = Int(tx1 * sx); gt_y1 = Int(ty1 * sy)
                     else:
-                        gt_x0 = Int(tx0 * Float32(max(1, largura - 1)))
-                        gt_y0 = Int(ty0 * Float32(max(1, altura - 1)))
-                        gt_x1 = Int(tx1 * Float32(max(1, largura - 1)))
-                        gt_y1 = Int(ty1 * Float32(max(1, altura - 1)))
+                        # Normalized [0,1] → training resolution
+                        gt_x0 = Int(tx0 * Float32(largura))
+                        gt_y0 = Int(ty0 * Float32(altura))
+                        gt_x1 = Int(tx1 * Float32(largura))
+                        gt_y1 = Int(ty1 * Float32(altura))
                 else:
                     gt_x0 = 0; gt_y0 = 0; gt_x1 = 0; gt_y1 = 0
 
@@ -520,7 +525,14 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                     if ay < 0: ay = 0
                     if ax + aw > largura: aw = max(1, largura - ax)
                     if ay + ah > altura: ah = max(1, altura - ay)
-                    
+                    # Anchor is in training resolution → scale crop region to original image space
+                    var _ax1 = Int(Float32(ax + aw) * Float32(bmp.width)  / Float32(largura))
+                    var _ay1 = Int(Float32(ay + ah) * Float32(bmp.height) / Float32(altura))
+                    ax = Int(Float32(ax) * Float32(bmp.width)  / Float32(largura))
+                    ay = Int(Float32(ay) * Float32(bmp.height) / Float32(altura))
+                    aw = max(1, _ax1 - ax)
+                    ah = max(1, _ay1 - ay)
+
                     # Use local copy of pixels
                     var bmp_flat = bmp.flat_pixels.copy()
                     var bmp_channels = bmp.channels
@@ -730,6 +742,14 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                     val_seed = (1103515245 * val_seed + 12345) & 0x7fffffff
                     var val_idx = val_seed % len(imgs)
                     var img_path = imgs[val_idx]
+                    # Load original first to get real image dimensions for box coordinate scaling
+                    var samp_orig_w: Int = largura; var samp_orig_h: Int = altura
+                    try:
+                        var samp_orig = dados_pkg.carregar_bmp_rgb(img_path)
+                        if samp_orig.width > 0:
+                            samp_orig_w = samp_orig.width; samp_orig_h = samp_orig.height
+                    except _:
+                        pass
                     var bmp = dados_pkg.carregar_bmp_rgb(img_path, largura, altura)
                     if bmp.width == 0:
                         continue
@@ -754,12 +774,16 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                     var s_gt_x0: Int; var s_gt_y0: Int; var s_gt_x1: Int; var s_gt_y1: Int
                     if s_parsed:
                         if s_tx0 > 1.5 or s_ty0 > 1.5 or s_tx1 > 1.5 or s_ty1 > 1.5:
-                            s_gt_x0 = Int(s_tx0); s_gt_y0 = Int(s_ty0); s_gt_x1 = Int(s_tx1); s_gt_y1 = Int(s_ty1)
+                            # Pixel coords in original space → scale to training resolution
+                            var ssx = Float32(largura) / Float32(max(1, samp_orig_w))
+                            var ssy = Float32(altura)  / Float32(max(1, samp_orig_h))
+                            s_gt_x0 = Int(s_tx0 * ssx); s_gt_y0 = Int(s_ty0 * ssy)
+                            s_gt_x1 = Int(s_tx1 * ssx); s_gt_y1 = Int(s_ty1 * ssy)
                         else:
-                            s_gt_x0 = Int(s_tx0 * Float32(max(1, largura - 1)))
-                            s_gt_y0 = Int(s_ty0 * Float32(max(1, altura - 1)))
-                            s_gt_x1 = Int(s_tx1 * Float32(max(1, largura - 1)))
-                            s_gt_y1 = Int(s_ty1 * Float32(max(1, altura - 1)))
+                            s_gt_x0 = Int(s_tx0 * Float32(largura))
+                            s_gt_y0 = Int(s_ty0 * Float32(altura))
+                            s_gt_x1 = Int(s_tx1 * Float32(largura))
+                            s_gt_y1 = Int(s_ty1 * Float32(altura))
                     else:
                         s_gt_x0 = 0; s_gt_y0 = 0; s_gt_x1 = 0; s_gt_y1 = 0
 
@@ -902,6 +926,14 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                                 continue
                             var img_path = os.path.join(pcls, f)
                             try:
+                                # Load original to get image dimensions for box coordinate scaling
+                                var val_orig_w: Int = largura; var val_orig_h: Int = altura
+                                try:
+                                    var val_orig = dados_pkg.carregar_bmp_rgb(img_path)
+                                    if val_orig.width > 0:
+                                        val_orig_w = val_orig.width; val_orig_h = val_orig.height
+                                except _:
+                                    pass
                                 var bmp = dados_pkg.carregar_bmp_rgb(img_path, largura, altura)
                                 if bmp.width == 0:
                                     continue
@@ -919,12 +951,15 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                                             var tx1 = Float32(uteis.parse_float_ascii(String(parts[2])))
                                             var ty1 = Float32(uteis.parse_float_ascii(String(parts[3])))
                                             if tx0 > 1.5 or ty0 > 1.5 or tx1 > 1.5 or ty1 > 1.5:
-                                                gt_x0 = Int(tx0); gt_y0 = Int(ty0); gt_x1 = Int(tx1); gt_y1 = Int(ty1)
+                                                var vsx = Float32(largura) / Float32(max(1, val_orig_w))
+                                                var vsy = Float32(altura)  / Float32(max(1, val_orig_h))
+                                                gt_x0 = Int(tx0 * vsx); gt_y0 = Int(ty0 * vsy)
+                                                gt_x1 = Int(tx1 * vsx); gt_y1 = Int(ty1 * vsy)
                                             else:
-                                                gt_x0 = Int(tx0 * Float32(max(1, largura - 1)))
-                                                gt_y0 = Int(ty0 * Float32(max(1, altura - 1)))
-                                                gt_x1 = Int(tx1 * Float32(max(1, largura - 1)))
-                                                gt_y1 = Int(ty1 * Float32(max(1, altura - 1)))
+                                                gt_x0 = Int(tx0 * Float32(largura))
+                                                gt_y0 = Int(ty0 * Float32(altura))
+                                                gt_x1 = Int(tx1 * Float32(largura))
+                                                gt_y1 = Int(ty1 * Float32(altura))
                                 except _:
                                     pass
 
