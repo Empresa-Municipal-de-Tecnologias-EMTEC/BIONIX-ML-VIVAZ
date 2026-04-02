@@ -125,6 +125,48 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
             head_initialized = False
     except _:
         pass
+    # Sanity-check regression bias after loading: if scale channels (dw/dh = indices 2,3)
+    # have |bias| > 2.5 the head has diverged (predicts 13x+ scale change regardless of image).
+    # This typically happens when training ran for many epochs with the un-normalized LR bug.
+    # Reset the whole regression head to known-good initial values in that case.
+    try:
+        var bias_dw = detector.bloco_cnn.bias_saida.dados[2]
+        var bias_dh = detector.bloco_cnn.bias_saida.dados[3]
+        var diverged = False
+        if bias_dw != bias_dw or bias_dh != bias_dh:
+            diverged = True  # NaN
+        if bias_dw > 2.5 or bias_dw < -2.5:
+            diverged = True
+        if bias_dh > 2.5 or bias_dh < -2.5:
+            diverged = True
+        if diverged:
+            print("[WARN] Bias de escala divergiu (bias_dw=", bias_dw, " bias_dh=", bias_dh, "). Reinicializando cabeca de regressao.")
+            var D2 = 0
+            try:
+                D2 = detector.bloco_cnn.peso_saida.formato[0]
+            except _:
+                D2 = 0
+            if D2 > 0:
+                var shape_w2 = List[Int](); shape_w2.append(D2); shape_w2.append(4)
+                detector.bloco_cnn.peso_saida = tensor_defs.Tensor(shape_w2^, detector.bloco_cnn.tipo_computacao)
+                var shape_b2 = List[Int](); shape_b2.append(1); shape_b2.append(4)
+                detector.bloco_cnn.bias_saida = tensor_defs.Tensor(shape_b2^, detector.bloco_cnn.tipo_computacao)
+                for k2 in range(len(detector.bloco_cnn.peso_saida.dados)):
+                    var col2 = k2 % 4
+                    if col2 == 2 or col2 == 3:
+                        detector.bloco_cnn.peso_saida.dados[k2] = 1e-5
+                    else:
+                        detector.bloco_cnn.peso_saida.dados[k2] = 0.001
+                for k2 in range(len(detector.bloco_cnn.bias_saida.dados)):
+                    if k2 == 2 or k2 == 3:
+                        detector.bloco_cnn.bias_saida.dados[k2] = 1.0
+                    else:
+                        detector.bloco_cnn.bias_saida.dados[k2] = 0.0
+            detector.treinamento_epoca = -1
+            detector.treinamento_lr = taxa_aprendizado
+            head_initialized = False
+    except _:
+        pass
     try:
         # Tenta carregar cabeças de classificação salvas
         var raw_w = arquivo_pkg.ler_arquivo_binario(os.path.join(export_dir, "peso_cls.bin"))
