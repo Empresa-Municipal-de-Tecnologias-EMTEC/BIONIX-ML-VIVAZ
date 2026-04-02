@@ -389,6 +389,17 @@ struct RetinaFace(Movable):
         for i in range(len(anchors)):
             var a = anchors[i].copy()
             var dx = reg_deltas[i][0]; var dy = reg_deltas[i][1]; var dw = reg_deltas[i][2]; var dh = reg_deltas[i][3]
+            # Clamp displacement deltas (dx/dy shift center by delta*anchor_size;
+            # values beyond ±3 push the center more than 3 anchor-widths away)
+            if dx > 3.0: dx = 3.0
+            if dx < -3.0: dx = -3.0
+            if dy > 3.0: dy = 3.0
+            if dy < -3.0: dy = -3.0
+            # NaN guard on deltas (can arise from garbage weights in old checkpoints)
+            if dx != dx: dx = 0.0
+            if dy != dy: dy = 0.0
+            if dw != dw: dw = 0.0
+            if dh != dh: dh = 0.0
             var cx = a[0] + dx * a[2]
             var cy = a[1] + dy * a[3]
             # Clamp scale deltas to prevent exp() overflow → Int64.MinValue in box coords
@@ -409,12 +420,24 @@ struct RetinaFace(Movable):
 
         var keep = nms_pkg.non_max_suppression(boxes, cls_scores, self.parametros.nms_iou)
         var kept_boxes = List[List[Int]]()
+        # Safe Float32→Int conversion bounds: float must be in [Int32.MIN, Int32.MAX] range to
+        # avoid Int64.MinValue sentinel from out-of-range casts (e.g. exp() overflow residuals)
+        var _coord_lo = Float32(-1_000_000.0)
+        var _coord_hi = Float32(1_000_000.0)
         for k in keep:
             if len(kept_boxes) >= maxp:
                 break
             var b = boxes[k].copy()
             var ib = List[Int]()
-            ib.append(Int(b[0])); ib.append(Int(b[1])); ib.append(Int(b[2])); ib.append(Int(b[3]))
+            for ci in range(4):
+                var v = b[ci]
+                if v != v: v = 0.0          # NaN → 0
+                if v < _coord_lo: v = _coord_lo
+                if v > _coord_hi: v = _coord_hi
+                ib.append(Int(v))
+            # Ensure x0<=x1 and y0<=y1 (swap if inverted after all clamps)
+            if ib[2] < ib[0]: var _t = ib[0]; ib[0] = ib[2]; ib[2] = _t
+            if ib[3] < ib[1]: var _t = ib[1]; ib[1] = ib[3]; ib[3] = _t
             # transfer the small int-list into kept_boxes
             kept_boxes.append(ib^)
         # transfer ownership of kept_boxes to caller to avoid implicit copy
