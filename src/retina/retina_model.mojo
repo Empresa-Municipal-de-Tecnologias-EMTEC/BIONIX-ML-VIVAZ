@@ -391,6 +391,11 @@ struct RetinaFace(Movable):
             var dx = reg_deltas[i][0]; var dy = reg_deltas[i][1]; var dw = reg_deltas[i][2]; var dh = reg_deltas[i][3]
             var cx = a[0] + dx * a[2]
             var cy = a[1] + dy * a[3]
+            # Clamp scale deltas to prevent exp() overflow → Int64.MinValue in box coords
+            if dw > 4.0: dw = 4.0
+            if dw < -4.0: dw = -4.0
+            if dh > 4.0: dh = 4.0
+            if dh < -4.0: dh = -4.0
             var w = a[2] * Float32(math.exp(Float64(dw)))
             var h = a[3] * Float32(math.exp(Float64(dh)))
             var x0 = cx - w/2.0
