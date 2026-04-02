@@ -17,6 +17,8 @@ public class MainForm : Form
     private bool boxModified;
     private bool clearBoxRequested;
     private Point? liveMousePos;
+    private int imgWidth;         // cached image dimensions (used in CommitBox)
+    private int imgHeight;
 
     // ── UI controls ───────────────────────────────────────────────────────────
     private readonly Button btnOpenFolder = new();
@@ -220,6 +222,10 @@ public class MainForm : Form
             return;
         }
 
+        // Cache image dimensions for use in CommitBox (where currentBitmap may be disposed)
+        imgWidth  = currentBitmap.Width;
+        imgHeight = currentBitmap.Height;
+
         // Reset drawing state
         normPt1 = null; normPt2 = null;
         clickPhase = 0; boxModified = false; clearBoxRequested = false;
@@ -240,11 +246,11 @@ public class MainForm : Form
                     float x1 = float.Parse(parts[2], CultureInfo.InvariantCulture);
                     float y1 = float.Parse(parts[3], CultureInfo.InvariantCulture);
 
-                    // Pixel coords (> 1.5) → normalize
+                    // Pixel coords (values > 1.5) → normalize using cached dimensions
                     if (x0 > 1.5f || y0 > 1.5f || x1 > 1.5f || y1 > 1.5f)
                     {
-                        float iw = Math.Max(1, currentBitmap.Width  - 1);
-                        float ih = Math.Max(1, currentBitmap.Height - 1);
+                        float iw = Math.Max(1, imgWidth);
+                        float ih = Math.Max(1, imgHeight);
                         x0 /= iw; y0 /= ih; x1 /= iw; y1 /= ih;
                     }
 
@@ -288,8 +294,15 @@ public class MainForm : Form
 
                 if ((x1 - x0) > 0.002f && (y1 - y0) > 0.002f)
                 {
-                    File.WriteAllText(boxPath, $"{x0:F6} {y0:F6} {x1:F6} {y1:F6}");
-                    lblModified.Text = $"✔ salvo: {Path.GetFileName(boxPath)}";
+                    // Save as pixel integers to match dataset convention: "x0 y0 x1 y1"
+                    int iw = Math.Max(1, imgWidth);
+                    int ih = Math.Max(1, imgHeight);
+                    int px0 = (int)Math.Round(x0 * iw);
+                    int py0 = (int)Math.Round(y0 * ih);
+                    int px1 = (int)Math.Round(x1 * iw);
+                    int py1 = (int)Math.Round(y1 * ih);
+                    File.WriteAllText(boxPath, $"{px0} {py0} {px1} {py1}");
+                    lblModified.Text = $"✔ salvo: {Path.GetFileName(boxPath)}  [{px0} {py0} {px1} {py1}]";
                     lblModified.ForeColor = Color.LightGreen;
                 }
                 else
@@ -454,8 +467,14 @@ public class MainForm : Form
         float y0 = Math.Min(normPt1.Value.Y, normPt2.Value.Y);
         float x1 = Math.Max(normPt1.Value.X, normPt2.Value.X);
         float y1 = Math.Max(normPt1.Value.Y, normPt2.Value.Y);
-        lblBoxCoords.Text = $"box: {x0:F3} {y0:F3} → {x1:F3} {y1:F3}   "
-                          + $"({(x1 - x0) * 100:F1}% × {(y1 - y0) * 100:F1}% da imagem)";
+        int iw = Math.Max(1, imgWidth);
+        int ih = Math.Max(1, imgHeight);
+        int px0 = (int)Math.Round(x0 * iw);
+        int py0 = (int)Math.Round(y0 * ih);
+        int px1 = (int)Math.Round(x1 * iw);
+        int py1 = (int)Math.Round(y1 * ih);
+        lblBoxCoords.Text = $"box: {px0} {py0} → {px1} {py1}   "
+                          + $"({px1 - px0}×{py1 - py0}px  /  {(x1 - x0) * 100:F1}% × {(y1 - y0) * 100:F1}%)";
     }
 
     private void UpdateModifiedLabel()
