@@ -68,8 +68,8 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
     var lr_inicial = taxa_aprendizado
     var best_loss: Float32 = 1e30
     var scheduler_wait: Int = 0
-    var scheduler_patience: Int = 2
-    var scheduler_factor: Float32 = 0.5
+    var scheduler_patience: Int = 5
+    var scheduler_factor: Float32 = 0.75
     var min_lr: Float32 = 1e-4
     var min_delta: Float32 = 1e-6
     # IoU-based early stopping params
@@ -444,20 +444,36 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                 except _:
                     pass
 
-                # for each positive anchor update small regression head and cls head
+                # for each positive anchor update regression+cls heads, and for sampled negative anchors update cls head
                 # limit processing of positive anchors per image to avoid peak memory spikes
                 var pos_processed: Int = 0
                 var _max_pos_per_image: Int = 8
+                var neg_step_counter: Int = 0
+                var neg_processed_anchor: Int = 0
+                var max_neg_per_image: Int = _max_pos_per_image * 3
+                var neg_sample_rate: Int = 30
 
                 # Tensor grayscale [1, patch*patch] — tamanho correto para BlocoCNN de patch_size×patch_size
                 var in_shape = List[Int](); in_shape.append(1); in_shape.append(patch_size * patch_size)
                 
                 for a_idx in range(len(anchors)):
-                    if labels[a_idx] != 1:
-                        continue
-                    pos_processed = pos_processed + 1
-                    if pos_processed > _max_pos_per_image:
+                    # Exit early when both positive and negative anchor quotas are satisfied
+                    if pos_processed >= _max_pos_per_image and neg_processed_anchor >= max_neg_per_image:
                         break
+                    var is_pos_anchor = (labels[a_idx] == 1)
+                    var is_neg_anchor = False
+                    if is_pos_anchor:
+                        pos_processed = pos_processed + 1
+                        if pos_processed > _max_pos_per_image:
+                            continue  # quota reached; keep iterating for negative samples
+                    elif labels[a_idx] == 0:
+                        neg_step_counter = neg_step_counter + 1
+                        if neg_step_counter % neg_sample_rate != 0 or neg_processed_anchor >= max_neg_per_image:
+                            continue
+                        neg_processed_anchor = neg_processed_anchor + 1
+                        is_neg_anchor = True
+                    else:
+                        continue
                     
                     # Check anchors checksum immediately before processing this anchor
                     try:
@@ -586,6 +602,24 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                             head_bias_cls.dados[0] = 0.0
                             head_initialized = True
 
+                    # Negative anchor: update classification head only (target=0), skip regression
+                    if is_neg_anchor:
+                        if head_initialized and D > 0:
+                            var cls_pred_n: Float32 = 0.0
+                            for d_n in range(D):
+                                cls_pred_n = cls_pred_n + feats.dados[d_n] * head_peso_cls.dados[d_n]
+                            cls_pred_n = cls_pred_n + head_bias_cls.dados[0]
+                            var cls_err_n = cls_pred_n  # target=0 → err = pred - 0
+                            if cls_err_n > 5.0: cls_err_n = 5.0
+                            if cls_err_n < -5.0: cls_err_n = -5.0
+                            for d_n in range(D):
+                                var cg_n = feats.dados[d_n] * cls_err_n
+                                if cg_n > 10.0: cg_n = 10.0
+                                if cg_n < -10.0: cg_n = -10.0
+                                head_peso_cls.dados[d_n] = head_peso_cls.dados[d_n] - lr_atual * cg_n
+                            head_bias_cls.dados[0] = head_bias_cls.dados[0] - lr_atual * cls_err_n
+                        continue
+
                     # compute prediction and simple L1 update
                     var pred = List[Float32]()
                     for j in range(4):
@@ -627,6 +661,21 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                             detector.bloco_cnn.peso_saida.dados[d * 4 + j] = detector.bloco_cnn.peso_saida.dados[d * 4 + j] - lr_atual * grad_w
                         detector.bloco_cnn.bias_saida.dados[j] = detector.bloco_cnn.bias_saida.dados[j] - lr_atual * err
                         soma_loss = soma_loss + abs(err)
+                    # Cls head: positive anchor → target=1
+                    if head_initialized and D > 0:
+                        var cls_pred_p: Float32 = 0.0
+                        for d_p in range(D):
+                            cls_pred_p = cls_pred_p + feats.dados[d_p] * head_peso_cls.dados[d_p]
+                        cls_pred_p = cls_pred_p + head_bias_cls.dados[0]
+                        var cls_err_p = cls_pred_p - 1.0  # target=1
+                        if cls_err_p > 5.0: cls_err_p = 5.0
+                        if cls_err_p < -5.0: cls_err_p = -5.0
+                        for d_p in range(D):
+                            var cg_p = feats.dados[d_p] * cls_err_p
+                            if cg_p > 10.0: cg_p = 10.0
+                            if cg_p < -10.0: cg_p = -10.0
+                            head_peso_cls.dados[d_p] = head_peso_cls.dados[d_p] - lr_atual * cg_p
+                        head_bias_cls.dados[0] = head_bias_cls.dados[0] - lr_atual * cls_err_p
                     count_pos = count_pos + 1
 
         var avg_loss: Float32 = 0.0
