@@ -158,10 +158,7 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                     else:
                         detector.bloco_cnn.peso_saida.dados[k2] = 0.001
                 for k2 in range(len(detector.bloco_cnn.bias_saida.dados)):
-                    if k2 == 2 or k2 == 3:
-                        detector.bloco_cnn.bias_saida.dados[k2] = 1.0
-                    else:
-                        detector.bloco_cnn.bias_saida.dados[k2] = 0.0
+                    detector.bloco_cnn.bias_saida.dados[k2] = 0.0
             detector.treinamento_epoca = -1
             detector.treinamento_lr = taxa_aprendizado
             head_initialized = False
@@ -641,8 +638,8 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                             detector.bloco_cnn.peso_saida = tensor_defs.Tensor(shape_w^, detector.bloco_cnn.tipo_computacao)
                             var shape_b = List[Int](); shape_b.append(1); shape_b.append(4)
                             detector.bloco_cnn.bias_saida = tensor_defs.Tensor(shape_b^, detector.bloco_cnn.tipo_computacao)
-                            # dx/dy channels: tiny weights, zero bias (no displacement prior)
-                            # dw/dh channels: near-zero weights + bias=+1.0 to prevent exp() collapse
+                            # All channels start at zero bias: exp(0)=1× preserves anchor size exactly.
+                            # Tiny weights ensure the first prediction = anchor size (neutral start).
                             for k in range(len(detector.bloco_cnn.peso_saida.dados)):
                                 var col = k % 4
                                 if col == 2 or col == 3:
@@ -650,10 +647,7 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                                 else:
                                     detector.bloco_cnn.peso_saida.dados[k] = 0.001
                             for k in range(len(detector.bloco_cnn.bias_saida.dados)):
-                                if k == 2 or k == 3:
-                                    detector.bloco_cnn.bias_saida.dados[k] = 1.0
-                                else:
-                                    detector.bloco_cnn.bias_saida.dados[k] = 0.0
+                                detector.bloco_cnn.bias_saida.dados[k] = 0.0
                         if not head_initialized:
                             var shape_cw = List[Int](); shape_cw.append(D); shape_cw.append(1)
                             head_peso_cls = tensor_defs.Tensor(shape_cw^, detector.bloco_cnn.tipo_computacao)

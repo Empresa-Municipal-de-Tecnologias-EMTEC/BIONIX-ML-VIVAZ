@@ -1,0 +1,5 @@
+epoch:46
+lr:0.008898926
+meta:
+input_size:320
+patch_size:32
