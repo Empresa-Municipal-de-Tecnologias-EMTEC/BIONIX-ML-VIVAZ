@@ -109,10 +109,40 @@ fn assignar_anchors(anchors: List[List[Float32]], gt_boxes: List[List[Int]],
             # targets as deltas: tx = (gx - ax)/aw, ty = (gy - ay)/ah, tw = log(gw/aw), th = log(gh/ah)
             var a_local = anchors[a_idx].copy()
             var ax = a_local[0]; var ay = a_local[1]; var aw = a_local[2]; var ah = a_local[3]
-            var tx = (gt_cx - ax) / aw
-            var ty = (gt_cy - ay) / ah
-            var tw = Float32(math.log(gt_w / aw + 1e-6))
-            var th = Float32(math.log(gt_h / ah + 1e-6))
+            # ignore anchors with near-zero size to avoid extreme targets / divisions
+            try:
+                if aw < 1e-3 or ah < 1e-3:
+                    # leave label as background (0) and continue
+                    continue
+            except _:
+                pass
+            var pre_tx = (gt_cx - ax) / aw
+            var pre_ty = (gt_cy - ay) / ah
+            var tx = pre_tx
+            var ty = pre_ty
+            # compute scale deltas and clamp targets to safe range to avoid extreme updates
+            var pre_tw = Float32(math.log(gt_w / aw + 1e-6))
+            var pre_th = Float32(math.log(gt_h / ah + 1e-6))
+            var tw = pre_tw
+            var th = pre_th
+            # clamp translations and scales to decoder's expected ranges
+            if tx > 3.0: tx = 3.0
+            if tx < -3.0: tx = -3.0
+            if ty > 3.0: ty = 3.0
+            if ty < -3.0: ty = -3.0
+            if tw > 4.0: tw = 4.0
+            if tw < -4.0: tw = -4.0
+            if th > 4.0: th = 4.0
+            if th < -4.0: th = -4.0
+            # selective debug prints for extreme pre-clamp targets or tiny anchors
+            try:
+                if (abs(pre_tx) > 3.0) or (abs(pre_ty) > 3.0) or (abs(pre_tw) > 2.0) or (abs(pre_th) > 2.0) or (aw < 2.0) or (ah < 2.0):
+                    try:
+                        print("[DBG-ASSIGN] anchor_idx", a_idx, "aw", aw, "ah", ah, "pre_tx", pre_tx, "pre_ty", pre_ty, "pre_tw", pre_tw, "pre_th", pre_th, "post_tx", tx, "post_ty", ty, "post_tw", tw, "post_th", th)
+                    except _:
+                        pass
+            except _:
+                pass
             var t: List[Float32] = List[Float32]()
             t.append(tx); t.append(ty); t.append(tw); t.append(th)
             targets[a_idx] = t^
