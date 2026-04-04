@@ -177,11 +177,11 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                     D = 0
                 if D > 0:
                     var shape_w = List[Int]()
-                    shape_w.append(D); shape_w.append(4)
+                    shape_w.append(D); shape_w.append(1)
                     head_peso_cls = tensor_defs.Tensor(shape_w^, detector.bloco_cnn.tipo_computacao)
                     _ = head_peso_cls.carregar_dados_bytes_bin(raw_w.copy())
                     var shape_b = List[Int]()
-                    shape_b.append(1); shape_b.append(4)
+                    shape_b.append(1); shape_b.append(1)
                     head_bias_cls = tensor_defs.Tensor(shape_b^, detector.bloco_cnn.tipo_computacao)
                     if len(raw_b) > 0:
                         _ = head_bias_cls.carregar_dados_bytes_bin(raw_b.copy())
@@ -706,6 +706,31 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                         var iou_val = retina_utils.calcular_iou(pred_box.copy(), gt_box.copy())
                         iou_sum = iou_sum + iou_val
                         count_iou = count_iou + 1
+                        # selective debug prints when targets are extreme or predicted box is out-of-bounds
+                        try:
+                            var should_print = False
+                            try:
+                                if tgt[0] != tgt[0] or tgt[1] != tgt[1] or tgt[2] != tgt[2] or tgt[3] != tgt[3]:
+                                    should_print = True
+                            except _:
+                                pass
+                            try:
+                                if abs(tgt[0]) > 3.0 or abs(tgt[1]) > 3.0 or abs(tgt[2]) > 3.0 or abs(tgt[3]) > 3.0:
+                                    should_print = True
+                            except _:
+                                pass
+                            try:
+                                if px0 < -100.0 or py0 < -100.0 or px1 > Float32(largura) + 100.0 or py1 > Float32(altura) + 100.0:
+                                    should_print = True
+                            except _:
+                                pass
+                            if should_print:
+                                try:
+                                    print("[DBG-TRAIN] img", path, "a_idx", a_idx, "aw", a[2], "ah", a[3], "tgt", tgt[0], tgt[1], tgt[2], tgt[3], "pred", px0, py0, px1, py1, "feat_norm_sq", feat_norm_sq, "lr_w", lr_w)
+                                except _:
+                                    pass
+                        except _:
+                            pass
                     except _:
                         pass
 
