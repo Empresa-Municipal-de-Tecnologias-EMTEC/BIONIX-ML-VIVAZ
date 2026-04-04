@@ -343,6 +343,7 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
         var count_pos: Int = 0
         var iou_sum: Float32 = 0.0
         var count_iou: Int = 0
+        var penalty_count: Int = 0
 
         # Escalonamento dinâmico do lote: batch_size_inicio→batch_size_fim conforme LR cai
         var batch_size_atual: Int
@@ -690,6 +691,7 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                         continue
 
                     # compute predicted box in image coordinates (same decoding as inference)
+                    var penalty_factor: Float32 = 1.0
                     try:
                         var dx = pred[0]; var dy = pred[1]; var dw = pred[2]; var dh = pred[3]
                         var cx = a[0] + dx * a[2]
@@ -706,6 +708,18 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                         var iou_val = retina_utils.calcular_iou(pred_box.copy(), gt_box.copy())
                         iou_sum = iou_sum + iou_val
                         count_iou = count_iou + 1
+                        # compute out-of-bounds or low-IoU penalty
+                        try:
+                            var oob = False
+                            if px0 < -100.0 or py0 < -100.0 or px1 > Float32(largura) + 100.0 or py1 > Float32(altura) + 100.0:
+                                oob = True
+                            if oob or iou_val < Float32(0.1):
+                                penalty_factor = 10.0
+                                penalty_count = penalty_count + 1
+                                # extra monitoring loss term (penalize low IoU)
+                                soma_loss = soma_loss + penalty_factor * (1.0 - iou_val)
+                        except _:
+                            pass
                         # selective debug prints when targets are extreme or predicted box is out-of-bounds
                         try:
                             var should_print = False
@@ -750,6 +764,8 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                         else:
                             loss_j = abs_err - 0.5 * beta
                             grad_factor = Float32(1.0) if err > 0.0 else Float32(-1.0)
+                        # apply IoU/OOB penalty to gradient magnitude
+                        grad_factor = grad_factor * penalty_factor
                         # update weights using grad_factor (derivative w.r.t. prediction)
                         for d in range(D):
                             var grad_w = feats.dados[d] * grad_factor
@@ -765,8 +781,10 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                             cls_pred_p = cls_pred_p + feats.dados[d_p] * head_peso_cls.dados[d_p]
                         cls_pred_p = cls_pred_p + head_bias_cls.dados[0]
                         var cls_err_p = cls_pred_p - 1.0  # target=1
-                        if cls_err_p > 5.0: cls_err_p = 5.0
-                        if cls_err_p < -5.0: cls_err_p = -5.0
+                        # amplify classification error when regression IoU is very low or OOB
+                        cls_err_p = cls_err_p * penalty_factor
+                        if cls_err_p > 5.0 * penalty_factor: cls_err_p = 5.0 * penalty_factor
+                        if cls_err_p < -5.0 * penalty_factor: cls_err_p = -5.0 * penalty_factor
                         for d_p in range(D):
                             var cg_p = feats.dados[d_p] * cls_err_p
                             if cg_p > 10.0: cg_p = 10.0
