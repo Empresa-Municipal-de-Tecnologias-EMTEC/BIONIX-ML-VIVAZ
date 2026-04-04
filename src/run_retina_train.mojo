@@ -6,7 +6,7 @@ fn main() raises -> None:
     # ── Configuração do treino ──────────────────────────────────────────────
     # For quick debug/tuning we use a small number of epochs and early stop
     var epocas: Int = 1000         # número máximo de épocas (debug)
-    var early_stop: Bool = False    # para automaticamente ao convergir
+    var early_stop: Bool = True    # para automaticamente ao convergir
     # ───────────────────────────────────────────────────────────────────────
     print("Iniciando treino RetinaFace... epocas=", epocas, " early_stop=", early_stop)
     var params = model_mod.BlocoRetinaFaceParametros(320, 6, 3, 3, "cpu", 32, 16, 0.01, 0.5)
