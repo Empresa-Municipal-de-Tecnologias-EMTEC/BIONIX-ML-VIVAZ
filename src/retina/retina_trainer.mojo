@@ -734,18 +734,30 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                     except _:
                         pass
 
+                    # Use Smooth L1 (Huber) loss for regression to stabilize gradients
+                    var beta: Float32 = 1.0
                     for j in range(4):
                         var err = pred[j] - tgt[j]
-                        # clamped gradient step
+                        # clamp extreme errors to avoid NaNs
                         if err > 100.0: err = 100.0
                         if err < -100.0: err = -100.0
+                        var abs_err = err if err >= 0.0 else -err
+                        var loss_j: Float32 = 0.0
+                        var grad_factor: Float32 = 0.0
+                        if abs_err < beta:
+                            loss_j = 0.5 * err * err / beta
+                            grad_factor = err / beta
+                        else:
+                            loss_j = abs_err - 0.5 * beta
+                            grad_factor = Float32(1.0) if err > 0.0 else Float32(-1.0)
+                        # update weights using grad_factor (derivative w.r.t. prediction)
                         for d in range(D):
-                            var grad_w = feats.dados[d] * err
+                            var grad_w = feats.dados[d] * grad_factor
                             if grad_w > 100.0: grad_w = 100.0
                             if grad_w < -100.0: grad_w = -100.0
                             detector.bloco_cnn.peso_saida.dados[d * 4 + j] = detector.bloco_cnn.peso_saida.dados[d * 4 + j] - lr_w * grad_w
-                        detector.bloco_cnn.bias_saida.dados[j] = detector.bloco_cnn.bias_saida.dados[j] - lr_atual * err
-                        soma_loss = soma_loss + abs(err)
+                        detector.bloco_cnn.bias_saida.dados[j] = detector.bloco_cnn.bias_saida.dados[j] - lr_atual * grad_factor
+                        soma_loss = soma_loss + loss_j
                     # Cls head: positive anchor → target=1
                     if head_initialized and D > 0:
                         var cls_pred_p: Float32 = 0.0
@@ -950,15 +962,121 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
         except _:
             pass
 
-        # Evaluate IoU-based convergence and early stopping
+        # Evaluate IoU-based convergence and early stopping using validation set
         try:
-            var mean_iou: Float32 = 0.0
-            if count_iou > 0:
-                mean_iou = iou_sum / Float32(count_iou)
-            print("Epoca", ep, "Mean IoU (pos anchors):", mean_iou)
-            # improvement?
-            if mean_iou > best_iou + iou_min_delta:
-                best_iou = mean_iou
+            # We'll compute validation IoU by running inference on a small validation subset
+            var val_iou_sum: Float32 = 0.0
+            var val_iou_count: Int = 0
+            try:
+                var val_root = os.path.join(dataset_dir, "val")
+                if not os.path.exists(val_root):
+                    val_root = os.path.join(dataset_dir, "train")
+                if os.path.exists(val_root):
+                    var v_printed = 0
+                    var v_max = 200
+                    for cls in os.listdir(val_root):
+                        var pcls = os.path.join(val_root, cls)
+                        if not os.path.isdir(pcls):
+                            continue
+                        for f in os.listdir(pcls):
+                            if v_printed >= v_max:
+                                break
+                            if not f.endswith('.bmp'):
+                                continue
+                            var img_path = os.path.join(pcls, f)
+                            try:
+                                var val_orig_w: Int = largura; var val_orig_h: Int = altura
+                                try:
+                                    var val_orig = dados_pkg.carregar_bmp_rgb(img_path)
+                                    if val_orig.width > 0:
+                                        val_orig_w = val_orig.width; val_orig_h = val_orig.height
+                                except _:
+                                    pass
+                                var bmp = dados_pkg.carregar_bmp_rgb(img_path, largura, altura)
+                                if bmp.width == 0:
+                                    continue
+
+                                # ground-truth box (if exists)
+                                var gt_x0: Int = 0; var gt_y0: Int = 0; var gt_x1: Int = 0; var gt_y1: Int = 0
+                                var has_gt: Bool = False
+                                try:
+                                    var box_path = img_path.replace('.bmp', '.box')
+                                    var lines = dados_pkg.carregar_txt_linhas(box_path)
+                                    if len(lines) > 0:
+                                        var parts = _split_fields(lines[0])
+                                        if len(parts) >= 4:
+                                            var tx0 = Float32(uteis.parse_float_ascii(String(parts[0])))
+                                            var ty0 = Float32(uteis.parse_float_ascii(String(parts[1])))
+                                            var tx1 = Float32(uteis.parse_float_ascii(String(parts[2])))
+                                            var ty1 = Float32(uteis.parse_float_ascii(String(parts[3])))
+                                            if tx0 > 1.5 or ty0 > 1.5 or tx1 > 1.5 or ty1 > 1.5:
+                                                var vsx = Float32(largura) / Float32(max(1, val_orig_w))
+                                                var vsy = Float32(altura)  / Float32(max(1, val_orig_h))
+                                                gt_x0 = Int(tx0 * vsx); gt_y0 = Int(ty0 * vsy)
+                                                gt_x1 = Int(tx1 * vsx); gt_y1 = Int(ty1 * vsy)
+                                            else:
+                                                gt_x0 = Int(tx0 * Float32(largura))
+                                                gt_y0 = Int(ty0 * Float32(altura))
+                                                gt_x1 = Int(tx1 * Float32(largura))
+                                                gt_y1 = Int(ty1 * Float32(altura))
+                                            has_gt = True
+                                except _:
+                                    pass
+
+                                var raw_w_bytes = List[Int]()
+                                var raw_b_bytes = List[Int]()
+                                if head_initialized:
+                                    try:
+                                        raw_w_bytes = head_peso_cls.dados_bytes_bin()
+                                    except _:
+                                        raw_w_bytes = List[Int]()
+                                    try:
+                                        raw_b_bytes = head_bias_cls.dados_bytes_bin()
+                                    except _:
+                                        raw_b_bytes = List[Int]()
+                                var boxes = List[List[Int]]()
+                                try:
+                                    try:
+                                        if len(raw_w_bytes) > 0 and len(detector.cabeca_classificacao_peso.formato) >= 1:
+                                            _ = detector.cabeca_classificacao_peso.carregar_dados_bytes_bin(raw_w_bytes.copy())
+                                        if len(raw_b_bytes) > 0 and len(detector.cabeca_classificacao_bias.formato) >= 1:
+                                            _ = detector.cabeca_classificacao_bias.carregar_dados_bytes_bin(raw_b_bytes.copy())
+                                    except _:
+                                        pass
+                                    boxes = detector.inferir(bmp.pixels.copy(), largura, 16)
+                                except _:
+                                    boxes = List[List[Int]]()
+
+                                if has_gt:
+                                    var best_iou_img: Float32 = 0.0
+                                    for bi in range(len(boxes)):
+                                        try:
+                                            var pb = boxes[bi].copy()
+                                            var predf = List[Float32](); predf.append(Float32(pb[0])); predf.append(Float32(pb[1])); predf.append(Float32(pb[2])); predf.append(Float32(pb[3]))
+                                            var gtf = List[Float32](); gtf.append(Float32(gt_x0)); gtf.append(Float32(gt_y0)); gtf.append(Float32(gt_x1)); gtf.append(Float32(gt_y1))
+                                            var iou_val = retina_utils.calcular_iou(predf.copy(), gtf.copy())
+                                            if iou_val > best_iou_img:
+                                                best_iou_img = iou_val
+                                        except _:
+                                            pass
+                                    val_iou_sum = val_iou_sum + best_iou_img
+                                    val_iou_count = val_iou_count + 1
+                                v_printed = v_printed + 1
+                            except _:
+                                pass
+                        if v_printed >= v_max:
+                            break
+            except _:
+                pass
+
+            var mean_val_iou: Float32 = 0.0
+            if val_iou_count > 0:
+                mean_val_iou = val_iou_sum / Float32(val_iou_count)
+            print("Epoca", ep, "Validation Mean IoU:", mean_val_iou, "(based on", val_iou_count, "images)")
+
+            # improvement (use validation IoU)
+            if mean_val_iou > best_iou + iou_min_delta:
+                best_iou = mean_val_iou
                 iou_patience_count = 0
                 iou_consec_count = iou_consec_count + 1
             else:
@@ -970,9 +1088,9 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                 print("Early stopping: reached IoU target", best_iou, "at epoch", ep)
                 break
 
-            # Patience-based stop
+            # Patience-based stop (validation)
             if early_stop and iou_patience_count >= iou_patience:
-                print("Early stopping: no IoU improvement for", iou_patience, "epochs. Best IoU:", best_iou)
+                print("Early stopping: no validation IoU improvement for", iou_patience, "epochs. Best IoU:", best_iou)
                 break
         except _:
             pass
