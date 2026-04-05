@@ -12,5 +12,8 @@ fn main() raises -> None:
     var params = model_mod.BlocoRetinaFaceParametros(320, 6, 3, 3, "cpu", 32, 16, 0.01, 0.5)
     var detector = model_mod.RetinaFace(params^, os.path.join("MODELO", "retina_modelo"))
     # Reduced LR for stability during tuning
-    var result = detector.treinar("DATASET", 320, 320, 32, epocas, 0.005, 8, 128, early_stop)
+    # train only on two annotated identities per user request
+    var allowed = List[String]()
+    allowed.append("n000002"); allowed.append("n000003")
+    var result = detector.treinar("DATASET", 320, 320, 32, epocas, 0.05, 8, 128, early_stop, allowed)
     print("Treino finalizado:", result)

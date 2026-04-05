@@ -445,11 +445,11 @@ struct RetinaFace(Movable):
 
     fn treinar(mut self, var dataset_dir: String, var altura: Int = 640, var largura: Int = 640,
                var patch_size: Int = 64, var epocas: Int = 5, var taxa_aprendizado: Float32 = 0.05,
-               var batch_size: Int = 8, var batch_size_fim: Int = 128, var early_stop: Bool = True) -> String:
+               var batch_size: Int = 8, var batch_size_fim: Int = 128, var early_stop: Bool = True, var allowed_classes: List[String] = List[String]()) -> String:
         # Import trainer lazily to avoid circular import at module load time
         try:
             import retina.retina_trainer as trainer
-            return trainer.treinar_retina_minimal(self, dataset_dir, altura, largura, patch_size, epocas, taxa_aprendizado, batch_size, batch_size_fim, 1, True, early_stop)
+            return trainer.treinar_retina_minimal(self, dataset_dir, altura, largura, patch_size, epocas, taxa_aprendizado, batch_size, batch_size_fim, 1, True, early_stop, allowed_classes)
         except _:
             # Fallback: if import fails, return error string
             return "Falha: não foi possível iniciar treinador"

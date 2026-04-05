@@ -69,7 +69,7 @@ fn _anchor_sane(a: List[Float32], var max_width: Int, var max_height: Int) -> Bo
 fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir: String, var altura: Int = 640, var largura: Int = 640,
                           var patch_size: Int = 64, var epocas: Int = 5, var taxa_aprendizado: Float32 = 0.05,
                           var batch_size_inicio: Int = 8, var batch_size_fim: Int = 128, var samples_per_class: Int = 1, var randomize: Bool = True,
-                          var early_stop: Bool = True) raises -> String:
+                          var early_stop: Bool = True, var allowed_classes: List[String] = List[String]()) raises -> String:
 
     print("Iniciando treino: altura=", altura, " largura=", largura, " patch=", patch_size, " epocas=", epocas)
 
@@ -275,6 +275,15 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
             var pcls = os.path.join(train_root, cls)
             if not os.path.isdir(pcls):
                 continue
+            # optionally filter dataset classes by `allowed_classes` param
+            if len(allowed_classes) > 0:
+                var keep = False
+                for ac in allowed_classes:
+                    if ac == cls:
+                        keep = True
+                        break
+                if not keep:
+                    continue
             class_names.append(cls)
             var imgs = List[String]()
             try:
