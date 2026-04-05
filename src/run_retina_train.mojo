@@ -15,5 +15,5 @@ fn main() raises -> None:
     # train only on two annotated identities per user request
     var allowed = List[String]()
     allowed.append("n000002"); allowed.append("n000003")
-    var result = detector.treinar("DATASET", 320, 320, 32, epocas, 0.05, 8, 128, early_stop, allowed)
+    var result = detector.treinar("DATASET", 320, 320, 32, epocas, 0.01, 8, 128, early_stop, allowed)
     print("Treino finalizado:", result)

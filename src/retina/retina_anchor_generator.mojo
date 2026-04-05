@@ -14,7 +14,7 @@ fn _num_sane(var v: Float32) -> Bool:
         return False
 
 fn gerar_anchors(input_size: Int = 640, strides: List[Int] = [8,16,32,64],
-                 scales: List[List[Float32]] = List[List[Float32]](), ratios: List[Float32] = [0.5, 1.0, 2.0]) -> List[List[Float32]]:
+                 scales: List[List[Float32]] = List[List[Float32]](), multipliers: List[Float32] = [1.0,2.0,4.0,6.0], ratios: List[Float32] = [0.5, 1.0, 2.0]) -> List[List[Float32]]:
     # Gera anchors como [cx, cy, w, h] em pixels para cada nível.
     var out: List[List[Float32]] = List[List[Float32]]()
     var scales_local: List[List[Float32]] = scales.copy()
@@ -22,7 +22,8 @@ fn gerar_anchors(input_size: Int = 640, strides: List[Int] = [8,16,32,64],
         var default_scales: List[List[Float32]] = List[List[Float32]]()
         for s in strides:
             var lvl: List[Float32] = List[Float32]()
-            lvl.append(Float32(s) * 4.0)
+            for m in multipliers:
+                lvl.append(Float32(s) * Float32(m))
             default_scales.append(lvl^)
         scales_local = default_scales^
 
