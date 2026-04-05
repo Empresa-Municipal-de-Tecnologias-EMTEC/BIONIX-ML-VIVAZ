@@ -15,6 +15,16 @@ import math
 import diagnostics.logger as logger
 
 
+# Sigmoid scalar (stable)
+fn _sigmoid_scalar(var x: Float32) -> Float32:
+    if x >= 0.0:
+        var z = math.exp(-x)
+        return 1.0 / (1.0 + z)
+    else:
+        var z = math.exp(x)
+        return z / (1.0 + z)
+
+
 # Separador de campos: divide string por espaço, tab ou vírgula
 fn _split_fields(line: String) -> List[String]:
     var fields = List[String]()
@@ -74,6 +84,9 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
     var min_delta: Float32 = 1e-6
     # IoU-based early stopping params
     var best_iou: Float32 = 0.0
+    # Composite validation score (mean IoU minus FP penalty) for stricter early-stop
+    var best_val_score: Float32 = -1.0
+    var val_fp_penalty: Float32 = 0.08
     var iou_patience: Int = 5
     var iou_patience_count: Int = 0
     var iou_min_delta: Float32 = 1e-4
@@ -666,15 +679,17 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                             for d_n in range(D):
                                 cls_pred_n = cls_pred_n + feats.dados[d_n] * head_peso_cls.dados[d_n]
                             cls_pred_n = cls_pred_n + head_bias_cls.dados[0]
-                            var cls_err_n = cls_pred_n  # target=0 → err = pred - 0
-                            if cls_err_n > 5.0: cls_err_n = 5.0
-                            if cls_err_n < -5.0: cls_err_n = -5.0
+                            # BCE-with-logits gradient: sigmoid(pred) - target (target=0)
+                            var grad_n: Float32 = _sigmoid_scalar(cls_pred_n)
+                            # clamp gradient to avoid extreme updates
+                            if grad_n > 5.0: grad_n = 5.0
+                            if grad_n < -5.0: grad_n = -5.0
                             for d_n in range(D):
-                                var cg_n = feats.dados[d_n] * cls_err_n
+                                var cg_n = feats.dados[d_n] * grad_n
                                 if cg_n > 10.0: cg_n = 10.0
                                 if cg_n < -10.0: cg_n = -10.0
                                 head_peso_cls.dados[d_n] = head_peso_cls.dados[d_n] - lr_w * cg_n
-                            head_bias_cls.dados[0] = head_bias_cls.dados[0] - lr_atual * cls_err_n
+                            head_bias_cls.dados[0] = head_bias_cls.dados[0] - lr_atual * grad_n
                         continue
 
                     # compute prediction and simple L1 update
@@ -780,17 +795,18 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                         for d_p in range(D):
                             cls_pred_p = cls_pred_p + feats.dados[d_p] * head_peso_cls.dados[d_p]
                         cls_pred_p = cls_pred_p + head_bias_cls.dados[0]
-                        var cls_err_p = cls_pred_p - 1.0  # target=1
-                        # amplify classification error when regression IoU is very low or OOB
-                        cls_err_p = cls_err_p * penalty_factor
-                        if cls_err_p > 5.0 * penalty_factor: cls_err_p = 5.0 * penalty_factor
-                        if cls_err_p < -5.0 * penalty_factor: cls_err_p = -5.0 * penalty_factor
+                        # BCE-with-logits gradient: sigmoid(pred) - target (target=1)
+                        var grad_p: Float32 = _sigmoid_scalar(cls_pred_p) - 1.0
+                        # amplify classification gradient when regression IoU is very low or OOB
+                        grad_p = grad_p * penalty_factor
+                        if grad_p > 5.0 * penalty_factor: grad_p = 5.0 * penalty_factor
+                        if grad_p < -5.0 * penalty_factor: grad_p = -5.0 * penalty_factor
                         for d_p in range(D):
-                            var cg_p = feats.dados[d_p] * cls_err_p
+                            var cg_p = feats.dados[d_p] * grad_p
                             if cg_p > 10.0: cg_p = 10.0
                             if cg_p < -10.0: cg_p = -10.0
                             head_peso_cls.dados[d_p] = head_peso_cls.dados[d_p] - lr_w * cg_p
-                        head_bias_cls.dados[0] = head_bias_cls.dados[0] - lr_atual * cls_err_p
+                        head_bias_cls.dados[0] = head_bias_cls.dados[0] - lr_atual * grad_p
                     count_pos = count_pos + 1
 
         var avg_loss: Float32 = 0.0
@@ -985,6 +1001,8 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
             # We'll compute validation IoU by running inference on a small validation subset
             var val_iou_sum: Float32 = 0.0
             var val_iou_count: Int = 0
+            var val_best_list: List[Float32] = List[Float32]()
+            var val_fp_count: Int = 0
             try:
                 var val_root = os.path.join(dataset_dir, "val")
                 if not os.path.exists(val_root):
@@ -1077,6 +1095,10 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                                                 best_iou_img = iou_val
                                         except _:
                                             pass
+                                    # count as false positive if best_iou very low
+                                    if best_iou_img < Float32(0.2):
+                                        val_fp_count = val_fp_count + 1
+                                    val_best_list.append(best_iou_img)
                                     val_iou_sum = val_iou_sum + best_iou_img
                                     val_iou_count = val_iou_count + 1
                                 v_printed = v_printed + 1
@@ -1088,12 +1110,45 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                 pass
 
             var mean_val_iou: Float32 = 0.0
+            var median_val_iou: Float32 = 0.0
             if val_iou_count > 0:
                 mean_val_iou = val_iou_sum / Float32(val_iou_count)
-            print("Epoca", ep, "Validation Mean IoU:", mean_val_iou, "(based on", val_iou_count, "images)")
+                # compute median
+                try:
+                    # simple selection sort + median (List.sort() unavailable)
+                    var tmp = val_best_list.copy()
+                    for i in range(len(tmp)):
+                        var minj = i
+                        for j in range(i + 1, len(tmp)):
+                            if tmp[j] < tmp[minj]:
+                                minj = j
+                        if minj != i:
+                            var ttmp = tmp[i]
+                            tmp[i] = tmp[minj]
+                            tmp[minj] = ttmp
+                    var mpos = len(tmp) // 2
+                    if len(tmp) % 2 == 1:
+                        median_val_iou = tmp[mpos]
+                    else:
+                        median_val_iou = (tmp[mpos - 1] + tmp[mpos]) / Float32(2.0)
+                except _:
+                    median_val_iou = mean_val_iou
+            print("Epoca", ep, "Validation Mean IoU:", mean_val_iou, "median:", median_val_iou, "FP_count:", val_fp_count, "(based on", val_iou_count, "images)")
 
-            # improvement (use validation IoU)
-            if mean_val_iou > best_iou + iou_min_delta:
+            # improvement: use composite validation score (mean IoU minus normalized FP penalty)
+            var composite_val_score: Float32 = mean_val_iou
+            try:
+                var denom = Float32(1.0)
+                if val_iou_count > 0:
+                    denom = Float32(val_iou_count)
+                composite_val_score = mean_val_iou - (Float32(val_fp_count) / denom) * val_fp_penalty
+            except _:
+                composite_val_score = mean_val_iou
+            print("Epoca", ep, "Composite Val Score:", composite_val_score)
+
+            if composite_val_score > best_val_score + iou_min_delta:
+                best_val_score = composite_val_score
+                # also keep track of best mean IoU for logging
                 best_iou = mean_val_iou
                 iou_patience_count = 0
                 iou_consec_count = iou_consec_count + 1
@@ -1101,9 +1156,9 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                 iou_patience_count = iou_patience_count + 1
                 iou_consec_count = 0
 
-            # Check target consecutive condition
-            if early_stop and best_iou >= iou_target and iou_consec_count >= iou_consec_required:
-                print("Early stopping: reached IoU target", best_iou, "at epoch", ep)
+            # Check target consecutive condition using composite score (stricter)
+            if early_stop and best_val_score >= iou_target and iou_consec_count >= iou_consec_required:
+                print("Early stopping: reached composite IoU target", best_val_score, "at epoch", ep)
                 break
 
             # Patience-based stop (validation)
