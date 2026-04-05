@@ -152,4 +152,50 @@ fn assignar_anchors(anchors: List[List[Float32]], gt_boxes: List[List[Int]],
             labels[a_idx] = -1 # ignore
 
     # return result struct transferring ownership of lists
+    # Ensure every GT has at least one positive anchor: force-assign the best anchor per GT
+    try:
+        for g_idx in range(len(gt_boxes)):
+            var best_a = -1
+            var best_a_iou: Float32 = 0.0
+            var gt = gt_boxes[g_idx].copy()
+            var gt_cx = Float32((gt[0] + gt[2]) / 2.0)
+            var gt_cy = Float32((gt[1] + gt[3]) / 2.0)
+            var gt_w = Float32(gt[2] - gt[0])
+            var gt_h = Float32(gt[3] - gt[1])
+            for a_idx2 in range(N):
+                try:
+                    var a2 = anchors[a_idx2].copy()
+                    var iou2 = calcular_iou_xywh(a2, List[Float32](gt_cx, gt_cy, gt_w, gt_h))
+                    if iou2 > best_a_iou:
+                        best_a_iou = iou2
+                        best_a = a_idx2
+                except _:
+                    pass
+            if best_a >= 0:
+                # compute targets for this anchor (same as above)
+                try:
+                    var a_local = anchors[best_a].copy()
+                    var ax = a_local[0]; var ay = a_local[1]; var aw = a_local[2]; var ah = a_local[3]
+                    if aw >= 1e-3 and ah >= 1e-3:
+                        var tx = (gt_cx - ax) / aw
+                        var ty = (gt_cy - ay) / ah
+                        var tw = Float32(math.log(gt_w / aw + 1e-6))
+                        var th = Float32(math.log(gt_h / ah + 1e-6))
+                        if tx > 3.0: tx = 3.0
+                        if tx < -3.0: tx = -3.0
+                        if ty > 3.0: ty = 3.0
+                        if ty < -3.0: ty = -3.0
+                        if tw > 4.0: tw = 4.0
+                        if tw < -4.0: tw = -4.0
+                        if th > 4.0: th = 4.0
+                        if th < -4.0: th = -4.0
+                        var t: List[Float32] = List[Float32]()
+                        t.append(tx); t.append(ty); t.append(tw); t.append(th)
+                        labels[best_a] = 1
+                        targets[best_a] = t^
+                except _:
+                    pass
+    except _:
+        pass
+
     return AssignResult(labels^, targets^)
