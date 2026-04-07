@@ -1,4 +1,4 @@
-import retina.retina_model as model_mod
+import retina.retina_modelo as model_mod
 import bionix_ml.computacao.adaptadores.contexto as contexto_defs
 import os
 
