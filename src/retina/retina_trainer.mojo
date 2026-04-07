@@ -466,6 +466,20 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                 if len(gt_box) == 4:
                     gt_list.append(gt_box.copy())
 
+                # Apply resizing to training resolution and adjust GT boxes so anchors align
+                var img_matrix = List[List[List[Float32]]]()
+                try:
+                    var resized_tuple = detector.redimensionar_para_tamanho_entrada(bmp.pixels.copy(), gt_list.copy(), largura)
+                    img_matrix = resized_tuple[0]
+                    if len(resized_tuple[1]) > 0:
+                        gt_list = resized_tuple[1]
+                except _:
+                    # fallback to using loaded bmp pixels (may be original or already rescaled by carregar_bmp_rgb)
+                    try:
+                        img_matrix = bmp.pixels.copy()
+                    except _:
+                        img_matrix = List[List[List[Float32]]]()
+
                 # Faz a associação e uma cópia explícita das ancoras
                 var res = assigner.associar_ancoras(anchors.copy(), gt_list.copy())
                 # avoid copying large lists here (reduce peak memory)
@@ -595,38 +609,12 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                     aw = max(1, _ax1 - ax)
                     ah = max(1, _ay1 - ay)
 
-                    # Use local copy of pixels
-                    var bmp_flat = bmp.flat_pixels.copy()
-                    var bmp_channels = bmp.channels
-                    var bmp_w = bmp.width; var bmp_h = bmp.height
-                    
-                    # Redimensiona região da anchor para patch_size×patch_size e converte para escala de cinza
-                    var yy0_local = ay; var xx0_local = ax
-                    var src_h_local = ah; var src_w_local = aw
-                    if src_h_local <= 0: src_h_local = 1
-                    if src_w_local <= 0: src_w_local = 1
-                    var flat_len = len(bmp_flat)
+                    # Use resized image matrix and crop via helper to produce patch_rgb
+                    var patch_rgb = graficos_pkg.crop_and_resize_rgb(img_matrix, ax, ay, ax + aw - 1, ay + ah - 1, patch_size, patch_size)
                     for yy in range(patch_size):
-                        var src_y = (yy * src_h_local) // patch_size
-                        if src_y < 0: src_y = 0
-                        if src_y >= src_h_local: src_y = src_h_local - 1
-                        var img_y = yy0_local + src_y
-                        if img_y < 0: img_y = 0
-                        if img_y >= bmp_h: img_y = bmp_h - 1
                         for xx in range(patch_size):
-                            var src_x = (xx * src_w_local) // patch_size
-                            if src_x < 0: src_x = 0
-                            if src_x >= src_w_local: src_x = src_w_local - 1
-                            var img_x = xx0_local + src_x
-                            if img_x < 0: img_x = 0
-                            if img_x >= bmp_w: img_x = bmp_w - 1
-                            var idx_flat = (img_y * bmp_w + img_x) * bmp_channels
-                            var r: Float32 = 0.0; var g: Float32 = 0.0; var b: Float32 = 0.0
-                            if bmp_channels >= 3 and idx_flat + 2 < flat_len:
-                                r = bmp_flat[idx_flat + 0]; g = bmp_flat[idx_flat + 1]; b = bmp_flat[idx_flat + 2]
-                            elif idx_flat < flat_len:
-                                r = bmp_flat[idx_flat]; g = r; b = r
-                            tensor_in.dados[yy * patch_size + xx] = Float32(0.299) * r + Float32(0.587) * g + Float32(0.114) * b
+                            var pix = patch_rgb[yy][xx].copy()
+                            tensor_in.dados[yy * patch_size + xx] = Float32(0.299) * pix[0] + Float32(0.587) * pix[1] + Float32(0.114) * pix[2]
 
                     var feats = cnn_pkg.extrair_features(detector.bloco_cnn, tensor_in)
                     var D = 0

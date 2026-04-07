@@ -17,7 +17,7 @@ import retina.retina_trainer as trainer
 
  # BlocoRetinaFaceParametros:
  # - Parâmetros de configuração do bloco Retina (tamanhos, filtros, thresholds)
- # - Usado para construir/serializar o comportamento do `RetinaFace` wrapper
+ # - Usado para construir/serializar o comportamento do `RetinaFace`
 struct BlocoRetinaFaceParametros(Movable, Copyable):
     var input_size: Int
     var num_filtros: Int
@@ -276,6 +276,105 @@ struct RetinaFace(Movable):
         except _:
             return False
 
+    # Redimensiona `img_pixels` para `target_size x target_size` preservando as caixas
+    # fornecidas em `caixas` (lista de [x0,y0,x1,y1]) garantindo que a região
+    # das anotações não seja perdida: faz um crop quadrado que contenha as caixas
+    # (ou center-crop se não há caixas) e então redimensiona para `target_size`.
+    # Retorna (img_redimensionada, caixas_ajustadas).
+    fn redimensionar_para_tamanho_entrada(self, img_pixels: List[List[List[Float32]]], var caixas: List[List[Int]], var target_size: Int = 320) -> (List[List[List[Float32]]], List[List[Int]]):
+        var h: Int = 0
+        try:
+            h = len(img_pixels)
+        except _:
+            h = 0
+        var w: Int = 0
+        try:
+            if h > 0:
+                w = len(img_pixels[0])
+        except _:
+            w = 0
+        if w <= 0 or h <= 0:
+            return (img_pixels, caixas)
+
+        var caixas_out: List[List[Int]] = List[List[Int]]()
+
+        # determinar região alvo (crop) que preserve todas as caixas, se existirem
+        var crop_x: Int = 0
+        var crop_y: Int = 0
+        var side: Int = 0
+        if len(caixas) == 0:
+            # center-crop quadrado
+            side = min(w, h)
+            crop_x = (w - side) // 2
+            crop_y = (h - side) // 2
+        else:
+            var minx: Int = 1_000_000
+            var miny: Int = 1_000_000
+            var maxx: Int = -1_000_000
+            var maxy: Int = -1_000_000
+            for cb in caixas:
+                try:
+                    if cb[0] < minx: minx = cb[0]
+                    if cb[1] < miny: miny = cb[1]
+                    if cb[2] > maxx: maxx = cb[2]
+                    if cb[3] > maxy: maxy = cb[3]
+                except _:
+                    continue
+            var bbox_w: Int = maxx - minx
+            var bbox_h: Int = maxy - miny
+            if bbox_w < 0: bbox_w = 0
+            if bbox_h < 0: bbox_h = 0
+            side = bbox_w if bbox_w > bbox_h else bbox_h
+            if side <= 0:
+                side = min(w, h)
+            # ensure side does not exceed image smallest dim
+            var max_side = min(w, h)
+            if side > max_side:
+                side = max_side
+            var center_x = Float32(minx + maxx) / 2.0
+            var center_y = Float32(miny + maxy) / 2.0
+            crop_x = Int(center_x - Float32(side) / 2.0)
+            crop_y = Int(center_y - Float32(side) / 2.0)
+            if crop_x < 0: crop_x = 0
+            if crop_y < 0: crop_y = 0
+            if crop_x + side > w: crop_x = w - side
+            if crop_y + side > h: crop_y = h - side
+
+        if side <= 0:
+            side = min(w, h)
+            crop_x = (w - side) // 2
+            crop_y = (h - side) // 2
+
+        var x1 = crop_x + side - 1
+        var y1 = crop_y + side - 1
+        # crop_and_resize_rgb usa x1,y1 inclusivos (consistente com uso no código)
+        var resized = graficos_pkg.crop_and_resize_rgb(img_pixels, crop_x, crop_y, x1, y1, target_size, target_size)
+
+        var scale: Float32 = 1.0
+        try:
+            scale = Float32(target_size) / Float32(side)
+        except _:
+            scale = 1.0
+
+        for cb in caixas:
+            try:
+                var nx0 = Int(Float32(cb[0] - crop_x) * scale)
+                var ny0 = Int(Float32(cb[1] - crop_y) * scale)
+                var nx1 = Int(Float32(cb[2] - crop_x) * scale)
+                var ny1 = Int(Float32(cb[3] - crop_y) * scale)
+                if nx0 < 0: nx0 = 0
+                if ny0 < 0: ny0 = 0
+                if nx1 >= target_size: nx1 = target_size - 1
+                if ny1 >= target_size: ny1 = target_size - 1
+                var nb: List[Int] = List[Int]()
+                nb.append(nx0); nb.append(ny0); nb.append(nx1); nb.append(ny1)
+                caixas_out.append(nb^)
+            except _:
+                # em caso de erro, pular caixa
+                continue
+
+        return (resized, caixas_out^)
+
     fn inferir(mut self, img_pixels: List[List[List[Float32]]], var input_size: Int = -1, var max_per_image: Int = -1) -> List[List[Int]]:
 
 
@@ -324,6 +423,14 @@ struct RetinaFace(Movable):
         except _:
             cls_tensors_inited = False
 
+        # Preprocess input image to the expected square `in_size` to keep anchors consistent
+        var img_matrix = img_pixels
+        try:
+            var resized_tuple = self.redimensionar_para_tamanho_entrada(img_pixels.copy(), List[List[Int]](), in_size)
+            img_matrix = resized_tuple[0]
+        except _:
+            img_matrix = img_pixels
+
         for i in range(len(anchors)):
             var a = anchors[i].copy()
             var ax = Int(a[0] - a[2] / 2.0); var ay = Int(a[1] - a[3] / 2.0)
@@ -333,7 +440,7 @@ struct RetinaFace(Movable):
             if ax + aw > in_size: aw = max(1, in_size - ax)
             if ay + ah > in_size: ah = max(1, in_size - ay)
 
-            var patch_rgb = graficos_pkg.crop_and_resize_rgb(img_pixels, ax, ay, ax + aw - 1, ay + ah - 1, patch_size, patch_size)
+            var patch_rgb = graficos_pkg.crop_and_resize_rgb(img_matrix, ax, ay, ax + aw - 1, ay + ah - 1, patch_size, patch_size)
             # Tensor grayscale [1, patch*patch] — BlocoCNN processa escala de cinza
             var in_shape = List[Int]()
             in_shape.append(1); in_shape.append(patch_size * patch_size)
