@@ -6,15 +6,14 @@ import bionix_ml.dados as dados_pkg
 import bionix_ml.uteis as uteis
 import os
 import bionix_ml.camadas.cnn as cnn_pkg
-import retina.retina_gerador_ancoras as anchor_gen
-import retina.retina_supressao_por_pontuacao as nms_pkg
+import retina.retina_gerador_ancoras as gerador_ancoras_pkg
+import retina.retina_supressao_por_pontuacao as supressao_por_pontuacao_pkg
 import bionix_ml.graficos as graficos_pkg
 import bionix_ml.nucleo.Tensor as tensor_defs_local
 import math
 import retina.retina_trainer as trainer
 
-# Utility wrappers to create/load/save retina model components in a reusable way
-
+# Utilitários para configuração, construção, inferência e persistência do modelo RetinaFace.
 
  # BlocoRetinaFaceParametros:
  # - Parâmetros de configuração do bloco Retina (tamanhos, filtros, thresholds)
@@ -283,7 +282,7 @@ struct RetinaFace(Movable):
         var in_size = input_size if input_size > 0 else self.parametros.input_size
         var maxp = max_per_image if max_per_image > 0 else self.parametros.max_per_image
 
-        var anchors = anchor_gen.gerar_ancoras(in_size)
+        var anchors = gerador_ancoras_pkg.gerar_ancoras(in_size)
         var cls_scores: List[Float32] = List[Float32]()
         var reg_deltas: List[List[Float32]] = List[List[Float32]]()
         var patch_size = self.parametros.patch_size
@@ -420,7 +419,7 @@ struct RetinaFace(Movable):
             # transfer freshly-built box to avoid implicit copy
             boxes.append(outb^)
 
-        var keep = nms_pkg.supressao_por_pontuacao(boxes, cls_scores, self.parametros.nms_iou)
+        var keep = supressao_por_pontuacao_pkg.supressao_por_pontuacao(boxes, cls_scores, self.parametros.nms_iou)
         var kept_boxes = List[List[Int]]()
         # Safe Float32→Int conversion bounds: float must be in [Int32.MIN, Int32.MAX] range to
         # avoid Int64.MinValue sentinel from out-of-range casts (e.g. exp() overflow residuals)
