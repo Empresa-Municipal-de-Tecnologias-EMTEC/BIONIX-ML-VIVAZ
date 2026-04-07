@@ -2,7 +2,7 @@ import bionix_ml.camadas.cnn as cnn_pkg
 import retina.model_detector as model_pkg
 import bionix_ml.dados as dados_pkg
 import bionix_ml.dados.arquivo as arquivo_pkg
-import retina.retina_model as model_utils
+import retina.retina_modelo as model_utils
 import detector_dataset as dataset_pkg
 import bionix_ml.graficos as graficos_pkg
 import bionix_ml.uteis as uteis
