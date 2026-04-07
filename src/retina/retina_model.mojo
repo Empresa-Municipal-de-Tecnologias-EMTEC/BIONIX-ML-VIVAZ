@@ -6,6 +6,12 @@ import bionix_ml.dados as dados_pkg
 import bionix_ml.uteis as uteis
 import os
 import bionix_ml.camadas.cnn as cnn_pkg
+import retina.retina_gerador_ancoras as anchor_gen
+import retina.retina_nms as nms_pkg
+import bionix_ml.graficos as graficos_pkg
+import bionix_ml.nucleo.Tensor as tensor_defs_local
+import math
+import retina.retina_trainer as trainer
 
 # Utility wrappers to create/load/save retina model components in a reusable way
 
@@ -272,11 +278,7 @@ struct RetinaFace(Movable):
             return False
 
     fn inferir(mut self, img_pixels: List[List[List[Float32]]], var input_size: Int = -1, var max_per_image: Int = -1) -> List[List[Int]]:
-        import retina.retina_anchor_generator as anchor_gen
-        import retina.retina_nms as nms_pkg
-        import bionix_ml.graficos as graficos_pkg
-        import bionix_ml.nucleo.Tensor as tensor_defs_local
-        import math
+
 
         var in_size = input_size if input_size > 0 else self.parametros.input_size
         var maxp = max_per_image if max_per_image > 0 else self.parametros.max_per_image
@@ -448,7 +450,6 @@ struct RetinaFace(Movable):
                var batch_size: Int = 8, var batch_size_fim: Int = 128, var early_stop: Bool = True, var allowed_classes: List[String] = List[String]()) -> String:
         # Import trainer lazily to avoid circular import at module load time
         try:
-            import retina.retina_trainer as trainer
             return trainer.treinar_retina_minimal(self, dataset_dir, altura, largura, patch_size, epocas, taxa_aprendizado, batch_size, batch_size_fim, 1, True, early_stop, allowed_classes)
         except _:
             # Fallback: if import fails, return error string
