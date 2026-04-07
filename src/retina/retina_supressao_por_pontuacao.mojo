@@ -1,6 +1,6 @@
 import bionix_ml.nucleo.Tensor as tensor_defs
 
-fn intersec_over_union(boxA: List[Float32], boxB: List[Float32]) -> Float32:
+fn intersecao_sobre_uniao(boxA: List[Float32], boxB: List[Float32]) -> Float32:
     # boxes in [x0,y0,x1,y1]
     var xA = max(boxA[0], boxB[0])
     var yA = max(boxA[1], boxB[1])
@@ -15,7 +15,7 @@ fn intersec_over_union(boxA: List[Float32], boxB: List[Float32]) -> Float32:
     var boxBArea = (boxB[2] - boxB[0]) * (boxB[3] - boxB[1])
     return interArea / (boxAArea + boxBArea - interArea)
 
-fn non_max_suppression(boxes: List[List[Float32]], scores: List[Float32], iou_thresh: Float32 = 0.5) -> List[Int]:
+fn supressao_por_pontuacao(boxes: List[List[Float32]], scores: List[Float32], iou_thresh: Float32 = 0.5) -> List[Int]:
     var idxs: List[Int] = List[Int]()
     for i in range(len(boxes)):
         idxs.append(i)
@@ -32,11 +32,11 @@ fn non_max_suppression(boxes: List[List[Float32]], scores: List[Float32], iou_th
         var keep_i = True
         var idx_i = idxs[i]
         for k in keep:
-            var iou = intersec_over_union(boxes[idx_i].copy(), boxes[k].copy())
+            var iou = intersecao_sobre_uniao(boxes[idx_i].copy(), boxes[k].copy())
             if iou > iou_thresh:
                 keep_i = False
                 break
         if keep_i:
             keep.append(idx_i)
-    # transfer ownership of keep to caller to avoid implicit copy
+    # transferencia de propriedade de keep para o chamador para evitar cópia implícita
     return keep^
