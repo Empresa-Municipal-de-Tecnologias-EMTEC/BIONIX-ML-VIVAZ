@@ -1,5 +1,6 @@
 import bionix_ml.camadas.cnn as cnn_pkg
 import retina.model_detector as model_pkg
+import bionix_ml.computacao.adaptadores.contexto as contexto_defs
 import bionix_ml.dados as dados_pkg
 import bionix_ml.dados.arquivo as arquivo_pkg
 import retina.retina_modelo as model_utils
@@ -103,13 +104,14 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
         pass
 
     # allocate placeholder heads (use detector's backend)
-    var head_peso_cls = tensor_defs.Tensor(List[Int](), detector.bloco_cnn.tipo_computacao)
-    var head_bias_cls = tensor_defs.Tensor(List[Int](), detector.bloco_cnn.tipo_computacao)
+    var head_peso_cls = tensor_defs.Tensor(List[Int](), detector.tipo_computacao)
+    var head_bias_cls = tensor_defs.Tensor(List[Int](), detector.tipo_computacao)
     var head_initialized = False
 
     # Carrega checkpoint anterior se existir (pesos treinados em sessões anteriores)
     try:
-        _ = model_pkg.carregar_checkpoint(detector.bloco_cnn, export_dir)
+        # carregar workspace/estado salvo pelo detector (pesos e metadata)
+        _ = detector.carregar_workspace(export_dir)
     except _:
         pass
     # Verifica se parâmetros persistidos são compatíveis; se não, ignora estado salvo
@@ -143,8 +145,14 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
     # This typically happens when training ran for many epochs with the un-normalized LR bug.
     # Reset the whole regression head to known-good initial values in that case.
     try:
-        var bias_dw = detector.bloco_cnn.bias_saida.dados[2]
-        var bias_dh = detector.bloco_cnn.bias_saida.dados[3]
+        var bias_dw = 0.0
+        var bias_dh = 0.0
+        try:
+            bias_dw = detector.bloco_bias_saida.dados[2]
+            bias_dh = detector.bloco_bias_saida.dados[3]
+        except _:
+            bias_dw = 0.0
+            bias_dh = 0.0
         var diverged = False
         if bias_dw != bias_dw or bias_dh != bias_dh:
             diverged = True  # NaN
@@ -156,46 +164,51 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
             print("[WARN] Bias de escala divergiu (bias_dw=", bias_dw, " bias_dh=", bias_dh, "). Reinicializando cabeca de regressao.")
             var D2 = 0
             try:
-                D2 = detector.bloco_cnn.peso_saida.formato[0]
+                if len(detector.bloco_peso_saida.formato) >= 1:
+                    D2 = detector.bloco_peso_saida.formato[0]
+                else:
+                    D2 = 0
             except _:
                 D2 = 0
             if D2 > 0:
                 var shape_w2 = List[Int](); shape_w2.append(D2); shape_w2.append(4)
-                detector.bloco_cnn.peso_saida = tensor_defs.Tensor(shape_w2^, detector.bloco_cnn.tipo_computacao)
+                detector.bloco_peso_saida = tensor_defs.Tensor(shape_w2^, detector.tipo_computacao)
                 var shape_b2 = List[Int](); shape_b2.append(1); shape_b2.append(4)
-                detector.bloco_cnn.bias_saida = tensor_defs.Tensor(shape_b2^, detector.bloco_cnn.tipo_computacao)
-                for k2 in range(len(detector.bloco_cnn.peso_saida.dados)):
+                detector.bloco_bias_saida = tensor_defs.Tensor(shape_b2^, detector.tipo_computacao)
+                for k2 in range(len(detector.bloco_peso_saida.dados)):
                     var col2 = k2 % 4
                     if col2 == 2 or col2 == 3:
-                        detector.bloco_cnn.peso_saida.dados[k2] = 1e-5
+                        detector.bloco_peso_saida.dados[k2] = 1e-5
                     else:
-                        detector.bloco_cnn.peso_saida.dados[k2] = 0.001
-                for k2 in range(len(detector.bloco_cnn.bias_saida.dados)):
-                    detector.bloco_cnn.bias_saida.dados[k2] = 0.0
+                        detector.bloco_peso_saida.dados[k2] = 0.001
+                for k2 in range(len(detector.bloco_bias_saida.dados)):
+                    detector.bloco_bias_saida.dados[k2] = 0.0
             detector.treinamento_epoca = -1
             detector.treinamento_lr = taxa_aprendizado
             head_initialized = False
     except _:
         pass
     try:
-        # Tenta carregar cabeças de classificação salvas
+        # Tenta carregar cabeças de classificação salvas (compatibilidade)
         var raw_w = arquivo_pkg.ler_arquivo_binario(os.path.join(export_dir, "peso_cls.bin"))
         var raw_b = arquivo_pkg.ler_arquivo_binario(os.path.join(export_dir, "bias_cls.bin"))
         if len(raw_w) > 0:
             try:
                 var D = 0
                 try:
-                    D = detector.bloco_cnn.peso_saida.formato[0]
+                    D = 0
+                    if len(detector.bloco_peso_saida.formato) >= 1:
+                        D = detector.bloco_peso_saida.formato[0]
                 except _:
                     D = 0
                 if D > 0:
                     var shape_w = List[Int]()
                     shape_w.append(D); shape_w.append(1)
-                    head_peso_cls = tensor_defs.Tensor(shape_w^, detector.bloco_cnn.tipo_computacao)
+                    head_peso_cls = tensor_defs.Tensor(shape_w^, detector.tipo_computacao)
                     _ = head_peso_cls.carregar_dados_bytes_bin(raw_w.copy())
                     var shape_b = List[Int]()
                     shape_b.append(1); shape_b.append(1)
-                    head_bias_cls = tensor_defs.Tensor(shape_b^, detector.bloco_cnn.tipo_computacao)
+                    head_bias_cls = tensor_defs.Tensor(shape_b^, detector.tipo_computacao)
                     if len(raw_b) > 0:
                         _ = head_bias_cls.carregar_dados_bytes_bin(raw_b.copy())
                     head_initialized = True
@@ -621,7 +634,7 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                         pass
 
                     # Create a fresh tensor for each anchor to isolate memory
-                    var tensor_in = tensor_defs.Tensor(in_shape.copy(), detector.bloco_cnn.tipo_computacao)
+                    var tensor_in = tensor_defs.Tensor(in_shape.copy(), detector.tipo_computacao)
 
                     var a = anchors[a_idx].copy()
                     # defensive validation: skip anchors with nonsensical sizes or corrupted values
@@ -650,7 +663,7 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                     except _:
                         using_conv_preds = False
                     var pred: List[Float32] = List[Float32]()
-                    var feats = tensor_defs.Tensor(List[Int](), detector.bloco_cnn.tipo_computacao)
+                    var feats = tensor_defs.Tensor(List[Int](), detector.tipo_computacao)
                     var D = 0
                     if using_conv_preds:
                         try:
@@ -663,7 +676,28 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                                 var pix = patch_rgb[yy][xx].copy()
                                 tensor_in.dados[yy * patch_size + xx] = Float32(0.299) * pix[0] + Float32(0.587) * pix[1] + Float32(0.114) * pix[2]
 
-                        feats = cnn_pkg.extrair_features(detector.bloco_cnn, tensor_in)
+                        # Build temporary BlocoCNN from detector tensors for compatibility
+                        try:
+                            var tmp_bloco = model_pkg.criar_bloco_detector(patch_size, patch_size, detector.parametros.num_filtros, detector.parametros.kernel_h, detector.parametros.kernel_w, contexto_defs.AdaptadorDeContexto(), 1, 1, detector.tipo_computacao)
+                            try:
+                                tmp_bloco.kernels = List[tensor_defs.Tensor]()
+                                for k in detector.bloco_kernels:
+                                    tmp_bloco.kernels.append(k.copy())
+                            except _:
+                                pass
+                            try:
+                                if len(detector.bloco_peso_saida.formato) >= 1:
+                                    tmp_bloco.peso_saida = detector.bloco_peso_saida.copy()
+                            except _:
+                                pass
+                            try:
+                                if len(detector.bloco_bias_saida.formato) >= 1:
+                                    tmp_bloco.bias_saida = detector.bloco_bias_saida.copy()
+                            except _:
+                                pass
+                            feats = cnn_pkg.extrair_features(tmp_bloco, tensor_in)
+                        except _:
+                            feats = tensor_defs.Tensor(List[Int](), detector.tipo_computacao)
                         try:
                             D = feats.formato[1]
                         except _:
@@ -685,31 +719,31 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                     if D > 0:
                         var reg_shape_ok = False
                         try:
-                            reg_shape_ok = (len(detector.bloco_cnn.peso_saida.formato) == 2 and
-                                            detector.bloco_cnn.peso_saida.formato[0] == D and
-                                            detector.bloco_cnn.peso_saida.formato[1] == 4)
+                            reg_shape_ok = (len(detector.bloco_peso_saida.formato) == 2 and
+                                            detector.bloco_peso_saida.formato[0] == D and
+                                            detector.bloco_peso_saida.formato[1] == 4)
                         except _:
                             reg_shape_ok = False
                         if not reg_shape_ok:
                             var shape_w = List[Int](); shape_w.append(D); shape_w.append(4)
-                            detector.bloco_cnn.peso_saida = tensor_defs.Tensor(shape_w^, detector.bloco_cnn.tipo_computacao)
+                            detector.bloco_peso_saida = tensor_defs.Tensor(shape_w^, detector.tipo_computacao)
                             var shape_b = List[Int](); shape_b.append(1); shape_b.append(4)
-                            detector.bloco_cnn.bias_saida = tensor_defs.Tensor(shape_b^, detector.bloco_cnn.tipo_computacao)
+                            detector.bloco_bias_saida = tensor_defs.Tensor(shape_b^, detector.tipo_computacao)
                             # All channels start at zero bias: exp(0)=1× preserves anchor size exactly.
                             # Tiny weights ensure the first prediction = anchor size (neutral start).
-                            for k in range(len(detector.bloco_cnn.peso_saida.dados)):
+                            for k in range(len(detector.bloco_peso_saida.dados)):
                                 var col = k % 4
                                 if col == 2 or col == 3:
-                                    detector.bloco_cnn.peso_saida.dados[k] = 1e-5
+                                    detector.bloco_peso_saida.dados[k] = 1e-5
                                 else:
-                                    detector.bloco_cnn.peso_saida.dados[k] = 0.001
-                            for k in range(len(detector.bloco_cnn.bias_saida.dados)):
-                                detector.bloco_cnn.bias_saida.dados[k] = 0.0
+                                    detector.bloco_peso_saida.dados[k] = 0.001
+                            for k in range(len(detector.bloco_bias_saida.dados)):
+                                detector.bloco_bias_saida.dados[k] = 0.0
                         if not head_initialized:
                             var shape_cw = List[Int](); shape_cw.append(D); shape_cw.append(1)
-                            head_peso_cls = tensor_defs.Tensor(shape_cw^, detector.bloco_cnn.tipo_computacao)
+                            head_peso_cls = tensor_defs.Tensor(shape_cw^, detector.tipo_computacao)
                             var shape_cb = List[Int](); shape_cb.append(1); shape_cb.append(1)
-                            head_bias_cls = tensor_defs.Tensor(shape_cb^, detector.bloco_cnn.tipo_computacao)
+                            head_bias_cls = tensor_defs.Tensor(shape_cb^, detector.tipo_computacao)
                             for k in range(len(head_peso_cls.dados)):
                                 head_peso_cls.dados[k] = 0.001
                             head_bias_cls.dados[0] = 0.0
@@ -768,8 +802,8 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                     for j in range(4):
                         var s: Float32 = 0.0
                         for d in range(D):
-                            s = s + feats.dados[d] * detector.bloco_cnn.peso_saida.dados[d * 4 + j]
-                        s = s + detector.bloco_cnn.bias_saida.dados[j]
+                            s = s + feats.dados[d] * detector.bloco_peso_saida.dados[d * 4 + j]
+                        s = s + detector.bloco_bias_saida.dados[j]
                         pred.append(s)
 
                     var tgt = targets[a_idx].copy()
@@ -891,8 +925,8 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                                 var grad_w = feats.dados[d] * grad_factor
                                 if grad_w > 100.0: grad_w = 100.0
                                 if grad_w < -100.0: grad_w = -100.0
-                                detector.bloco_cnn.peso_saida.dados[d * 4 + j] = detector.bloco_cnn.peso_saida.dados[d * 4 + j] - lr_w * grad_w
-                            detector.bloco_cnn.bias_saida.dados[j] = detector.bloco_cnn.bias_saida.dados[j] - lr_atual * grad_factor
+                                detector.bloco_peso_saida.dados[d * 4 + j] = detector.bloco_peso_saida.dados[d * 4 + j] - lr_w * grad_w
+                            detector.bloco_bias_saida.dados[j] = detector.bloco_bias_saida.dados[j] - lr_atual * grad_factor
                         soma_loss = soma_loss + (detector.reg_loss_weight * loss_j)
                     # Cls head: positive anchor → target=1
                     # Classification head update for positive anchors (target=1)
