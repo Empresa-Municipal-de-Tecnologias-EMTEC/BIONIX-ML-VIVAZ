@@ -1,9 +1,8 @@
 import bionix_ml.nucleo.Tensor as tensor_defs
 import math
 
-
-# small helper to detect NaN/Inf or absurd values
-fn _num_sane(var v: Float32) -> Bool:
+# detector de NaN/Inf ou valores absurdos
+fn _verificar_valor(var v: Float32) -> Bool:
     try:
         if v != v:
             return False
@@ -44,7 +43,7 @@ fn gerar_ancoras(tamanho_entrada: Int = 640, passos: List[Int] = [8,16,32],
                         # verifica se os valores são numéricos e razoáveis antes de adicionar-los à lista final, para evitar propagação de âncoras corrompidas
                         var ok = True
                         for vv in a:
-                            if not _num_sane(vv):
+                            if not _verificar_valor(vv):
                                 ok = False
                                 break
                         if not ok:
