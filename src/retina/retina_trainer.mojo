@@ -8,7 +8,7 @@ import bionix_ml.graficos as graficos_pkg
 import bionix_ml.uteis as uteis
 import bionix_ml.nucleo.Tensor as tensor_defs
 import retina.retina_gerador_ancoras as anchor_gen
-import retina.retina_assigner as assigner
+import retina.retina_associar_ancoras as assigner
 import retina.retina_utils as retina_utils
 import os
 import math
@@ -466,8 +466,8 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                 if len(gt_box) == 4:
                     gt_list.append(gt_box.copy())
 
-                # call assigner with explicit copies to avoid moving local ownership
-                var res = assigner.assignar_anchors(anchors.copy(), gt_list.copy())
+                # Faz a associação e uma cópia explícita das ancoras
+                var res = assigner.associar_ancoras(anchors.copy(), gt_list.copy())
                 # avoid copying large lists here (reduce peak memory)
                 var labels = res.labels.copy()
                 var targets = res.targets.copy()
