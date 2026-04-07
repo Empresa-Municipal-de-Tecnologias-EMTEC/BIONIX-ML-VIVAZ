@@ -50,7 +50,7 @@ fn calcular_iou_xywh(box1: List[Float32], box2: List[Float32]) -> Float32:
     return inter_area / (area1 + area2 - inter_area)
 
 fn associar_ancoras(ancoras: List[List[Float32]], caixas_anotadas: List[List[Int]],
-                    iou_pos: Float32 = 0.5, iou_neg: Float32 = 0.4) -> ResultadoAssociado:
+                    iou_pos: Float32 = 0.5, iou_neg: Float32 = 0.4, var reg_weights: List[Float32] = List[Float32]()) -> ResultadoAssociado:
     # caixas_anotadas são [x0,y0,x1,y1] em pixels (ints)
     var N = len(ancoras)
     # quick validation: count invalid anchors
@@ -147,6 +147,13 @@ fn associar_ancoras(ancoras: List[List[Float32]], caixas_anotadas: List[List[Int
                 pass
             var t: List[Float32] = List[Float32]()
             t.append(tx); t.append(ty); t.append(tw); t.append(th)
+            # apply regression weights if provided (e.g., [wx,wy,ww,wh])
+            try:
+                if len(reg_weights) >= 4:
+                    for jj in range(4):
+                        t[jj] = t[jj] * reg_weights[jj]
+            except _:
+                pass
             targets[a_idx] = t^
         elif best_iou < iou_neg:
             labels[a_idx] = 0
@@ -193,6 +200,12 @@ fn associar_ancoras(ancoras: List[List[Float32]], caixas_anotadas: List[List[Int
                         if th < -4.0: th = -4.0
                         var t: List[Float32] = List[Float32]()
                         t.append(tx); t.append(ty); t.append(tw); t.append(th)
+                        try:
+                            if len(reg_weights) >= 4:
+                                for jj in range(4):
+                                    t[jj] = t[jj] * reg_weights[jj]
+                        except _:
+                            pass
                         labels[best_a] = 1
                         targets[best_a] = t^
                 except _:

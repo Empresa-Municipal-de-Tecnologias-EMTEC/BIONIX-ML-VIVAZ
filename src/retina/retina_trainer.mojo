@@ -481,7 +481,7 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                         img_matrix = List[List[List[Float32]]]()
 
                 # Faz a associação e uma cópia explícita das ancoras
-                var res = assigner.associar_ancoras(anchors.copy(), gt_list.copy())
+                var res = assigner.associar_ancoras(anchors.copy(), gt_list.copy(), 0.5, 0.4, detector.bbox_reg_weights.copy())
                 # avoid copying large lists here (reduce peak memory)
                 var labels = res.labels.copy()
                 var targets = res.targets.copy()
@@ -537,6 +537,38 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                 # Tensor grayscale [1, patch*patch] — tamanho correto para BlocoCNN de patch_size×patch_size
                 var in_shape = List[Int](); in_shape.append(1); in_shape.append(patch_size * patch_size)
                 
+                # Precompute conv-FPN predictions for this image if requested (once per image)
+                var using_conv_preds: Bool = False
+                var pr_cls = List[Float32]()
+                var pr_reg = List[List[Float32]]()
+                var pr_mean = List[Float32]()
+                var pr_base = List[List[Float32]]()
+                try:
+                    using_conv_preds = detector.usar_conv_fpn
+                except _:
+                    using_conv_preds = False
+                if using_conv_preds:
+                    try:
+                        var pr = model_utils.gerar_predicoes_por_ancora_convfpn_module(detector, img_matrix.copy(), anchors.copy(), patch_size)
+                        pr_cls = pr[0]
+                        pr_reg = pr[1]
+                        # auxiliary data: mean summaries and base (pre-multiplier) reg deltas
+                        var pr_mean = List[Float32]()
+                        var pr_base = List[List[Float32]]()
+                        try:
+                            pr_mean = pr[2]
+                        except _:
+                            pr_mean = List[Float32]()
+                        try:
+                            pr_base = pr[3]
+                        except _:
+                            pr_base = List[List[Float32]]()
+                    except _:
+                        pr_cls = List[Float32]()
+                        pr_reg = List[List[Float32]]()
+                        pr_mean = List[Float32]()
+                        pr_base = List[List[Float32]]()
+
                 for a_idx in range(len(anchors)):
                     # Exit early when both positive and negative anchor quotas are satisfied
                     if pos_processed >= _max_pos_per_image and neg_processed_anchor >= max_neg_per_image:
@@ -611,17 +643,31 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
 
                     # Use resized image matrix and crop via helper to produce patch_rgb
                     var patch_rgb = graficos_pkg.crop_and_resize_rgb(img_matrix, ax, ay, ax + aw - 1, ay + ah - 1, patch_size, patch_size)
-                    for yy in range(patch_size):
-                        for xx in range(patch_size):
-                            var pix = patch_rgb[yy][xx].copy()
-                            tensor_in.dados[yy * patch_size + xx] = Float32(0.299) * pix[0] + Float32(0.587) * pix[1] + Float32(0.114) * pix[2]
-
-                    var feats = cnn_pkg.extrair_features(detector.bloco_cnn, tensor_in)
-                    var D = 0
+                    # If conv-FPN pipeline requested, use precomputed predictions
+                    var using_conv_preds: Bool = False
                     try:
-                        D = feats.formato[1]
+                        using_conv_preds = detector.usar_conv_fpn
                     except _:
-                        D = 0
+                        using_conv_preds = False
+                    var pred: List[Float32] = List[Float32]()
+                    var feats = tensor_defs.Tensor(List[Int](), detector.bloco_cnn.tipo_computacao)
+                    var D = 0
+                    if using_conv_preds:
+                        try:
+                            pred = pr_reg[a_idx].copy()
+                        except _:
+                            pred = List[Float32](); pred.append(0.0); pred.append(0.0); pred.append(0.0); pred.append(0.0)
+                    else:
+                        for yy in range(patch_size):
+                            for xx in range(patch_size):
+                                var pix = patch_rgb[yy][xx].copy()
+                                tensor_in.dados[yy * patch_size + xx] = Float32(0.299) * pix[0] + Float32(0.587) * pix[1] + Float32(0.114) * pix[2]
+
+                        feats = cnn_pkg.extrair_features(detector.bloco_cnn, tensor_in)
+                        try:
+                            D = feats.formato[1]
+                        except _:
+                            D = 0
 
                     # Normalized weight learning rate: divides by squared feature L2-norm so that
                     # the net prediction change per step ≈ lr_atual * err (same magnitude as bias),
@@ -671,26 +717,54 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
 
                     # Negative anchor: update classification head only (target=0), skip regression
                     if is_neg_anchor:
-                        if head_initialized and D > 0:
+                        if head_initialized and (D > 0 or using_conv_preds):
                             var cls_pred_n: Float32 = 0.0
-                            for d_n in range(D):
-                                cls_pred_n = cls_pred_n + feats.dados[d_n] * head_peso_cls.dados[d_n]
-                            cls_pred_n = cls_pred_n + head_bias_cls.dados[0]
+                            if using_conv_preds:
+                                try:
+                                    cls_pred_n = pr_cls[a_idx]
+                                except _:
+                                    cls_pred_n = 0.0
+                            else:
+                                for d_n in range(D):
+                                    cls_pred_n = cls_pred_n + feats.dados[d_n] * head_peso_cls.dados[d_n]
+                                cls_pred_n = cls_pred_n + head_bias_cls.dados[0]
                             # BCE-with-logits gradient: sigmoid(pred) - target (target=0)
                             var grad_n: Float32 = _sigmoid_scalar(cls_pred_n)
                             # clamp gradient to avoid extreme updates
                             if grad_n > 5.0: grad_n = 5.0
                             if grad_n < -5.0: grad_n = -5.0
-                            for d_n in range(D):
-                                var cg_n = feats.dados[d_n] * grad_n
-                                if cg_n > 10.0: cg_n = 10.0
-                                if cg_n < -10.0: cg_n = -10.0
-                                head_peso_cls.dados[d_n] = head_peso_cls.dados[d_n] - lr_w * cg_n
-                            head_bias_cls.dados[0] = head_bias_cls.dados[0] - lr_atual * grad_n
+                            # scale classification gradient by configured weight
+                            try:
+                                grad_n = grad_n * detector.cls_loss_weight
+                            except _:
+                                pass
+                            if using_conv_preds:
+                                # Update conv classification scalar weight (simple gradient)
+                                try:
+                                    if len(detector.head_cls_pesos_conv.dados) >= 1 and a_idx < len(pr_mean):
+                                        var mean_v = pr_mean[a_idx]
+                                        var cls_grad = grad_n
+                                        try:
+                                            cls_grad = cls_grad * detector.cls_loss_weight
+                                        except _:
+                                            pass
+                                        var dwc = lr_atual * cls_grad * mean_v
+                                        if dwc > 5.0: dwc = 5.0
+                                        if dwc < -5.0: dwc = -5.0
+                                        detector.head_cls_pesos_conv.dados[0] = detector.head_cls_pesos_conv.dados[0] - dwc
+                                except _:
+                                    pass
+                            else:
+                                for d_n in range(D):
+                                    var cg_n = feats.dados[d_n] * grad_n
+                                    if cg_n > 10.0: cg_n = 10.0
+                                    if cg_n < -10.0: cg_n = -10.0
+                                    head_peso_cls.dados[d_n] = head_peso_cls.dados[d_n] - lr_w * cg_n
+                                head_bias_cls.dados[0] = head_bias_cls.dados[0] - lr_atual * grad_n
                         continue
 
                     # compute prediction and simple L1 update
-                    var pred = List[Float32]()
+                    pred = List[Float32]()
                     for j in range(4):
                         var s: Float32 = 0.0
                         for d in range(D):
@@ -706,6 +780,17 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                     var penalty_factor: Float32 = 1.0
                     try:
                         var dx = pred[0]; var dy = pred[1]; var dw = pred[2]; var dh = pred[3]
+                        # If regression weights were applied during assignment/training,
+                        # the network predictions are in the weighted space. Divide
+                        # by the weights to decode into raw deltas for box reconstruction.
+                        try:
+                            if len(detector.bbox_reg_weights) >= 4:
+                                dx = dx / detector.bbox_reg_weights[0]
+                                dy = dy / detector.bbox_reg_weights[1]
+                                dw = dw / detector.bbox_reg_weights[2]
+                                dh = dh / detector.bbox_reg_weights[3]
+                        except _:
+                            pass
                         var cx = a[0] + dx * a[2]
                         var cy = a[1] + dy * a[3]
                         if dw > 4.0: dw = 4.0
@@ -778,32 +863,88 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                             grad_factor = Float32(1.0) if err > 0.0 else Float32(-1.0)
                         # apply IoU/OOB penalty to gradient magnitude
                         grad_factor = grad_factor * penalty_factor
+                        # scale regression gradient by configured weight
+                        try:
+                            grad_factor = grad_factor * detector.reg_loss_weight
+                        except _:
+                            pass
                         # update weights using grad_factor (derivative w.r.t. prediction)
-                        for d in range(D):
-                            var grad_w = feats.dados[d] * grad_factor
-                            if grad_w > 100.0: grad_w = 100.0
-                            if grad_w < -100.0: grad_w = -100.0
-                            detector.bloco_cnn.peso_saida.dados[d * 4 + j] = detector.bloco_cnn.peso_saida.dados[d * 4 + j] - lr_w * grad_w
-                        detector.bloco_cnn.bias_saida.dados[j] = detector.bloco_cnn.bias_saida.dados[j] - lr_atual * grad_factor
-                        soma_loss = soma_loss + loss_j
+                        if using_conv_preds:
+                            try:
+                                if len(detector.head_reg_pesos_conv.dados) >= 4 and a_idx < len(pr_base):
+                                    var base_j = pr_base[a_idx][j]
+                                    var bbox_w = Float32(1.0)
+                                    try:
+                                        if len(detector.bbox_reg_weights) >= 4:
+                                            bbox_w = detector.bbox_reg_weights[j]
+                                    except _:
+                                        bbox_w = Float32(1.0)
+                                    # pred = base_j * head_weight * bbox_w -> d/d(head_weight) = base_j * bbox_w
+                                    var dw = lr_atual * grad_factor * base_j * bbox_w
+                                    if dw > 100.0: dw = 100.0
+                                    if dw < -100.0: dw = -100.0
+                                    detector.head_reg_pesos_conv.dados[j] = detector.head_reg_pesos_conv.dados[j] - dw
+                            except _:
+                                pass
+                        else:
+                            for d in range(D):
+                                var grad_w = feats.dados[d] * grad_factor
+                                if grad_w > 100.0: grad_w = 100.0
+                                if grad_w < -100.0: grad_w = -100.0
+                                detector.bloco_cnn.peso_saida.dados[d * 4 + j] = detector.bloco_cnn.peso_saida.dados[d * 4 + j] - lr_w * grad_w
+                            detector.bloco_cnn.bias_saida.dados[j] = detector.bloco_cnn.bias_saida.dados[j] - lr_atual * grad_factor
+                        soma_loss = soma_loss + (detector.reg_loss_weight * loss_j)
                     # Cls head: positive anchor → target=1
-                    if head_initialized and D > 0:
-                        var cls_pred_p: Float32 = 0.0
-                        for d_p in range(D):
-                            cls_pred_p = cls_pred_p + feats.dados[d_p] * head_peso_cls.dados[d_p]
-                        cls_pred_p = cls_pred_p + head_bias_cls.dados[0]
-                        # BCE-with-logits gradient: sigmoid(pred) - target (target=1)
-                        var grad_p: Float32 = _sigmoid_scalar(cls_pred_p) - 1.0
-                        # amplify classification gradient when regression IoU is very low or OOB
-                        grad_p = grad_p * penalty_factor
-                        if grad_p > 5.0 * penalty_factor: grad_p = 5.0 * penalty_factor
-                        if grad_p < -5.0 * penalty_factor: grad_p = -5.0 * penalty_factor
-                        for d_p in range(D):
-                            var cg_p = feats.dados[d_p] * grad_p
-                            if cg_p > 10.0: cg_p = 10.0
-                            if cg_p < -10.0: cg_p = -10.0
-                            head_peso_cls.dados[d_p] = head_peso_cls.dados[d_p] - lr_w * cg_p
-                        head_bias_cls.dados[0] = head_bias_cls.dados[0] - lr_atual * grad_p
+                    # Classification head update for positive anchors (target=1)
+                    try:
+                        if using_conv_preds:
+                            var cls_pred_p: Float32 = 0.0
+                            try:
+                                cls_pred_p = pr_cls[a_idx]
+                            except _:
+                                cls_pred_p = 0.0
+                            var grad_p: Float32 = _sigmoid_scalar(cls_pred_p) - 1.0
+                            grad_p = grad_p * penalty_factor
+                            if grad_p > 5.0 * penalty_factor: grad_p = 5.0 * penalty_factor
+                            if grad_p < -5.0 * penalty_factor: grad_p = -5.0 * penalty_factor
+                            try:
+                                grad_p = grad_p * detector.cls_loss_weight
+                            except _:
+                                pass
+                            try:
+                                if len(detector.head_cls_pesos_conv.dados) >= 1 and a_idx < len(pr_mean):
+                                    var mean_v2 = pr_mean[a_idx]
+                                    var dwc2 = lr_atual * grad_p * mean_v2
+                                    if dwc2 > 5.0: dwc2 = 5.0
+                                    if dwc2 < -5.0: dwc2 = -5.0
+                                    detector.head_cls_pesos_conv.dados[0] = detector.head_cls_pesos_conv.dados[0] - dwc2
+                            except _:
+                                pass
+                        else:
+                            if head_initialized and D > 0:
+                                var cls_pred_p: Float32 = 0.0
+                                for d_p in range(D):
+                                    cls_pred_p = cls_pred_p + feats.dados[d_p] * head_peso_cls.dados[d_p]
+                                cls_pred_p = cls_pred_p + head_bias_cls.dados[0]
+                                # BCE-with-logits gradient: sigmoid(pred) - target (target=1)
+                                var grad_p: Float32 = _sigmoid_scalar(cls_pred_p) - 1.0
+                                # amplify classification gradient when regression IoU is very low or OOB
+                                grad_p = grad_p * penalty_factor
+                                if grad_p > 5.0 * penalty_factor: grad_p = 5.0 * penalty_factor
+                                if grad_p < -5.0 * penalty_factor: grad_p = -5.0 * penalty_factor
+                                # scale classification gradient by configured weight
+                                try:
+                                    grad_p = grad_p * detector.cls_loss_weight
+                                except _:
+                                    pass
+                                for d_p in range(D):
+                                    var cg_p = feats.dados[d_p] * grad_p
+                                    if cg_p > 10.0: cg_p = 10.0
+                                    if cg_p < -10.0: cg_p = -10.0
+                                    head_peso_cls.dados[d_p] = head_peso_cls.dados[d_p] - lr_w * cg_p
+                                head_bias_cls.dados[0] = head_bias_cls.dados[0] - lr_atual * grad_p
+                    except _:
+                        pass
                     count_pos = count_pos + 1
 
         var avg_loss: Float32 = 0.0
@@ -1318,3 +1459,20 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
         pass
 
     return "Treino finalizado"
+
+
+fn treinar_retina_convfpn(mut detector: model_utils.RetinaFace, var dataset_dir: String, var altura: Int = 640, var largura: Int = 640,
+                          var patch_size: Int = 64, var epocas: Int = 5, var taxa_aprendizado: Float32 = 0.05,
+                          var batch_size: Int = 8, var batch_size_fim: Int = 128, var early_stop: Bool = True, var allowed_classes: List[String] = List[String]()) -> String:
+    # Enable conv-FPN scaffolding and delegate to the existing minimal trainer,
+    # which contains support for using conv preds when detector.usar_conv_fpn=True.
+    try:
+        try:
+            detector.configurar_conv_fpn("mobilenet_v2")
+        except _:
+            pass
+        detector.usar_conv_fpn = True
+        # call minimal trainer with reasonable defaults for samples_per_class/randomize
+        return treinar_retina_minimal(detector, dataset_dir, altura, largura, patch_size, epocas, taxa_aprendizado, batch_size, batch_size_fim, 1, True, early_stop, allowed_classes)
+    except _:
+        return "Falha: não foi possível iniciar treinador conv‑FPN"
