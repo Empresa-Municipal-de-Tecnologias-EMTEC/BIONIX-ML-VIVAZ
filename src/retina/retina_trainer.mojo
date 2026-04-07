@@ -7,7 +7,7 @@ import detector_dataset as dataset_pkg
 import bionix_ml.graficos as graficos_pkg
 import bionix_ml.uteis as uteis
 import bionix_ml.nucleo.Tensor as tensor_defs
-import retina.retina_anchor_generator as anchor_gen
+import retina.retina_gerador_ancoras as anchor_gen
 import retina.retina_assigner as assigner
 import retina.retina_utils as retina_utils
 import os
