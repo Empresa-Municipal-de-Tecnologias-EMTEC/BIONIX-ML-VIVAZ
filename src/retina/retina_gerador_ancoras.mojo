@@ -13,35 +13,35 @@ fn _num_sane(var v: Float32) -> Bool:
     except _:
         return False
 
-fn gerar_anchors(input_size: Int = 640, strides: List[Int] = [8,16,32],
-                 scales: List[List[Float32]] = List[List[Float32]](), multipliers: List[Float32] = [4,8,12], ratios: List[Float32] = [0.5, 1.0, 1.5]) -> List[List[Float32]]:
+fn gerar_ancoras(tamanho_entrada: Int = 640, passos: List[Int] = [8,16,32],
+                 escalas: List[List[Float32]] = List[List[Float32]](), multiplicadores: List[Float32] = [4,8,12], proporcoes: List[Float32] = [0.5, 1.0, 1.5]) -> List[List[Float32]]:
     # Gera anchors como [cx, cy, w, h] em pixels para cada nível.
     var out: List[List[Float32]] = List[List[Float32]]()
-    var scales_local: List[List[Float32]] = scales.copy()
-    if len(scales_local) == 0:
+    var escalas_local: List[List[Float32]] = escalas.copy()
+    if len(escalas_local) == 0:
         var default_scales: List[List[Float32]] = List[List[Float32]]()
-        for s in strides:
+        for s in passos:
             var lvl: List[Float32] = List[Float32]()
-            for m in multipliers:
+            for m in multiplicadores:
                 lvl.append(Float32(s) * Float32(m))
             default_scales.append(lvl^)
-        scales_local = default_scales^
+        escalas_local = default_scales^
 
-    for idx in range(len(strides)):
-        var stride = strides[idx]
-        var lvl_scales = scales_local[idx].copy()
-        var feat_size = input_size // stride
+    for idx in range(len(passos)):
+        var stride = passos[idx]
+        var lvl_scales = escalas_local[idx].copy()
+        var feat_size = tamanho_entrada // stride
         for i in range(feat_size):
             var cy = Float32((i + 0.5) * stride)
             for j in range(feat_size):
                 var cx = Float32((j + 0.5) * stride)
                 for sc in lvl_scales:
-                    for r in ratios:
+                    for r in proporcoes:
                         var w = sc * Float32(math.sqrt(r))
                         var h = sc / Float32(math.sqrt(r))
                         var a: List[Float32] = List[Float32]()
                         a.append(cx); a.append(cy); a.append(w); a.append(h)
-                        # sanity-check anchor components before appending
+                        # verifica se os valores são numéricos e razoáveis antes de adicionar-los à lista final, para evitar propagação de âncoras corrompidas
                         var ok = True
                         for vv in a:
                             if not _num_sane(vv):
@@ -49,10 +49,10 @@ fn gerar_anchors(input_size: Int = 640, strides: List[Int] = [8,16,32],
                                 break
                         if not ok:
                             try:
-                                print("[DBG] gerar_anchors: skipping corrupted anchor at stride", stride, "cx,cy,w,h=", cx, cy, w, h)
+                                print("[DBG] gerar_ancoras: ignorando ancora corrompida no passo", stride, "cx,cy,w,h=", cx, cy, w, h)
                             except _:
-                                print("[DBG] gerar_anchors: skipping corrupted anchor (unable to format values)")
+                                print("[DBG] gerar_ancoras: ignorando ancora corrompida (impossível pormatar os valores)")
                             continue
                         out.append(a^)
-    scales_local = scales_local^
+    escalas_local = escalas_local^
     return out^
