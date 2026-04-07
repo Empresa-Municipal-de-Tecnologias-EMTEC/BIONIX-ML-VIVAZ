@@ -474,7 +474,7 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                     if len(resized_tuple[1]) > 0:
                         gt_list = resized_tuple[1]
                 except _:
-                    # fallback to using loaded bmp pixels (may be original or already rescaled by carregar_bmp_rgb)
+                    # cascateamento de 2 cópias aqui (bmp.pixels → img_matrix → assigner) é ineficiente mas necessário para isolar o assigner de mutações externas
                     try:
                         img_matrix = bmp.pixels.copy()
                     except _:
