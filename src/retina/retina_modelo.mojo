@@ -7,7 +7,7 @@ import bionix_ml.uteis as uteis
 import os
 import bionix_ml.camadas.cnn as cnn_pkg
 import retina.retina_gerador_ancoras as anchor_gen
-import retina.retina_nms as nms_pkg
+import retina.retina_supressao_por_pontuacao as nms_pkg
 import bionix_ml.graficos as graficos_pkg
 import bionix_ml.nucleo.Tensor as tensor_defs_local
 import math
@@ -420,7 +420,7 @@ struct RetinaFace(Movable):
             # transfer freshly-built box to avoid implicit copy
             boxes.append(outb^)
 
-        var keep = nms_pkg.non_max_suppression(boxes, cls_scores, self.parametros.nms_iou)
+        var keep = nms_pkg.supressao_por_pontuacao(boxes, cls_scores, self.parametros.nms_iou)
         var kept_boxes = List[List[Int]]()
         # Safe Float32→Int conversion bounds: float must be in [Int32.MIN, Int32.MAX] range to
         # avoid Int64.MinValue sentinel from out-of-range casts (e.g. exp() overflow residuals)
