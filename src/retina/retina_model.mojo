@@ -63,7 +63,7 @@ struct RetinaFace(Movable):
     #
     #   Input image (RGB)
     #            |
-    #       gerar_anchors(input_size)
+    #       gerar_ancoras(input_size)
     #            |
     #   for each anchor -> crop & resize patch (patch_size)
     #            |
@@ -283,7 +283,7 @@ struct RetinaFace(Movable):
         var in_size = input_size if input_size > 0 else self.parametros.input_size
         var maxp = max_per_image if max_per_image > 0 else self.parametros.max_per_image
 
-        var anchors = anchor_gen.gerar_anchors(in_size)
+        var anchors = anchor_gen.gerar_ancoras(in_size)
         var cls_scores: List[Float32] = List[Float32]()
         var reg_deltas: List[List[Float32]] = List[List[Float32]]()
         var patch_size = self.parametros.patch_size

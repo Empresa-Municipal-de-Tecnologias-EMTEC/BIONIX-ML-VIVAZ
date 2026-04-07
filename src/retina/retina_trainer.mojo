@@ -205,7 +205,7 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
         pass
 
     # anchors (fixed for image size)
-    var anchors = anchor_gen.gerar_anchors(largura)
+    var anchors = anchor_gen.gerar_ancoras(largura)
     print("Anchors gerados:", len(anchors))
     # snapshot anchors immediately after generation to detect later corruption
     var anchors_snapshot = List[List[Float32]]()
@@ -246,7 +246,7 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                     bad_examples.append(i)
         if bad > 0:
             try:
-                print("[DBG] gerar_anchors_scan: found", bad, "corrupted anchors immediately after generation; sample indices:")
+                print("[DBG] varredura da geração de âncoras: encontrado", bad, "corrupted anchors immediately after generation; sample indices:")
                 for idx in bad_examples:
                     try:
                         print(idx)
@@ -255,9 +255,9 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                 for idx in bad_examples:
                     try:
                         var aex = anchors[idx].copy()
-                        print("[DBG] gerar_anchors_scan: idx", idx, "vals:", aex[0], aex[1], aex[2], aex[3])
+                        print("[DBG] varredura : idx", idx, "vals:", aex[0], aex[1], aex[2], aex[3])
                     except _:
-                        print("[DBG] gerar_anchors_scan: idx", idx, "(unable to format)")
+                        print("[DBG] varredura da geraçao de ancoras: idx", idx, "(unable to format)")
             except _:
                 pass
     except _:
