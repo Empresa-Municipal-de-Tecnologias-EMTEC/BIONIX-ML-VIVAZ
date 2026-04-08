@@ -497,7 +497,7 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
         except _:
             tmp_bloco_ok = False
 
-        print("chegou aqui")
+        #print("chegou aqui")
 
         # Precompute conv-FPN predictions for this image if requested (once per image)
         var using_conv_preds: Bool = False
@@ -541,7 +541,7 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                 var neg_step_tmp: Int = 0
                 var neg_tmp: Int = 0
 
-                print("não chegou aqui")
+                #print("não chegou aqui")
 
                 for ai in range(len(anchors)):
                     if pos_tmp >= _max_pos_per_image and neg_tmp >= max_neg_per_image:
