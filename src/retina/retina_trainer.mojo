@@ -348,6 +348,7 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                     cur_ck = cur_ck + v * Float32(i + 1)
         except _:
             cur_ck = Float32(-2.0)
+
         if cur_ck != anchors_checksum:
             print("[DBG-ERR] anchors checksum mismatch at epoch", ep, "gen_ck=", anchors_checksum, "cur_ck=", cur_ck)
             # attempt to locate first differing anchor
@@ -375,6 +376,10 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                         pass
             except _:
                 pass
+        
+        
+        
+        
         var soma_loss: Float32 = 0.0
         var count_pos: Int = 0
         var iou_sum: Float32 = 0.0
@@ -421,6 +426,8 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                     ptr = ptr + 1
                 class_ptrs[c] = ptr
 
+        
+
         var E = len(batch_paths)
         if E == 0:
             print("Nenhuma imagem para treinar; verifique DATASET")
@@ -429,7 +436,9 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
             var bend = bstart + batch_size_inicio
             if bend > E:
                 bend = E
+            
             for i in range(bstart, bend):
+                
                 var path = batch_paths[i]
                 var bmp = dados_pkg.carregar_bmp_rgb(path)
                 if bmp.width == 0:
@@ -455,6 +464,8 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                             parsed = True
                 except _:
                     pass
+
+                
 
                 var gt_x0: Int; var gt_y0: Int; var gt_x1: Int; var gt_y1: Int
                 if parsed:
@@ -531,6 +542,8 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                 except _:
                     pass
 
+                
+
                 # Diagnostic: report basic /proc/meminfo lines (available on Linux/WSL)
                 try:
                     var memtxt = arquivo_pkg.ler_arquivo_texto("/proc/meminfo")
@@ -567,6 +580,8 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                 except _:
                     tmp_bloco_ok = False
 
+                print("chegou aqui")
+
                 # Precompute conv-FPN predictions for this image if requested (once per image)
                 var using_conv_preds: Bool = False
                 var pr_cls = List[Float32]()
@@ -579,7 +594,9 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                     using_conv_preds = False
                 if using_conv_preds:
                     try:
+                        print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
                         var pr = model_utils.gerar_predicoes_por_ancora_convfpn_module(detector, img_matrix.copy(), anchors.copy(), patch_size)
+                        print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
                         pr_cls = pr[0].copy()
                         pr_reg = pr[1].copy()
                         # auxiliary data: mean summaries and base (pre-multiplier) reg deltas
@@ -606,6 +623,9 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                 var pos_tmp: Int = 0
                 var neg_step_tmp: Int = 0
                 var neg_tmp: Int = 0
+
+                print("não chegou aqui")
+
                 for ai in range(len(anchors)):
                     if pos_tmp >= _max_pos_per_image and neg_tmp >= max_neg_per_image:
                         break
@@ -1079,6 +1099,8 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                     except _:
                         pass
                     count_pos = count_pos + 1
+
+        
 
         var avg_loss: Float32 = 0.0
         if count_pos > 0:
