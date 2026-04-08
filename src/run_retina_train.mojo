@@ -13,7 +13,8 @@ fn main() raises -> None:
     var detector = model_mod.RetinaFace(params^, os.path.join("MODELO", "retina_modelo"))
     # Configure conv-FPN pipeline (placeholder scaffolding)
     try:
-        _ = detector.configurar_conv_fpn("mobilenet_v2")
+        # enable spatial conv heads (3x3) for more accurate head outputs
+        _ = detector.configurar_conv_fpn("mobilenet_v2", 3)
     except _:
         pass
     # Reduced LR for stability during tuning

@@ -1,4 +1,5 @@
 import bionix_ml.camadas.cnn as cnn_pkg
+import bionix_ml.camadas as camadas_pkg
 import bionix_ml.computacao.dispatcher_tensor as dispatcher
 import bionix_ml.nucleo.Tensor as tensor_defs
 import bionix_ml.dados as dados_pkg
@@ -26,7 +27,20 @@ fn criar_bloco_detector(
     var perda_id: Int = tipos_mlp.perda_padrao_id(1),
     var tipo: String = "cpu",
 ) -> cnn_pkg.BlocoCNN:
-    var bloco = cnn_pkg.BlocoCNN(altura, largura, num_filtros, kernel_h, kernel_w, contexto.copy(), ativacao_id, perda_id, tipo)
+    # Use factory to centralize BlocoCNN creation; then apply requested context/ids
+    var bloco = camadas_pkg.criar_bloco_cnn(altura, largura, num_filtros, kernel_h, kernel_w, tipo)
+    try:
+        bloco.contexto = contexto.copy()
+    except _:
+        pass
+    try:
+        bloco.ativacao_saida_id = ativacao_id
+    except _:
+        pass
+    try:
+        bloco.perda_id = perda_id
+    except _:
+        pass
     return bloco^
 
 
@@ -234,6 +248,15 @@ fn salvar_checkpoint(mut bloco: cnn_pkg.BlocoCNN, var model_dir: String) -> Bool
         var storage = storage_sessao.criar_storage_sessao(driver)
         cnn_impl._salvar_bloco_em_storage(bloco, storage)
         return True
+    except _:
+        return False
+
+
+fn salvar_checkpoint_de_tensores(var kernels: List[tensor_defs.Tensor], var peso_saida: tensor_defs.Tensor, var bias_saida: tensor_defs.Tensor, var altura: Int, var largura: Int, var num_filtros: Int, var kernel_h: Int, var kernel_w: Int, var tipo: String, var model_dir: String) -> Bool:
+    try:
+        # create temporary BlocoCNN from provided tensors and delegate to existing saver
+        var tmp = camadas_pkg.criar_bloco_de_tensores(altura, largura, num_filtros, kernel_h, kernel_w, kernels.copy(), peso_saida.copy(), bias_saida.copy(), tipo)
+        return salvar_checkpoint(tmp, model_dir)
     except _:
         return False
 

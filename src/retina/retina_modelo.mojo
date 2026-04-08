@@ -6,12 +6,15 @@ import bionix_ml.dados as dados_pkg
 import bionix_ml.uteis as uteis
 import os
 import bionix_ml.camadas.cnn as cnn_pkg
+import bionix_ml.camadas.cnn.cnn as cnn_impl
+import bionix_ml.computacao.dispatcher_tensor as dispatcher_tensor
 import retina.retina_gerador_ancoras as gerador_ancoras_pkg
 import retina.retina_supressao_por_pontuacao as supressao_por_pontuacao_pkg
 import bionix_ml.graficos as graficos_pkg
 import bionix_ml.nucleo.Tensor as tensor_defs_local
 import math
 import retina.retina_trainer as trainer
+import bionix_ml.camadas as camadas_pkg
 
 # Utilitários para configuração, construção, inferência e persistência do modelo RetinaFace.
 
@@ -187,9 +190,6 @@ struct RetinaFace(Movable):
                     D = 0
             except _:
                 D = 0
-            if D <= 0:
-                return False
-            # Prepare tensors with correct shape then ask them to load from files
             var shape_w = List[Int]()
             shape_w.append(D); shape_w.append(1)
             self.cabeca_classificacao_peso = tensor_defs.Tensor(shape_w^, self.tipo_computacao)
@@ -523,7 +523,7 @@ struct RetinaFace(Movable):
                             if len(raw_k) == 0:
                                 break
                             var kt = tensor_defs.Tensor(List[Int](), self.tipo_computacao)
-                            try: _ = kt.carregar_dados_bytes_bin(raw_k.copy()); self.bloco_kernels.append(kt); any_ok = True
+                            try: _ = kt.carregar_dados_bytes_bin(raw_k.copy()); self.bloco_kernels.append(kt^); any_ok = True
                             except _: pass
                             kidx = kidx + 1
                         except _:
@@ -577,7 +577,7 @@ struct RetinaFace(Movable):
         except _:
             w = 0
         if w <= 0 or h <= 0:
-            return (img_pixels, caixas)
+            return (img_pixels.copy(), caixas.copy())
 
         var caixas_out: List[List[Int]] = List[List[Int]]()
 
@@ -656,7 +656,7 @@ struct RetinaFace(Movable):
                 # em caso de erro, pular caixa
                 continue
 
-        return (resized, caixas_out^)
+        return (resized.copy(), caixas_out^)
 
     fn inferir(mut self, img_pixels: List[List[List[Float32]]], var input_size: Int = -1, var max_per_image: Int = -1) -> List[List[Int]]:
         # Conv-FPN is now the canonical inference path; no fallback to patch-based flow.
@@ -666,25 +666,25 @@ struct RetinaFace(Movable):
     # Returns: (cls_logits, reg_deltas, mean_vals, base_reg_list)
     fn gerar_predicoes_por_ancora_convfpn(mut self, img_pixels: List[List[List[Float32]]], anchors: List[List[Float32]], patch_size: Int) -> (List[Float32], List[List[Float32]], List[Float32], List[List[Float32]]):
         var in_size = self.parametros.input_size
-        var img_matrix = img_pixels
+        var img_matrix = img_pixels.copy()
         try:
             var resized_tuple = self.redimensionar_para_tamanho_entrada(img_pixels.copy(), List[List[Int]](), in_size)
-            img_matrix = resized_tuple[0]
+            img_matrix = resized_tuple[0].copy()
         except _:
-            img_matrix = img_pixels
+            img_matrix = img_pixels.copy()
 
         # Build backbone feature maps (P3,P4,P5)
         var fmaps = self._backbone_forward(img_matrix, in_size)
 
         # Generate anchors per-level (keeps backward compatibility with flat anchors elsewhere)
-            var anchors_by_level = gerador_ancoras_pkg.gerar_ancoras_por_nivel(in_size, self.anchor_passos.copy(), self.anchor_escalas.copy(), self.anchor_multiplicadores.copy(), self.anchor_proporcoes.copy())
+        var anchors_by_level = gerador_ancoras_pkg.gerar_ancoras_por_nivel(in_size, self.anchor_passos.copy(), self.anchor_escalas.copy(), self.anchor_multiplicadores.copy(), self.anchor_proporcoes.copy())
 
         # Predict per-level using conv heads over FPN maps and return flattened outputs
         var preds_conv = self._fpn_heads_predict_por_nivel(fmaps, anchors_by_level)
         return preds_conv
 
     # Lightweight backbone: create three downsampled feature maps (simulated convs)
-    fn _backbone_forward(self, img_matrix: List[List[List[Float32]]], in_size: Int) -> List[List[List[List[Float32]]]]:
+    fn _backbone_forward(mut self, img_matrix: List[List[List[Float32]]], in_size: Int) -> List[List[List[List[Float32]]]]:
         # Lightweight conv+pool backbone using existing CNN helpers
         # Produces P3,P4,P5 as List[level][y][x][c]. This is a small, deterministic
         # MobileNet-like skeleton that uses simple 3x3 convs + avgpool to create
@@ -697,19 +697,20 @@ struct RetinaFace(Movable):
             H = len(img_matrix)
             if H > 0: W = len(img_matrix[0])
             if H == 0 or W == 0:
-                return levels
+                return levels.copy()
         except _:
-            return levels
+            return levels.copy()
 
         # flatten grayscale image
         var flat: List[Float32] = List[Float32]()
         for y in range(H):
             for x in range(W):
+                var v: Float32 = Float32(0.0)
                 try:
-                    var p = img_matrix[y][x]
-                    var v: Float32 = Float32(0.299) * p[0] + Float32(0.587) * p[1] + Float32(0.114) * p[2]
+                    var p = img_matrix[y][x].copy()
+                    v = Float32(0.299) * p[0] + Float32(0.587) * p[1] + Float32(0.114) * p[2]
                 except _:
-                    var v: Float32 = 0.0
+                    v = Float32(0.0)
                 flat.append(v)
 
         # number of channels per fmap (kept small)
@@ -728,7 +729,7 @@ struct RetinaFace(Movable):
                     seed = (seed * 1664525 + 1013904223 + i) % 2147483647
                     var u = Float32(seed) / Float32(2147483647)
                     k.dados[i] = (u * 2.0 - 1.0) * 0.15
-                self.bloco_kernels.append(k)
+                self.bloco_kernels.append(k^)
         except _:
             pass
 
@@ -767,26 +768,26 @@ struct RetinaFace(Movable):
             var fmap: List[List[List[Float32]]] = List[List[List[Float32]]]()
             for c_idx in range(C):
                 try:
-                    var kern = self.bloco_kernels[c_idx]
-                    var conv = cnn_pkg._conv2d_valid_relu(flat.copy(), H, W, kern.copy(), self.tipo_computacao)
+                    var kern = self.bloco_kernels[c_idx].copy()
+                    var conv = cnn_impl._conv2d_valid_relu(flat.copy(), H, W, kern.copy(), self.tipo_computacao)
                     var conv_h = H - kern.formato[0] + 1
                     var conv_w = W - kern.formato[1] + 1
-                    var pooled = cnn_pkg._avgpool2x2_stride2(conv.copy(), conv_h, conv_w, self.tipo_computacao)
+                    var pooled = cnn_impl._avgpool2x2_stride2(conv.copy(), conv_h, conv_w, self.tipo_computacao)
                     var ph = conv_h // 2
                     var pw = conv_w // 2
                     if ph <= 0: ph = 1
                     if pw <= 0: pw = 1
-                    var sampled = _sample_grid(pooled, ph, pw, fh, fw, c_idx, C)
+                    var sampled = _sample_grid(pooled, ph, pw, fh, fw, c_idx, C).copy()
                     # merge sampled channel into fmap
                     for y in range(fh):
                         try:
-                            var row = fmap[y]
+                            var row = fmap[y].copy()
                         except _:
                             var row = List[List[Float32]]()
                             fmap.append(row^)
                         for x in range(fw):
                             try:
-                                var cell = fmap[y][x]
+                                var cell = fmap[y][x].copy()
                             except _:
                                 var cell = List[Float32]()
                                 # initialize zeros for previous channels
@@ -798,7 +799,7 @@ struct RetinaFace(Movable):
                     # on error, fill zeros for this channel
                     for y in range(fh):
                         try:
-                            var row = fmap[y]
+                            var row = fmap[y].copy()
                         except _:
                             var row = List[List[Float32]]()
                             fmap.append(row^)
@@ -813,7 +814,7 @@ struct RetinaFace(Movable):
             # ensure every cell has C channels
             for y in range(len(fmap)):
                 for x in range(len(fmap[0])):
-                    var cell = fmap[y][x]
+                    var cell = fmap[y][x].copy()
                     if len(cell) < C:
                         var miss = C - len(cell)
                         for _ in range(miss): cell.append(0.0)
@@ -822,14 +823,18 @@ struct RetinaFace(Movable):
         # simple top-down fusion: upsample coarse maps and average
         try:
             # levels[2]=P5 -> levels[1]=P4
-            var P5 = levels[2]
-            var P4 = levels[1]
-            var P3 = levels[0]
+            var P5 = levels[2].copy()
+            var P4 = levels[1].copy()
+            var P3 = levels[0].copy()
             fn _upsample_avg(src: List[List[List[Float32]]], dst_h: Int, dst_w: Int) -> List[List[List[Float32]]]:
                 var out = List[List[List[Float32]]]()
-                var sh = len(src); var sw = 0
-                try: if sh > 0: sw = len(src[0])
-                except _: sw = 0
+                var sh = len(src)
+                var sw = 0
+                try:
+                    if sh > 0:
+                        sw = len(src[0])
+                except _:
+                    sw = 0
                 for y in range(dst_h):
                     var row = List[List[Float32]]()
                     for x in range(dst_w):
@@ -872,7 +877,7 @@ struct RetinaFace(Movable):
         except _:
             pass
 
-        return levels
+        return levels.copy()
 
     # Simple FPN heads predictor: for each anchor, pick a level and predict using lightweight linear heads
     fn _fpn_heads_predict_por_nivel(self, fmaps: List[List[List[List[Float32]]]], anchors_by_level: List[List[List[Float32]]]) -> (List[Float32], List[List[Float32]], List[Float32], List[List[Float32]]):
@@ -915,11 +920,121 @@ struct RetinaFace(Movable):
                 except _:
                     fmap = List[List[List[Float32]]]()
                 var stride = strides[level_idx] if level_idx < len(strides) else 8 * (1 << level_idx)
+
+                # Precompute per-level cls/reg maps if pointwise heads are available
+                var pre_cls_map: List[List[Float32]] = List[List[Float32]]()
+                var pre_reg_map: List[List[List[Float32]]] = List[List[List[Float32]]]()
+                var precomputed: Bool = False
+                try:
+                    if (has_pointwise_cls or has_pointwise_reg) and len(fmap) > 0 and len(fmap[0]) > 0:
+                        precomputed = True
+                        var Hf = len(fmap); var Wf = len(fmap[0])
+                        for yy in range(Hf):
+                            var row_cls: List[Float32] = List[Float32]()
+                            var row_reg: List[List[Float32]] = List[List[Float32]]()
+                            for xx in range(Wf):
+                                    var cell_feat = fmap[yy][xx].copy()
+                                    # cls
+                                    var cell_logit: Float32 = 0.0
+                                    try:
+                                        # spatial head support: formato [kh,kw,C,out_ch]
+                                        if len(self.head_cls_pesos_conv.formato) >= 3 and self.head_cls_pesos_conv.formato[2] >= C:
+                                            var kh = self.head_cls_pesos_conv.formato[0]
+                                            var kw = self.head_cls_pesos_conv.formato[1]
+                                            var half_h = kh // 2
+                                            var half_w = kw // 2
+                                            var outch = 1
+                                            try: outch = self.head_cls_pesos_conv.formato[3]
+                                            except _: outch = 1
+                                            # compute single output channel (outch assumed 1 for cls)
+                                            var acc: Float32 = 0.0
+                                            for ky in range(kh):
+                                                for kx in range(kw):
+                                                    var sy = yy + ky - half_h
+                                                    var sx = xx + kx - half_w
+                                                    var neigh: List[Float32] = List[Float32]()
+                                                    if sy >= 0 and sx >= 0 and sy < len(fmap) and sx < len(fmap[0]):
+                                                        neigh = fmap[sy][sx].copy()
+                                                    else:
+                                                        for _ in range(C): neigh.append(0.0)
+                                                    for c in range(min(len(neigh), C)):
+                                                        var widx = ((ky * kw + kx) * C + c) * outch + 0
+                                                        var wval: Float32 = 0.0
+                                                        try: wval = self.head_cls_pesos_conv.dados[widx]
+                                                        except _: wval = 0.0
+                                                        acc = acc + neigh[c] * wval
+                                            cell_logit = acc
+                                            try: cell_logit = cell_logit + self.head_cls_bias_conv.dados[0]
+                                            except _: pass
+                                        elif has_pointwise_cls:
+                                            for i in range(min(len(cell_feat), self.head_cls_pesos_conv.formato[0])):
+                                                cell_logit = cell_logit + cell_feat[i] * self.head_cls_pesos_conv.dados[i * self.head_cls_pesos_conv.formato[1] + 0]
+                                            try: cell_logit = cell_logit + self.head_cls_bias_conv.dados[0]
+                                            except _: pass
+                                        else:
+                                            for i in range(min(len(cell_feat), len(hw_cls))):
+                                                cell_logit = cell_logit + cell_feat[i] * hw_cls[i]
+                                    except _:
+                                        cell_logit = 0.0
+                                    row_cls.append(cell_logit)
+
+                                    # reg (4 deltas)
+                                    var deltas_cell: List[Float32] = List[Float32]()
+                                    try:
+                                        if len(self.head_reg_pesos_conv.formato) >= 3 and self.head_reg_pesos_conv.formato[2] >= C:
+                                            var kh2 = self.head_reg_pesos_conv.formato[0]
+                                            var kw2 = self.head_reg_pesos_conv.formato[1]
+                                            var half_h2 = kh2 // 2
+                                            var half_w2 = kw2 // 2
+                                            for j in range(4):
+                                                var acc2: Float32 = 0.0
+                                                for ky in range(kh2):
+                                                    for kx in range(kw2):
+                                                        var sy2 = yy + ky - half_h2
+                                                        var sx2 = xx + kx - half_w2
+                                                        var neigh2: List[Float32] = List[Float32]()
+                                                        if sy2 >= 0 and sx2 >= 0 and sy2 < len(fmap) and sx2 < len(fmap[0]):
+                                                            neigh2 = fmap[sy2][sx2].copy()
+                                                        else:
+                                                            for _ in range(C): neigh2.append(0.0)
+                                                        for c in range(min(len(neigh2), C)):
+                                                            var widx2 = ((ky * kw2 + kx) * C + c) * self.head_reg_pesos_conv.formato[3] + j
+                                                            var wval2: Float32 = 0.0
+                                                            try: wval2 = self.head_reg_pesos_conv.dados[widx2]
+                                                            except _: wval2 = 0.0
+                                                            acc2 = acc2 + neigh2[c] * wval2
+                                                try: acc2 = acc2 + self.head_reg_bias_conv.dados[j]
+                                                except _: pass
+                                                deltas_cell.append(acc2)
+                                        elif has_pointwise_reg:
+                                            for j in range(4):
+                                                var dv: Float32 = 0.0
+                                                for i in range(min(len(cell_feat), self.head_reg_pesos_conv.formato[0])):
+                                                    dv = dv + cell_feat[i] * self.head_reg_pesos_conv.dados[i * self.head_reg_pesos_conv.formato[1] + j]
+                                                try: dv = dv + self.head_reg_bias_conv.dados[j]
+                                                except _: pass
+                                                deltas_cell.append(dv)
+                                        else:
+                                            var mval_tmp: Float32 = 0.0
+                                            for v in cell_feat: mval_tmp = mval_tmp + v
+                                            if len(cell_feat) > 0: mval_tmp = mval_tmp / Float32(len(cell_feat))
+                                            for j in range(4): deltas_cell.append((mval_tmp - 0.5) * 0.1 * hw_reg[j])
+                                    except _:
+                                        for j in range(4): deltas_cell.append(0.0)
+                                    row_reg.append(deltas_cell^)
+                            pre_cls_map.append(row_cls^)
+                            pre_reg_map.append(row_reg^)
+                except _:
+                    precomputed = False
+
+                # iterate anchors and sample the precomputed maps (or compute per-anchor fallback)
                 for a in anchors_by_level[level_idx]:
+                    var cx: Float32 = 0.0
+                    var cy: Float32 = 0.0
                     try:
-                        var cx = a[0]; var cy = a[1]
+                        cx = a[0]; cy = a[1]
                     except _:
-                        cx = 0.0; cy = 0.0
+                        pass
                     var fx = 0; var fy = 0
                     try:
                         fx = Int(cx) // stride
@@ -928,48 +1043,113 @@ struct RetinaFace(Movable):
                         fx = 0; fy = 0
                     if fy < 0: fy = 0
                     if fx < 0: fx = 0
-                    try:
-                        if len(fmap) == 0 or len(fmap[0]) == 0:
-                            raise _
+
+                    var feat: List[Float32] = List[Float32]()
+                    if len(fmap) == 0 or len(fmap[0]) == 0:
+                        for i in range(C): feat.append(0.0)
+                    else:
                         if fy >= len(fmap): fy = len(fmap) - 1
                         if fx >= len(fmap[0]): fx = len(fmap[0]) - 1
-                        var feat = fmap[fy][fx]
-                    except _:
-                        var feat: List[Float32] = List[Float32]()
-                        for i in range(C): feat.append(0.0)
+                        feat = fmap[fy][fx].copy()
+
                     var mval: Float32 = 0.0
                     for v in feat: mval = mval + v
                     if len(feat) > 0:
                         mval = mval / Float32(len(feat))
+
                     var logit: Float32 = 0.0
-                    if has_pointwise_cls:
+                    var deltas: List[Float32] = List[Float32]()
+
+                    if precomputed:
                         try:
-                            for i in range(min(len(feat), self.head_cls_pesos_conv.formato[0])):
-                                logit = logit + feat[i] * self.head_cls_pesos_conv.dados[i * self.head_cls_pesos_conv.formato[1] + 0]
-                            try: logit = logit + self.head_cls_bias_conv.dados[0]
-                            except _: pass
+                            logit = pre_cls_map[fy][fx]
                         except _:
                             logit = 0.0
-                    else:
-                        for i in range(min(len(feat), len(hw_cls))):
-                            logit = logit + feat[i] * hw_cls[i]
-                    var deltas: List[Float32] = List[Float32]()
-                    if has_pointwise_reg:
                         try:
-                            for j in range(4):
-                                var dv: Float32 = 0.0
-                                for i in range(min(len(feat), self.head_reg_pesos_conv.formato[0])):
-                                    dv = dv + feat[i] * self.head_reg_pesos_conv.dados[i * self.head_reg_pesos_conv.formato[1] + j]
-                                try: dv = dv + self.head_reg_bias_conv.dados[j]
-                                except _: pass
-                                deltas.append(dv)
+                            deltas = pre_reg_map[fy][fx].copy()
                         except _:
                             for j in range(4): deltas.append(0.0)
                     else:
-                        for j in range(4):
-                            deltas.append((mval - 0.5) * 0.1 * hw_reg[j])
+                        # support spatial head application at a given fmap location
+                        try:
+                            if len(self.head_cls_pesos_conv.formato) >= 3 and self.head_cls_pesos_conv.formato[2] >= C:
+                                var kh = self.head_cls_pesos_conv.formato[0]
+                                var kw = self.head_cls_pesos_conv.formato[1]
+                                var half_h = kh // 2
+                                var half_w = kw // 2
+                                var acc: Float32 = 0.0
+                                for ky in range(kh):
+                                    for kx in range(kw):
+                                        var sy = fy + ky - half_h
+                                        var sx = fx + kx - half_w
+                                        var neigh: List[Float32] = List[Float32]()
+                                        if sy >= 0 and sx >= 0 and sy < len(fmap) and sx < len(fmap[0]):
+                                            neigh = fmap[sy][sx].copy()
+                                        else:
+                                            for _ in range(C): neigh.append(0.0)
+                                        for c in range(min(len(neigh), C)):
+                                            var widx = ((ky * kw + kx) * C + c) * 1 + 0
+                                            var wval: Float32 = 0.0
+                                            try: wval = self.head_cls_pesos_conv.dados[widx]
+                                            except _: wval = 0.0
+                                            acc = acc + neigh[c] * wval
+                                logit = acc
+                                try: logit = logit + self.head_cls_bias_conv.dados[0]
+                                except _: pass
+                            elif has_pointwise_cls:
+                                for i in range(min(len(feat), self.head_cls_pesos_conv.formato[0])):
+                                    logit = logit + feat[i] * self.head_cls_pesos_conv.dados[i * self.head_cls_pesos_conv.formato[1] + 0]
+                                try: logit = logit + self.head_cls_bias_conv.dados[0]
+                                except _: pass
+                            else:
+                                for i in range(min(len(feat), len(hw_cls))):
+                                    logit = logit + feat[i] * hw_cls[i]
+                        except _:
+                            logit = 0.0
+
+                        try:
+                            if len(self.head_reg_pesos_conv.formato) >= 3 and self.head_reg_pesos_conv.formato[2] >= C:
+                                var kh2 = self.head_reg_pesos_conv.formato[0]
+                                var kw2 = self.head_reg_pesos_conv.formato[1]
+                                var half_h2 = kh2 // 2
+                                var half_w2 = kw2 // 2
+                                for j in range(4):
+                                    var acc2: Float32 = 0.0
+                                    for ky in range(kh2):
+                                        for kx in range(kw2):
+                                            var sy2 = fy + ky - half_h2
+                                            var sx2 = fx + kx - half_w2
+                                            var neigh2: List[Float32] = List[Float32]()
+                                            if sy2 >= 0 and sx2 >= 0 and sy2 < len(fmap) and sx2 < len(fmap[0]):
+                                                neigh2 = fmap[sy2][sx2].copy()
+                                            else:
+                                                for _ in range(C): neigh2.append(0.0)
+                                            for c in range(min(len(neigh2), C)):
+                                                var widx2 = ((ky * kw2 + kx) * C + c) * self.head_reg_pesos_conv.formato[3] + j
+                                                var wval2: Float32 = 0.0
+                                                try: wval2 = self.head_reg_pesos_conv.dados[widx2]
+                                                except _: wval2 = 0.0
+                                                acc2 = acc2 + neigh2[c] * wval2
+                                    try: acc2 = acc2 + self.head_reg_bias_conv.dados[j]
+                                    except _: pass
+                                    deltas.append(acc2)
+                            elif has_pointwise_reg:
+                                for j in range(4):
+                                    var dv: Float32 = 0.0
+                                    for i in range(min(len(feat), self.head_reg_pesos_conv.formato[0])):
+                                        dv = dv + feat[i] * self.head_reg_pesos_conv.dados[i * self.head_reg_pesos_conv.formato[1] + j]
+                                    try: dv = dv + self.head_reg_bias_conv.dados[j]
+                                    except _: pass
+                                    deltas.append(dv)
+                            else:
+                                for j in range(4):
+                                    deltas.append((mval - 0.5) * 0.1 * hw_reg[j])
+                        except _:
+                            for j in range(4): deltas.append(0.0)
+
                     var base: List[Float32] = List[Float32]()
                     for j in range(4): base.append((mval - 0.5) * 0.1)
+
                     cls_out.append(logit)
                     reg_out.append(deltas^)
                     mean_out.append(mval)
@@ -1013,6 +1193,68 @@ struct RetinaFace(Movable):
             var empty_b = tensor_defs.Tensor(List[Int](), "cpu")
             return (empty_w, empty_b)
 
+    # Extrai features do patch RGB (patch_size x patch_size) usando tensores internos.
+    fn extrair_features_patch(self, var patch_rgb: List[List[List[Float32]]]) -> tensor_defs.Tensor:
+        try:
+            var ps = self.parametros.patch_size
+            var in_shape = List[Int](); in_shape.append(1); in_shape.append(ps * ps)
+            var tensor_in = tensor_defs.Tensor(in_shape^, self.tipo_computacao)
+            for yy in range(ps):
+                for xx in range(ps):
+                    var gray: Float32 = Float32(0.0)
+                    try:
+                        var pix = patch_rgb[yy][xx].copy()
+                        gray = Float32(0.299) * pix[0] + Float32(0.587) * pix[1] + Float32(0.114) * pix[2]
+                    except _:
+                        gray = Float32(0.0)
+                    tensor_in.dados[yy * ps + xx] = gray
+
+            # Inline feature extraction using cnn_impl helpers to avoid constructing
+            # temporary BlocoCNN instances (ownership/implicit-copy issues).
+            var H = ps; var W = ps
+            var kh = 3; var kw = 3
+            try:
+                kh = self.parametros.kernel_h
+                kw = self.parametros.kernel_w
+            except _:
+                kh = 3; kw = 3
+
+            var conv_h = H - kh + 1
+            var conv_w = W - kw + 1
+            var pool_h = max(1, conv_h // 2)
+            var pool_w = max(1, conv_w // 2)
+            var feat_dim = self.parametros.num_filtros * pool_h * pool_w
+
+            var formato = List[Int]()
+            formato.append(1)
+            formato.append(feat_dim)
+            var out = tensor_defs.Tensor(formato^, self.tipo_computacao)
+
+            # build img list from tensor_in for cnn_impl conv helper
+            var img_list = List[Float32]()
+            for i in range(len(tensor_in.dados)):
+                img_list.append(tensor_in.dados[i])
+
+            var off = 0
+            for f in range(self.parametros.num_filtros):
+                try:
+                    var conv = dispatcher_tensor.conv2d_valid_relu_dispatch(img_list.copy(), H, W, self.bloco_kernels[f].dados.copy(), kh, kw, self.tipo_computacao)
+                    var pooled = dispatcher_tensor.avgpool2x2_stride2_dispatch(conv.copy(), conv_h, conv_w, self.tipo_computacao)
+                    for i in range(len(pooled)):
+                        out.dados[off + i] = pooled[i]
+                    off = off + len(pooled)
+                except _:
+                    # on error, fill zeros for this filter's features
+                    var fill_n = pool_h * pool_w
+                    for i in range(fill_n):
+                        out.dados[off + i] = 0.0
+                    off = off + fill_n
+
+            return out^
+        except _:
+            var _empty = tensor_defs.Tensor(List[Int](), self.tipo_computacao)
+            return _empty^
+
     # CONFIGURAÇÃO: habilita e inicializa placeholders para o pipeline conv-FPN
     # - `backbone_tipo`: string que descreve o backbone desejado (ex.: "mobilenet_v2" ou "resnet50")
     # - Esta função prepara tensores placeholder, habilita `usar_conv_fpn=True` e
@@ -1021,8 +1263,9 @@ struct RetinaFace(Movable):
     #   pooling) e cabeças simples para testes e smoke runs; esse esqueleto deve
     #   ser substituído por backbones reais (MobileNet/ResNet) e por uma FPN
     #   completa para produção.
-    fn configurar_conv_fpn(mut self, var backbone_tipo_in: String = "mobilenet_v2") -> Bool:
+    fn configurar_conv_fpn(mut self, var backbone_tipo_in: String = "mobilenet_v2", var head_kernel_size: Int = 1) -> Bool:
         try:
+            var C: Int = 8
             self.usar_conv_fpn = True
             self.backbone_tipo = backbone_tipo_in^
             # pesos vazios; shape real deve ser determinado pela implementação do backbone/FPN
@@ -1032,25 +1275,55 @@ struct RetinaFace(Movable):
             # Initialize per-channel weights so heads can be applied as dot-products
             try:
                 var C = 8
-                var shape_cls = List[Int](); shape_cls.append(C); shape_cls.append(1)
-                self.head_cls_pesos_conv = tensor_defs.Tensor(shape_cls^, self.tipo_computacao)
-                var shape_cb = List[Int](); shape_cb.append(1); shape_cb.append(1)
-                self.head_cls_bias_conv = tensor_defs.Tensor(shape_cb^, self.tipo_computacao)
-                # default small weights
-                for i in range(len(self.head_cls_pesos_conv.dados)):
-                    self.head_cls_pesos_conv.dados[i] = 0.001
-                self.head_cls_bias_conv.dados[0] = 0.0
+                # If user requests spatial heads (kernel>1), initialize tensors with
+                # formato [kh, kw, C, out_channels] for cls and [kh, kw, C, 4] for reg.
+                if head_kernel_size > 1:
+                    var kh = head_kernel_size; var kw = head_kernel_size
+                    var shape_cls = List[Int](); shape_cls.append(kh); shape_cls.append(kw); shape_cls.append(C); shape_cls.append(1)
+                    self.head_cls_pesos_conv = tensor_defs.Tensor(shape_cls^, self.tipo_computacao)
+                    var shape_cb = List[Int](); shape_cb.append(1); shape_cb.append(1)
+                    self.head_cls_bias_conv = tensor_defs.Tensor(shape_cb^, self.tipo_computacao)
+                    # small random init
+                    var seed = 1234
+                    for i in range(len(self.head_cls_pesos_conv.dados)):
+                        seed = (seed * 1664525 + 1013904223 + i) % 2147483647
+                        var u = Float32(seed) / Float32(2147483647)
+                        self.head_cls_pesos_conv.dados[i] = (u * 2.0 - 1.0) * 0.01
+                    self.head_cls_bias_conv.dados[0] = 0.0
+                else:
+                    var shape_cls = List[Int](); shape_cls.append(8); shape_cls.append(1)
+                    self.head_cls_pesos_conv = tensor_defs.Tensor(shape_cls^, self.tipo_computacao)
+                    var shape_cb = List[Int](); shape_cb.append(1); shape_cb.append(1)
+                    self.head_cls_bias_conv = tensor_defs.Tensor(shape_cb^, self.tipo_computacao)
+                    # default small weights
+                    for i in range(len(self.head_cls_pesos_conv.dados)):
+                        self.head_cls_pesos_conv.dados[i] = 0.001
+                    self.head_cls_bias_conv.dados[0] = 0.0
             except _:
                 self.head_cls_pesos_conv = tensor_defs.Tensor(List[Int](), self.tipo_computacao)
             try:
-                var shape_reg = List[Int](); shape_reg.append(C); shape_reg.append(4)
-                self.head_reg_pesos_conv = tensor_defs.Tensor(shape_reg^, self.tipo_computacao)
-                var shape_rb = List[Int](); shape_rb.append(1); shape_rb.append(4)
-                self.head_reg_bias_conv = tensor_defs.Tensor(shape_rb^, self.tipo_computacao)
-                for i in range(len(self.head_reg_pesos_conv.dados)):
-                    self.head_reg_pesos_conv.dados[i] = 0.01
-                for j in range(len(self.head_reg_bias_conv.dados)):
-                    self.head_reg_bias_conv.dados[j] = 0.0
+                if head_kernel_size > 1:
+                    var kh = head_kernel_size; var kw = head_kernel_size
+                    var shape_reg = List[Int](); shape_reg.append(kh); shape_reg.append(kw); shape_reg.append(C); shape_reg.append(4)
+                    self.head_reg_pesos_conv = tensor_defs.Tensor(shape_reg^, self.tipo_computacao)
+                    var shape_rb = List[Int](); shape_rb.append(1); shape_rb.append(4)
+                    self.head_reg_bias_conv = tensor_defs.Tensor(shape_rb^, self.tipo_computacao)
+                    var seed2 = 4321
+                    for i in range(len(self.head_reg_pesos_conv.dados)):
+                        seed2 = (seed2 * 1664525 + 1013904223 + i) % 2147483647
+                        var u2 = Float32(seed2) / Float32(2147483647)
+                        self.head_reg_pesos_conv.dados[i] = (u2 * 2.0 - 1.0) * 0.01
+                    for j in range(len(self.head_reg_bias_conv.dados)):
+                        self.head_reg_bias_conv.dados[j] = 0.0
+                else:
+                    var shape_reg = List[Int](); shape_reg.append(8); shape_reg.append(4)
+                    self.head_reg_pesos_conv = tensor_defs.Tensor(shape_reg^, self.tipo_computacao)
+                    var shape_rb = List[Int](); shape_rb.append(1); shape_rb.append(4)
+                    self.head_reg_bias_conv = tensor_defs.Tensor(shape_rb^, self.tipo_computacao)
+                    for i in range(len(self.head_reg_pesos_conv.dados)):
+                        self.head_reg_pesos_conv.dados[i] = 0.01
+                    for j in range(len(self.head_reg_bias_conv.dados)):
+                        self.head_reg_bias_conv.dados[j] = 0.0
             except _:
                 self.head_reg_pesos_conv = tensor_defs.Tensor(List[Int](), self.tipo_computacao)
             try:

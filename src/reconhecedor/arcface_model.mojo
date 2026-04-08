@@ -1,4 +1,5 @@
 import bionix_ml.camadas.cnn as cnn_pkg
+import bionix_ml.camadas as camadas_pkg
 import bionix_ml.camadas.cnn.cnn as cnn_impl
 import bionix_ml.nucleo.Tensor as tensor_defs
 import bionix_ml.dados.arquivo as arquivo_pkg
@@ -66,6 +67,10 @@ struct ArcFaceParametros(Movable, Copyable):
 #   arcface_state.txt               — estado de treino (época, lr)
 struct ArcFace(Movable):
     var bloco_cnn:     cnn_pkg.BlocoCNN
+    var bloco_kernels:  List[tensor_defs.Tensor]
+    var bloco_peso_saida: tensor_defs.Tensor
+    var bloco_bias_saida: tensor_defs.Tensor
+    var tipo_computacao: String
     var proj_peso:     tensor_defs.Tensor   # [D, embed_dim]
     var proj_bias:     tensor_defs.Tensor   # [1, embed_dim]
     var cls_peso:      tensor_defs.Tensor   # [embed_dim, num_classes]
@@ -80,11 +85,53 @@ struct ArcFace(Movable):
                 var params_in: ArcFaceParametros = ArcFaceParametros(),
                 var dir_modelo_in: String = "MODELO/arcface_modelo"):
         self.parametros = params_in^
-        self.bloco_cnn = cnn_pkg.BlocoCNN(
-            self.parametros.patch_size, self.parametros.patch_size,
-            self.parametros.num_filtros,
-            self.parametros.kernel_h, self.parametros.kernel_w,
-            contexto_defs.criar_contexto_padrao(self.parametros.tipo_ctx))
+        # Create BlocoCNN via factory to keep construction centralized
+        try:
+            import bionix_ml.camadas as camadas_pkg
+            self.bloco_cnn = camadas_pkg.criar_bloco_cnn(self.parametros.patch_size, self.parametros.patch_size, self.parametros.num_filtros, self.parametros.kernel_h, self.parametros.kernel_w, self.parametros.tipo_ctx)
+            try:
+                self.bloco_cnn.contexto = contexto_defs.criar_contexto_padrao(self.parametros.tipo_ctx)
+            except _:
+                pass
+        except _:
+            # Fallback: use centralized factory to create BlocoCNN
+            try:
+                self.bloco_cnn = camadas_pkg.criar_bloco_cnn(
+                    self.parametros.patch_size, self.parametros.patch_size,
+                    self.parametros.num_filtros,
+                    self.parametros.kernel_h, self.parametros.kernel_w,
+                    self.parametros.tipo_ctx)
+                try:
+                    self.bloco_cnn.contexto = contexto_defs.criar_contexto_padrao(self.parametros.tipo_ctx)
+                except _:
+                    pass
+            except _:
+                # as a last resort, construct directly (rare)
+                self.bloco_cnn = cnn_pkg.BlocoCNN(
+                    self.parametros.patch_size, self.parametros.patch_size,
+                    self.parametros.num_filtros,
+                    self.parametros.kernel_h, self.parametros.kernel_w,
+                    contexto_defs.criar_contexto_padrao(self.parametros.tipo_ctx))
+        # populate tensor-backed fields for migration/adapters
+        try:
+            self.tipo_computacao = String(self.bloco_cnn.tipo_computacao)
+        except _:
+            self.tipo_computacao = String(self.parametros.tipo_ctx)
+        self.bloco_kernels = List[tensor_defs.Tensor]()
+        try:
+            for k in self.bloco_cnn.kernels:
+                try: self.bloco_kernels.append(k.copy())
+                except _: continue
+        except _:
+            pass
+        try:
+            self.bloco_peso_saida = self.bloco_cnn.peso_saida.copy()
+        except _:
+            self.bloco_peso_saida = tensor_defs.Tensor(List[Int](), self.tipo_computacao)
+        try:
+            self.bloco_bias_saida = self.bloco_cnn.bias_saida.copy()
+        except _:
+            self.bloco_bias_saida = tensor_defs.Tensor(List[Int](), self.tipo_computacao)
         # placeholders; inicializados na primeira chamada de treino/embed
         self.proj_peso  = tensor_defs.Tensor(List[Int](), self.bloco_cnn.tipo_computacao)
         self.proj_bias  = tensor_defs.Tensor(List[Int](), self.bloco_cnn.tipo_computacao)
@@ -145,7 +192,11 @@ struct ArcFace(Movable):
                 tensor_in.dados[yy * ps + xx] = gray
 
         # BlocoCNN features [1, D]
-        var feats = cnn_pkg.extrair_features(self.bloco_cnn, tensor_in)
+        # Use tensor-backed temporary BlocoCNN created from stored tensors to allow migration
+        var tmp_bloco = camadas_pkg.criar_bloco_de_tensores(
+            ps, ps, self.parametros.num_filtros, self.parametros.kernel_h, self.parametros.kernel_w,
+            self.bloco_kernels.copy(), self.bloco_peso_saida.copy(), self.bloco_bias_saida.copy(), self.tipo_computacao)
+        var feats = cnn_pkg.extrair_features(tmp_bloco, tensor_in)
         var D = feats.formato[1]
 
         if not self.heads_inicializadas or len(self.proj_peso.dados) == 0:
