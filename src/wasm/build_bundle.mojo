@@ -101,9 +101,28 @@ fn main() raises:
         print("Execute o treino primeiro: pixi run run_arcface_train_debug")
         return
 
-    var num_k    = arcface.bloco_cnn.num_filtros
-    var kh       = arcface.bloco_cnn.kernel_h
-    var kw       = arcface.bloco_cnn.kernel_w
+    var num_k: Int = 0
+    var kh: Int = 3
+    var kw: Int = 3
+    try:
+        if len(arcface.bloco_kernels) > 0:
+            num_k = len(arcface.bloco_kernels)
+            try:
+                kh = arcface.bloco_kernels[0].formato[0]
+                kw = arcface.bloco_kernels[0].formato[1]
+            except _:
+                kh = 3; kw = 3
+        else:
+            num_k = arcface.bloco_cnn.num_filtros
+            kh = arcface.bloco_cnn.kernel_h
+            kw = arcface.bloco_cnn.kernel_w
+    except _:
+        try:
+            num_k = arcface.bloco_cnn.num_filtros
+            kh = arcface.bloco_cnn.kernel_h
+            kw = arcface.bloco_cnn.kernel_w
+        except _:
+            num_k = 0; kh = 3; kw = 3
     var ps       = arcface.parametros.patch_size
     var E        = arcface.parametros.embed_dim
     var C        = arcface.parametros.num_classes
@@ -132,9 +151,18 @@ fn main() raises:
     _wu32(bundle_buf, C)           # num_classes
     _wu32(bundle_buf, 0)           # reserved
 
-    # Kernels
+    # Kernels (prefer tensor-backed `bloco_kernels`, fallback to legacy `bloco_cnn.kernels`)
     for ki in range(num_k):
-        _wf32_list(bundle_buf, arcface.bloco_cnn.kernels[ki].dados)
+        try:
+            if len(arcface.bloco_kernels) > 0:
+                _wf32_list(bundle_buf, arcface.bloco_kernels[ki].dados)
+            else:
+                _wf32_list(bundle_buf, arcface.bloco_cnn.kernels[ki].dados)
+        except _:
+            # write zeros if missing
+            var zeros = List[Float32]()
+            for _ in range(kh * kw): zeros.append(0.0)
+            _wf32_list(bundle_buf, zeros)
 
     # proj_peso [D × E], proj_bias [E]
     _wf32_list(bundle_buf, arcface.proj_peso.dados)

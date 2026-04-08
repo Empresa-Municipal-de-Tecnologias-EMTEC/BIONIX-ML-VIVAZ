@@ -47,3 +47,10 @@ wsl bash -ic "pixi run run_retina_train_debug"
 Nesse diretório:
 
 /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src
+
+
+-----------------------------------------------
+
+Alternativamente para identificar os erros de compilação
+
+pixi run run_retina_train  2>&1 >/dev/null | grep -i "error:"

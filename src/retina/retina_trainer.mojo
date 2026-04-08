@@ -14,16 +14,17 @@ import retina.retina_utils as retina_utils
 import os
 import math
 import diagnostics.logger as logger
+import bionix_ml.camadas as camadas_pkg
 
 
 # Sigmoid scalar (stable)
 fn _sigmoid_scalar(var x: Float32) -> Float32:
     if x >= 0.0:
-        var z = math.exp(-x)
-        return 1.0 / (1.0 + z)
+        var z = math.exp(-Float64(x))
+        return Float32(1.0 / (1.0 + z))
     else:
-        var z = math.exp(x)
-        return z / (1.0 + z)
+        var z = math.exp(Float64(x))
+        return Float32(z / (1.0 + z))
 
 
 # Separador de campos: divide string por espaço, tab ou vírgula
@@ -68,7 +69,7 @@ fn _anchor_sane(a: List[Float32], var max_width: Int, var max_height: Int) -> Bo
 
 # Minimal retina trainer that uses RGB patches and the retina_model helpers.
 fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir: String, var altura: Int = 640, var largura: Int = 640,
-                          var patch_size: Int = 64, var epocas: Int = 5, var taxa_aprendizado: Float32 = 0.05,
+                          var patch_size: Int = 64, var epocas: Int = 5, var taxa_aprendizado: Float32 = Float32(0.05),
                           var batch_size_inicio: Int = 8, var batch_size_fim: Int = 128, var samples_per_class: Int = 1, var randomize: Bool = True,
                           var early_stop: Bool = True, var allowed_classes: List[String] = List[String]()) raises -> String:
 
@@ -77,21 +78,21 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
     # scheduler (ReduceLROnPlateau-like)
     var lr_atual = taxa_aprendizado
     var lr_inicial = taxa_aprendizado
-    var best_loss: Float32 = 1e30
+    var best_loss: Float32 = Float32(1e30)
     var scheduler_wait: Int = 0
     var scheduler_patience: Int = 5
-    var scheduler_factor: Float32 = 0.75
-    var min_lr: Float32 = 1e-4
-    var min_delta: Float32 = 1e-6
+    var scheduler_factor: Float32 = Float32(0.75)
+    var min_lr: Float32 = Float32(1e-4)
+    var min_delta: Float32 = Float32(1e-6)
     # IoU-based early stopping params
-    var best_iou: Float32 = 0.0
+    var best_iou: Float32 = Float32(0.0)
     # Composite validation score (mean IoU minus FP penalty) for stricter early-stop
-    var best_val_score: Float32 = -1.0
-    var val_fp_penalty: Float32 = 0.08
+    var best_val_score: Float32 = Float32(-1.0)
+    var val_fp_penalty: Float32 = Float32(0.08)
     var iou_patience: Int = 5
     var iou_patience_count: Int = 0
-    var iou_min_delta: Float32 = 1e-4
-    var iou_target: Float32 = 0.75
+    var iou_min_delta: Float32 = Float32(1e-4)
+    var iou_target: Float32 = Float32(0.75)
     var iou_consec_required: Int = 3
     var iou_consec_count: Int = 0
 
@@ -145,8 +146,8 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
     # This typically happens when training ran for many epochs with the un-normalized LR bug.
     # Reset the whole regression head to known-good initial values in that case.
     try:
-        var bias_dw = 0.0
-        var bias_dh = 0.0
+        var bias_dw: Float32 = Float32(0.0)
+        var bias_dh: Float32 = Float32(0.0)
         try:
             bias_dw = detector.bloco_bias_saida.dados[2]
             bias_dh = detector.bloco_bias_saida.dados[3]
@@ -483,9 +484,9 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                 var img_matrix = List[List[List[Float32]]]()
                 try:
                     var resized_tuple = detector.redimensionar_para_tamanho_entrada(bmp.pixels.copy(), gt_list.copy(), largura)
-                    img_matrix = resized_tuple[0]
+                    img_matrix = resized_tuple[0].copy()
                     if len(resized_tuple[1]) > 0:
-                        gt_list = resized_tuple[1]
+                        gt_list = resized_tuple[1].copy()
                 except _:
                     # cascateamento de 2 cópias aqui (bmp.pixels → img_matrix → assigner) é ineficiente mas necessário para isolar o assigner de mutações externas
                     try:
@@ -549,7 +550,23 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
 
                 # Tensor grayscale [1, patch*patch] — tamanho correto para BlocoCNN de patch_size×patch_size
                 var in_shape = List[Int](); in_shape.append(1); in_shape.append(patch_size * patch_size)
-                
+                # Create a temporary BlocoCNN from stored tensors once per image to avoid
+                # recreating it for every anchor (speeds up training loops).
+                var tmp_bloco = camadas_pkg.criar_bloco_cnn(4, 4, 1, 3, 3, detector.tipo_computacao)
+                var tmp_bloco_ok: Bool = False
+                var kernel_h: Int = 3
+                var kernel_w: Int = 3
+                try:
+                    kernel_h = detector.parametros.kernel_h
+                    kernel_w = detector.parametros.kernel_w
+                except _:
+                    pass
+                try:
+                    tmp_bloco = camadas_pkg.criar_bloco_de_tensores(patch_size, patch_size, detector.parametros.num_filtros, kernel_h, kernel_w, detector.bloco_kernels.copy(), detector.bloco_peso_saida.copy(), detector.bloco_bias_saida.copy(), detector.tipo_computacao)
+                    tmp_bloco_ok = True
+                except _:
+                    tmp_bloco_ok = False
+
                 # Precompute conv-FPN predictions for this image if requested (once per image)
                 var using_conv_preds: Bool = False
                 var pr_cls = List[Float32]()
@@ -563,17 +580,17 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                 if using_conv_preds:
                     try:
                         var pr = model_utils.gerar_predicoes_por_ancora_convfpn_module(detector, img_matrix.copy(), anchors.copy(), patch_size)
-                        pr_cls = pr[0]
-                        pr_reg = pr[1]
+                        pr_cls = pr[0].copy()
+                        pr_reg = pr[1].copy()
                         # auxiliary data: mean summaries and base (pre-multiplier) reg deltas
                         var pr_mean = List[Float32]()
                         var pr_base = List[List[Float32]]()
                         try:
-                            pr_mean = pr[2]
+                            pr_mean = pr[2].copy()
                         except _:
                             pr_mean = List[Float32]()
                         try:
-                            pr_base = pr[3]
+                            pr_base = pr[3].copy()
                         except _:
                             pr_base = List[List[Float32]]()
                     except _:
@@ -581,6 +598,95 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                         pr_reg = List[List[Float32]]()
                         pr_mean = List[Float32]()
                         pr_base = List[List[Float32]]()
+
+                # Select anchors to process (limit positives & sampled negatives),
+                # build a batch of patches and extract features in one call.
+                var selected_indices = List[Int]()
+                var selected_patches = List[List[List[List[Float32]]]]()
+                var pos_tmp: Int = 0
+                var neg_step_tmp: Int = 0
+                var neg_tmp: Int = 0
+                for ai in range(len(anchors)):
+                    if pos_tmp >= _max_pos_per_image and neg_tmp >= max_neg_per_image:
+                        break
+                    var sel = False
+                    try:
+                        if labels[ai] == 1:
+                            if pos_tmp < _max_pos_per_image:
+                                sel = True; pos_tmp = pos_tmp + 1
+                        elif labels[ai] == 0:
+                            neg_step_tmp = neg_step_tmp + 1
+                            if neg_step_tmp % neg_sample_rate == 0 and neg_tmp < max_neg_per_image:
+                                sel = True; neg_tmp = neg_tmp + 1
+                    except _:
+                        sel = False
+                    if not sel:
+                        continue
+                    # compute patch crop for this anchor
+                    var patch_rgb_sel = List[List[List[Float32]]]()
+                    try:
+                        var a = anchors[ai].copy()
+                        var ax = Int(a[0] - a[2] / 2.0); var ay = Int(a[1] - a[3] / 2.0)
+                        var aw = Int(a[2]); var ah = Int(a[3])
+                        if ax < 0: ax = 0
+                        if ay < 0: ay = 0
+                        if ax + aw > largura: aw = max(1, largura - ax)
+                        if ay + ah > altura: ah = max(1, altura - ay)
+                        var patch_rgb_sel = graficos_pkg.crop_and_resize_rgb(img_matrix, ax, ay, ax + aw - 1, ay + ah - 1, patch_size, patch_size)
+                    except _:
+                        patch_rgb_sel = List[List[List[Float32]]]()
+                        for yy in range(patch_size):
+                            var row = List[List[Float32]]()
+                            for xx in range(patch_size):
+                                row.append(List[Float32]())
+                            patch_rgb_sel.append(row.copy())
+                    selected_indices.append(ai)
+                    selected_patches.append(patch_rgb_sel.copy())
+
+                # Prepare placeholder features list for all anchors
+                var feats_list = List[tensor_defs.Tensor]()
+                for _ in range(len(anchors)):
+                    feats_list.append(tensor_defs.Tensor(List[Int](), detector.tipo_computacao))
+
+                # Batch-extract features for selected patches
+                try:
+                    if len(selected_indices) > 0:
+                        var Nsel = len(selected_indices)
+                        var inputs_shape = List[Int](); inputs_shape.append(Nsel); inputs_shape.append(patch_size * patch_size)
+                        var inputs = tensor_defs.Tensor(inputs_shape^, detector.tipo_computacao)
+                        for si in range(Nsel):
+                            var p = selected_patches[si].copy()
+                            for yy in range(patch_size):
+                                for xx in range(patch_size):
+                                    var gray: Float32 = Float32(0.0)
+                                    try:
+                                        var pix = p[yy][xx].copy()
+                                        gray = Float32(0.299) * pix[0] + Float32(0.587) * pix[1] + Float32(0.114) * pix[2]
+                                    except _:
+                                        gray = Float32(0.0)
+                                    inputs.dados[si * (patch_size * patch_size) + (yy * patch_size + xx)] = gray
+                        try:
+                            if tmp_bloco_ok:
+                                var feats_batch = cnn_pkg.extrair_features(tmp_bloco, inputs)
+                                var Dbatch = 0
+                                try: Dbatch = feats_batch.formato[1]
+                                except _: Dbatch = 0
+                                for si in range(len(selected_indices)):
+                                    var base = si * Dbatch
+                                    var shape_single = List[Int](); shape_single.append(1); shape_single.append(Dbatch)
+                                    var single = tensor_defs.Tensor(shape_single^, detector.tipo_computacao)
+                                    for d in range(Dbatch):
+                                        single.dados[d] = feats_batch.dados[base + d]
+                                    feats_list[selected_indices[si]] = single^
+                            else:
+                                for si in range(len(selected_indices)):
+                                    var single = detector.extrair_features_patch(selected_patches[si].copy())
+                                    feats_list[selected_indices[si]] = single^
+                        except _:
+                            # leave feats_list entries empty on failure
+                            pass
+                except _:
+                    pass
 
                 for a_idx in range(len(anchors)):
                     # Exit early when both positive and negative anchor quotas are satisfied
@@ -634,7 +740,8 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                         pass
 
                     # Create a fresh tensor for each anchor to isolate memory
-                    var tensor_in = tensor_defs.Tensor(in_shape.copy(), detector.tipo_computacao)
+                    var local_in_shape = List[Int](); local_in_shape.append(1); local_in_shape.append(patch_size * patch_size)
+                    var tensor_in = tensor_defs.Tensor(local_in_shape.copy(), detector.tipo_computacao)
 
                     var a = anchors[a_idx].copy()
                     # defensive validation: skip anchors with nonsensical sizes or corrupted values
@@ -676,28 +783,20 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                                 var pix = patch_rgb[yy][xx].copy()
                                 tensor_in.dados[yy * patch_size + xx] = Float32(0.299) * pix[0] + Float32(0.587) * pix[1] + Float32(0.114) * pix[2]
 
-                        # Build temporary BlocoCNN from detector tensors for compatibility
+                        # Prefer using a single temporary BlocoCNN created per-image and
+                        # call the batch-capable `extrair_features` to avoid repeated
+                        # allocations. Fall back to detector.extrair_features_patch if
+                        # temporary block creation failed.
                         try:
-                            var tmp_bloco = model_pkg.criar_bloco_detector(patch_size, patch_size, detector.parametros.num_filtros, detector.parametros.kernel_h, detector.parametros.kernel_w, contexto_defs.AdaptadorDeContexto(), 1, 1, detector.tipo_computacao)
-                            try:
-                                tmp_bloco.kernels = List[tensor_defs.Tensor]()
-                                for k in detector.bloco_kernels:
-                                    tmp_bloco.kernels.append(k.copy())
-                            except _:
-                                pass
-                            try:
-                                if len(detector.bloco_peso_saida.formato) >= 1:
-                                    tmp_bloco.peso_saida = detector.bloco_peso_saida.copy()
-                            except _:
-                                pass
-                            try:
-                                if len(detector.bloco_bias_saida.formato) >= 1:
-                                    tmp_bloco.bias_saida = detector.bloco_bias_saida.copy()
-                            except _:
-                                pass
-                            feats = cnn_pkg.extrair_features(tmp_bloco, tensor_in)
+                            if tmp_bloco_ok:
+                                var inputs = tensor_defs.Tensor(local_in_shape^, detector.tipo_computacao)
+                                for pi in range(len(tensor_in.dados)):
+                                    inputs.dados[pi] = tensor_in.dados[pi]
+                                feats = cnn_pkg.extrair_features(tmp_bloco, inputs)
+                            else:
+                                feats = detector.extrair_features_patch(patch_rgb.copy())
                         except _:
-                            feats = tensor_defs.Tensor(List[Int](), detector.tipo_computacao)
+                            var feats = tensor_defs.Tensor(List[Int](), detector.tipo_computacao)
                         try:
                             D = feats.formato[1]
                         except _:
@@ -1502,7 +1601,8 @@ fn treinar_retina_convfpn(mut detector: model_utils.RetinaFace, var dataset_dir:
     # which contains support for using conv preds when detector.usar_conv_fpn=True.
     try:
         try:
-            detector.configurar_conv_fpn("mobilenet_v2")
+            # enable spatial conv heads (3x3) during trainer runs for improved map-wise predictions
+            detector.configurar_conv_fpn("mobilenet_v2", 3)
         except _:
             pass
         detector.usar_conv_fpn = True
