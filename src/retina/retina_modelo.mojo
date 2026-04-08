@@ -868,18 +868,18 @@ struct RetinaFace(Movable):
                 out.append(row^)
             return out^
 
-        print("no _backbone_forward chegou aqui 05")
+        #print("no _backbone_forward chegou aqui 05")
 
         # produce per-level maps
         for s_idx in range(len(strides)):
-            print("no _backbone_forward chegou aqui 05.01")
+            #print("no _backbone_forward chegou aqui 05.01")
             var s = strides[s_idx]
             var fh = max(1, in_size // s)
             var fw = fh
             # build fmap for this level by running C conv kernels and pooling
             var fmap: List[List[List[Float32]]] = List[List[List[Float32]]]()
             for c_idx in range(C):
-                print("no _backbone_forward chegou aqui 05.02")
+                #print("no _backbone_forward chegou aqui 05.02")
                 try:
                     try:
                         print("[DEBUG] backbone: entering channel c_idx=" + String(c_idx) + " fh=" + String(fh) + " fw=" + String(fw) + " in_size=" + String(in_size) + " s=" + String(s))
@@ -927,9 +927,9 @@ struct RetinaFace(Movable):
                         pass
                     # merge sampled channel into fmap
                     for y in range(fh):
-                        print("no _backbone_forward chegou aqui 05.03")
-                        print("no _backbone_forward chegou aqui 05.03.01")
-                        print(y)
+                        #print("no _backbone_forward chegou aqui 05.03")
+                        #print("no _backbone_forward chegou aqui 05.03.01")
+                        #print(y)
                         var fmap_len: Int = 0
                         try:
                             fmap_len = len(fmap)
@@ -953,10 +953,10 @@ struct RetinaFace(Movable):
                             try: fmap.append(row^)
                             except _: pass
 
-                        print("no _backbone_forward chegou aqui 05.03.06")
+                        #print("no _backbone_forward chegou aqui 05.03.06")
 
                         for x in range(fw):
-                            print("no _backbone_forward chegou aqui 05.04")
+                            #print("no _backbone_forward chegou aqui 05.04")
                             # ensure cell exists
                             try:
                                 var cell_exists = False
@@ -994,11 +994,11 @@ struct RetinaFace(Movable):
                                 except _:
                                     pass
 
-                        print("no _backbone_forward chegou aqui 05.05")
+                        #print("no _backbone_forward chegou aqui 05.05")
                 except _:
                     # on error, fill zeros for this channel
 
-                    print("no _backbone_forward chegou aqui 05.06")
+                    #print("no _backbone_forward chegou aqui 05.06")
 
                     for y in range(fh):
                         try:
@@ -1015,21 +1015,21 @@ struct RetinaFace(Movable):
                                 cell.append(0.0)
                                 fmap[y].append(cell^)
 
-            print("no _backbone_forward chegou aqui 05.07")
+            #print("no _backbone_forward chegou aqui 05.07")
             # ensure every cell has C channels
             for y in range(len(fmap)):
-                print("no _backbone_forward chegou aqui 05.08")
+                #print("no _backbone_forward chegou aqui 05.08")
                 for x in range(len(fmap[0])):
-                    print("no _backbone_forward chegou aqui 05.09")
+                    #print("no _backbone_forward chegou aqui 05.09")
                     var cell = fmap[y][x].copy()
                     if len(cell) < C:
                         var miss = C - len(cell)
                         for _ in range(miss): cell.append(0.0)
-                print("no _backbone_forward chegou aqui 05.10")
-            print("no _backbone_forward chegou aqui 05.11")
+                #print("no _backbone_forward chegou aqui 05.10")
+            #print("no _backbone_forward chegou aqui 05.11")
             levels.append(fmap^)
 
-        print("no _backbone_forward chegou aqui 06")
+        #print("no _backbone_forward chegou aqui 06")
 
         # simple top-down fusion: upsample coarse maps and average
         try:
@@ -1733,5 +1733,5 @@ struct RetinaFace(Movable):
 # Module-level wrapper to allow callers to invoke the instance method
 # without relying on method dispatch/visibility rules in the caller.
 fn gerar_predicoes_por_ancora_convfpn_module(mut detector: RetinaFace, img_pixels: List[List[List[Float32]]], anchors: List[List[Float32]], patch_size: Int) -> (List[Float32], List[List[Float32]], List[Float32], List[List[Float32]]):
-    print("na geração de predições convfpn module chegou aqui 00")
+    #print("na geração de predições convfpn module chegou aqui 00")
     return detector.gerar_predicoes_por_ancora_convfpn(img_pixels, anchors, patch_size)
