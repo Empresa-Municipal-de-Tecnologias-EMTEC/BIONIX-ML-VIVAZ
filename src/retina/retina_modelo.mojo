@@ -522,9 +522,24 @@ struct RetinaFace(Movable):
                             var raw_k = arquivo_pkg.ler_arquivo_binario(os.path.join(model_dir, "bloco_kernel_" + String(kidx) + ".bin"))
                             if len(raw_k) == 0:
                                 break
-                            var kt = tensor_defs.Tensor(List[Int](), self.tipo_computacao)
-                            try: _ = kt.carregar_dados_bytes_bin(raw_k.copy()); self.bloco_kernels.append(kt^); any_ok = True
-                            except _: pass
+                            # infer kernel shape from raw byte length when possible
+                            var nvals = len(raw_k) // 4
+                            var formato_k = List[Int]()
+                            try:
+                                var s = Int(math.floor(math.sqrt(Float64(nvals))))
+                                if s * s == nvals and s > 0:
+                                    formato_k.append(s); formato_k.append(s)
+                                else:
+                                    formato_k.append(nvals); formato_k.append(1)
+                            except _:
+                                formato_k.append(3); formato_k.append(3)
+                            var kt = tensor_defs.Tensor(formato_k^, self.tipo_computacao)
+                            try:
+                                _ = kt.carregar_dados_bytes_bin(raw_k.copy())
+                                self.bloco_kernels.append(kt^)
+                                any_ok = True
+                            except _:
+                                pass
                             kidx = kidx + 1
                         except _:
                             break
@@ -834,12 +849,14 @@ struct RetinaFace(Movable):
 
         # produce per-level maps
         for s_idx in range(len(strides)):
+            print("no _backbone_forward chegou aqui 05.01")
             var s = strides[s_idx]
             var fh = max(1, in_size // s)
             var fw = fh
             # build fmap for this level by running C conv kernels and pooling
             var fmap: List[List[List[Float32]]] = List[List[List[Float32]]]()
             for c_idx in range(C):
+                print("no _backbone_forward chegou aqui 05.02")
                 try:
                     var kern = self.bloco_kernels[c_idx].copy()
                     var conv = cnn_impl._conv2d_valid_relu(flat.copy(), H, W, kern.copy(), self.tipo_computacao)
@@ -853,12 +870,22 @@ struct RetinaFace(Movable):
                     var sampled = _sample_grid(pooled, ph, pw, fh, fw, c_idx, C).copy()
                     # merge sampled channel into fmap
                     for y in range(fh):
+                        print("no _backbone_forward chegou aqui 05.03")
                         try:
+                            print("no _backbone_forward chegou aqui 05.03.01")
                             var row = fmap[y].copy()
+                            print("no _backbone_forward chegou aqui 05.03.02")
                         except _:
+                            print("no _backbone_forward chegou aqui 05.03.03")
                             var row = List[List[Float32]]()
+                            print("no _backbone_forward chegou aqui 05.03.04")
                             fmap.append(row^)
+                            print("no _backbone_forward chegou aqui 05.03.05")
+
+                        print("no _backbone_forward chegou aqui 05.03.06")
+                        
                         for x in range(fw):
+                            print("no _backbone_forward chegou aqui 05.04")
                             try:
                                 var cell = fmap[y][x].copy()
                             except _:
@@ -868,8 +895,13 @@ struct RetinaFace(Movable):
                                 fmap[y].append(cell^)
                             # append this channel value
                             fmap[y][x].append(sampled[y][x])
+
+                        print("no _backbone_forward chegou aqui 05.05")
                 except _:
                     # on error, fill zeros for this channel
+
+                    print("no _backbone_forward chegou aqui 05.06")
+
                     for y in range(fh):
                         try:
                             var row = fmap[y].copy()
@@ -884,13 +916,19 @@ struct RetinaFace(Movable):
                                 for _ in range(c_idx): cell.append(0.0)
                                 cell.append(0.0)
                                 fmap[y].append(cell^)
+
+            print("no _backbone_forward chegou aqui 05.07")
             # ensure every cell has C channels
             for y in range(len(fmap)):
+                print("no _backbone_forward chegou aqui 05.08")
                 for x in range(len(fmap[0])):
+                    print("no _backbone_forward chegou aqui 05.09")
                     var cell = fmap[y][x].copy()
                     if len(cell) < C:
                         var miss = C - len(cell)
                         for _ in range(miss): cell.append(0.0)
+                print("no _backbone_forward chegou aqui 05.10")
+            print("no _backbone_forward chegou aqui 05.11")
             levels.append(fmap^)
 
         print("no _backbone_forward chegou aqui 06")
@@ -1403,6 +1441,37 @@ struct RetinaFace(Movable):
                 self.head_reg_pesos_conv = tensor_defs.Tensor(List[Int](), self.tipo_computacao)
             try:
                 print("[DEBUG] configurar_conv_fpn: habilitado pipeline conv-FPN; backbone=", self.backbone_tipo)
+            except _:
+                pass
+            # Diagnostic: print head formatos immediately after initialization
+            try:
+                var s1 = String("[DEBUG] configurar_conv_fpn: head_cls_formato=")
+                try:
+                    var tmp = self.head_cls_pesos_conv.formato.copy()
+                    var s_tmp = String("[")
+                    for ii in range(len(tmp)):
+                        if ii > 0: s_tmp = s_tmp + String(",")
+                        s_tmp = s_tmp + String(tmp[ii])
+                    s_tmp = s_tmp + String("]")
+                    s1 = s1 + s_tmp
+                except _:
+                    s1 = s1 + String("[]")
+                print(s1)
+            except _:
+                pass
+            try:
+                var s2 = String("[DEBUG] configurar_conv_fpn: head_reg_formato=")
+                try:
+                    var tmp2 = self.head_reg_pesos_conv.formato.copy()
+                    var s_tmp2 = String("[")
+                    for jj in range(len(tmp2)):
+                        if jj > 0: s_tmp2 = s_tmp2 + String(",")
+                        s_tmp2 = s_tmp2 + String(tmp2[jj])
+                    s_tmp2 = s_tmp2 + String("]")
+                    s2 = s2 + s_tmp2
+                except _:
+                    s2 = s2 + String("[]")
+                print(s2)
             except _:
                 pass
             return True
