@@ -673,11 +673,71 @@ struct RetinaFace(Movable):
         except _:
             img_matrix = img_pixels.copy()
 
+        print("na geração de predições chegou aqui 00")
+
         # Build backbone feature maps (P3,P4,P5)
         var fmaps = self._backbone_forward(img_matrix, in_size)
 
+        print("na geração de predições chegou aqui 01")
+
         # Generate anchors per-level (keeps backward compatibility with flat anchors elsewhere)
         var anchors_by_level = gerador_ancoras_pkg.gerar_ancoras_por_nivel(in_size, self.anchor_passos.copy(), self.anchor_escalas.copy(), self.anchor_multiplicadores.copy(), self.anchor_proporcoes.copy())
+
+        # Diagnostic guards: detect obviously-broken shapes before heavy processing
+        try:
+            # anchors_by_level is List[level] of anchors lists
+            var total_anchors = 0
+            for lvl in anchors_by_level:
+                total_anchors = total_anchors + len(lvl)
+            try: print("[DEBUG] gerar_predicoes: total_anchors=", total_anchors)
+            except _: pass
+            # inspect head placeholder formatos
+            var hcf = List[Int]()
+            var hrf = List[Int]()
+            try:
+                try: hcf = self.head_cls_pesos_conv.formato.copy()
+                except _: hcf = List[Int]()
+                try: hrf = self.head_reg_pesos_conv.formato.copy()
+                except _: hrf = List[Int]()
+                try:
+                    var s_hcf = String("[")
+                    for i_h in range(len(hcf)):
+                        if i_h > 0: s_hcf = s_hcf + String(",")
+                        s_hcf = s_hcf + String(hcf[i_h])
+                    s_hcf = s_hcf + String("]")
+                    print("[DEBUG] head_cls_formato=" + s_hcf)
+                except _:
+                    pass
+                try:
+                    var s_hrf = String("[")
+                    for i_h in range(len(hrf)):
+                        if i_h > 0: s_hrf = s_hrf + String(",")
+                        s_hrf = s_hrf + String(hrf[i_h])
+                    s_hrf = s_hrf + String("]")
+                    print("[DEBUG] head_reg_formato=" + s_hrf)
+                except _:
+                    pass
+            except _:
+                pass
+            # quick sanity: if any formato dimension is absurd, bail out
+            var MAX_DIM: Int = 1000000
+            var bad = False
+            try:
+                for f in hcf:
+                    if f <= 0 or f > MAX_DIM: bad = True; break
+            except _:
+                pass
+            try:
+                for f in hrf:
+                    if f <= 0 or f > MAX_DIM: bad = True; break
+            except _:
+                pass
+            if total_anchors > 500000 or bad:
+                try: print("[ERROR] gerar_predicoes: aborting due to suspicious shapes/anchors", total_anchors)
+                except _: pass
+                return (List[Float32]()^, List[List[Float32]]()^, List[Float32]()^, List[List[Float32]]()^)
+        except _:
+            pass
 
         # Predict per-level using conv heads over FPN maps and return flattened outputs
         var preds_conv = self._fpn_heads_predict_por_nivel(fmaps, anchors_by_level)
@@ -690,6 +750,9 @@ struct RetinaFace(Movable):
         # MobileNet-like skeleton that uses simple 3x3 convs + avgpool to create
         # multi-scale feature maps. It's intentionally small and deterministic so
         # it can be used for smoke tests and incremental migration.
+
+        print("no _backbone_forward chegou aqui 00")
+
         var levels: List[List[List[List[Float32]]]] = List[List[List[List[Float32]]]]()
         var H: Int = 0
         var W: Int = 0
@@ -700,6 +763,8 @@ struct RetinaFace(Movable):
                 return levels.copy()
         except _:
             return levels.copy()
+
+        print("no _backbone_forward chegou aqui 01")
 
         # flatten grayscale image
         var flat: List[Float32] = List[Float32]()
@@ -713,9 +778,13 @@ struct RetinaFace(Movable):
                     v = Float32(0.0)
                 flat.append(v)
 
+        print("no _backbone_forward chegou aqui 02")
+
         # number of channels per fmap (kept small)
         var C: Int = 8
         var strides = List[Int](); strides.append(8); strides.append(16); strides.append(32)
+
+        print("no _backbone_forward chegou aqui 03")
 
         # ensure we have kernel tensors available (3x3) in bloco_kernels
         try:
@@ -732,6 +801,8 @@ struct RetinaFace(Movable):
                 self.bloco_kernels.append(k^)
         except _:
             pass
+
+        print("no _backbone_forward chegou aqui 04")
 
         # helper: sample pooled array into desired fh x fw grid
         fn _sample_grid(var pooled: List[Float32], var ph: Int, var pw: Int, var fh: Int, var fw: Int, var channel_idx: Int, var per_channel: Int) -> List[List[Float32]]:
@@ -758,6 +829,8 @@ struct RetinaFace(Movable):
                     row.append(val)
                 out.append(row^)
             return out^
+
+        print("no _backbone_forward chegou aqui 05")
 
         # produce per-level maps
         for s_idx in range(len(strides)):
@@ -819,6 +892,8 @@ struct RetinaFace(Movable):
                         var miss = C - len(cell)
                         for _ in range(miss): cell.append(0.0)
             levels.append(fmap^)
+
+        print("no _backbone_forward chegou aqui 06")
 
         # simple top-down fusion: upsample coarse maps and average
         try:
@@ -1367,9 +1442,13 @@ struct RetinaFace(Movable):
             patched_img = img_pixels
 
         var preds = self.gerar_predicoes_por_ancora_convfpn(patched_img, anchors, self.parametros.patch_size)
+        
         var cls_logits = preds[0]
         var reg_deltas = preds[1]
         var cls_scores: List[Float32] = List[Float32]()
+
+        
+
         for i in range(len(cls_logits)):
             var l = cls_logits[i]
             var s: Float32 = 0.0
@@ -1448,4 +1527,5 @@ struct RetinaFace(Movable):
 # Module-level wrapper to allow callers to invoke the instance method
 # without relying on method dispatch/visibility rules in the caller.
 fn gerar_predicoes_por_ancora_convfpn_module(mut detector: RetinaFace, img_pixels: List[List[List[Float32]]], anchors: List[List[Float32]], patch_size: Int) -> (List[Float32], List[List[Float32]], List[Float32], List[List[Float32]]):
+    print("na geração de predições convfpn module chegou aqui 00")
     return detector.gerar_predicoes_por_ancora_convfpn(img_pixels, anchors, patch_size)
