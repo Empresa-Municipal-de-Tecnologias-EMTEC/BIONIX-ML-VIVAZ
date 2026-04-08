@@ -858,7 +858,27 @@ struct RetinaFace(Movable):
             for c_idx in range(C):
                 print("no _backbone_forward chegou aqui 05.02")
                 try:
+                    try:
+                        print("[DEBUG] backbone: entering channel c_idx=" + String(c_idx) + " fh=" + String(fh) + " fw=" + String(fw) + " in_size=" + String(in_size) + " s=" + String(s))
+                    except _:
+                        pass
+                    try:
+                        print("[DEBUG] backbone: bloco_kernels_len=" + String(len(self.bloco_kernels)))
+                    except _:
+                        pass
                     var kern = self.bloco_kernels[c_idx].copy()
+                    try:
+                        var kform = List[Int]()
+                        try: kform = kern.formato.copy()
+                        except _: kform = List[Int]()
+                        var s_kf = String("[")
+                        for i_kf in range(len(kform)):
+                            if i_kf > 0: s_kf = s_kf + String(",")
+                            s_kf = s_kf + String(kform[i_kf])
+                        s_kf = s_kf + String("]")
+                        print("[DEBUG] backbone: kernel_formato=" + s_kf)
+                    except _:
+                        pass
                     var conv = cnn_impl._conv2d_valid_relu(flat.copy(), H, W, kern.copy(), self.tipo_computacao)
                     var conv_h = H - kern.formato[0] + 1
                     var conv_w = W - kern.formato[1] + 1
@@ -867,34 +887,89 @@ struct RetinaFace(Movable):
                     var pw = conv_w // 2
                     if ph <= 0: ph = 1
                     if pw <= 0: pw = 1
+                    try:
+                        print("[DEBUG] backbone: conv_h=" + String(conv_h) + " conv_w=" + String(conv_w) + " ph=" + String(ph) + " pw=" + String(pw) + " pooled_len=" + String(len(pooled)))
+                    except _:
+                        pass
                     var sampled = _sample_grid(pooled, ph, pw, fh, fw, c_idx, C).copy()
+                    try:
+                        var sampled_h = 0
+                        var sampled_w = 0
+                        try:
+                            sampled_h = len(sampled)
+                            if sampled_h > 0: sampled_w = len(sampled[0])
+                        except _: sampled_h = 0; sampled_w = 0
+                        print("[DEBUG] backbone: sampled_h=" + String(sampled_h) + " sampled_w=" + String(sampled_w) + " fh=" + String(fh) + " fw=" + String(fw))
+                    except _:
+                        pass
                     # merge sampled channel into fmap
                     for y in range(fh):
                         print("no _backbone_forward chegou aqui 05.03")
+                        print("no _backbone_forward chegou aqui 05.03.01")
+                        print(y)
+                        var fmap_len: Int = 0
                         try:
-                            print("no _backbone_forward chegou aqui 05.03.01")
-                            var row = fmap[y].copy()
-                            print("no _backbone_forward chegou aqui 05.03.02")
+                            fmap_len = len(fmap)
                         except _:
-                            print("no _backbone_forward chegou aqui 05.03.03")
-                            var row = List[List[Float32]]()
-                            print("no _backbone_forward chegou aqui 05.03.04")
-                            fmap.append(row^)
-                            print("no _backbone_forward chegou aqui 05.03.05")
+                            fmap_len = 0
+                        try:
+                            print("[DEBUG] backbone: fmap_len=" + String(fmap_len))
+                        except _:
+                            pass
+
+                        var row: List[List[Float32]] = List[List[Float32]]()
+                        if y < fmap_len:
+                            try:
+                                row = fmap[y].copy()
+                            except _:
+                                row = List[List[Float32]]()
+                                try: fmap.append(row^)
+                                except _: pass
+                        else:
+                            row = List[List[Float32]]()
+                            try: fmap.append(row^)
+                            except _: pass
 
                         print("no _backbone_forward chegou aqui 05.03.06")
-                        
+
                         for x in range(fw):
                             print("no _backbone_forward chegou aqui 05.04")
+                            # ensure cell exists
                             try:
-                                var cell = fmap[y][x].copy()
+                                var cell_exists = False
+                                try:
+                                    if len(fmap) > y and len(fmap[y]) > x:
+                                        cell_exists = True
+                                except _:
+                                    cell_exists = False
+                                if cell_exists:
+                                    var cell = fmap[y][x].copy()
+                                else:
+                                    var cell = List[Float32]()
+                                    for _ in range(c_idx): cell.append(0.0)
+                                    try: fmap[y].append(cell^)
+                                    except _: pass
                             except _:
                                 var cell = List[Float32]()
-                                # initialize zeros for previous channels
                                 for _ in range(c_idx): cell.append(0.0)
-                                fmap[y].append(cell^)
-                            # append this channel value
-                            fmap[y][x].append(sampled[y][x])
+                                try: fmap[y].append(cell^)
+                                except _: pass
+                            # append this channel value (safe guard)
+                            var sval: Float32 = 0.0
+                            try:
+                                sval = sampled[y][x]
+                            except _:
+                                sval = 0.0
+                            try:
+                                fmap[y][x].append(sval)
+                            except _:
+                                try:
+                                    var cell = List[Float32]()
+                                    for _ in range(c_idx): cell.append(0.0)
+                                    cell.append(sval)
+                                    fmap[y].append(cell^)
+                                except _:
+                                    pass
 
                         print("no _backbone_forward chegou aqui 05.05")
                 except _:

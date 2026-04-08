@@ -631,13 +631,22 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                         break
                     var sel = False
                     try:
-                        if labels[ai] == 1:
-                            if pos_tmp < _max_pos_per_image:
-                                sel = True; pos_tmp = pos_tmp + 1
-                        elif labels[ai] == 0:
-                            neg_step_tmp = neg_step_tmp + 1
-                            if neg_step_tmp % neg_sample_rate == 0 and neg_tmp < max_neg_per_image:
-                                sel = True; neg_tmp = neg_tmp + 1
+                        try:
+                            print("[DEBUG] trainer: ai=" + String(ai) + " anchors_len=" + String(len(anchors)) + " labels_len=" + String(len(labels)))
+                        except _:
+                            pass
+                        if ai < 0 or ai >= len(anchors):
+                            sel = False
+                        else:
+                            if labels[ai] == 1:
+                                if pos_tmp < _max_pos_per_image:
+                                    sel = True
+                                    pos_tmp = pos_tmp + 1
+                            elif labels[ai] == 0:
+                                neg_step_tmp = neg_step_tmp + 1
+                                if neg_step_tmp % neg_sample_rate == 0 and neg_tmp < max_neg_per_image:
+                                    sel = True
+                                    neg_tmp = neg_tmp + 1
                     except _:
                         sel = False
                     if not sel:
