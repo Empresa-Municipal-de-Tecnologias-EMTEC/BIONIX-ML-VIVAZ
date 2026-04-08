@@ -693,6 +693,29 @@ struct RetinaFace(Movable):
         # Build backbone feature maps (P3,P4,P5)
         var fmaps = self._backbone_forward(img_matrix, in_size)
 
+        # Extra diagnostics: report structure of feature maps to isolate crashes
+        try:
+            try: print("[DBG] gerar_predicoes: fmaps_levels=" + String(len(fmaps)))
+            except _: pass
+            for lvl_idx in range(len(fmaps)):
+                try:
+                    var lvl = fmaps[lvl_idx]
+                    var Hf = 0; var Wf = 0; var Cc = 0
+                    try:
+                        Hf = len(lvl)
+                        if Hf > 0: Wf = len(lvl[0])
+                        if Hf > 0 and Wf > 0 and len(lvl[0][0]) > 0:
+                            Cc = len(lvl[0][0])
+                    except _:
+                        Hf = 0; Wf = 0; Cc = 0
+                    try: print("[DBG] gerar_predicoes: fmap[level]=" + String(lvl_idx) + " Hf=" + String(Hf) + " Wf=" + String(Wf) + " C=" + String(Cc))
+                    except _: pass
+                except _:
+                    try: print("[DBG] gerar_predicoes: fmap[level]=" + String(lvl_idx) + " UNAVAILABLE")
+                    except _: pass
+        except _:
+            pass
+
         print("na geração de predições chegou aqui 01")
 
         # Generate anchors per-level (keeps backward compatibility with flat anchors elsewhere)
@@ -1069,11 +1092,38 @@ struct RetinaFace(Movable):
 
     # Simple FPN heads predictor: for each anchor, pick a level and predict using lightweight linear heads
     fn _fpn_heads_predict_por_nivel(self, fmaps: List[List[List[List[Float32]]]], anchors_by_level: List[List[List[Float32]]]) -> (List[Float32], List[List[Float32]], List[Float32], List[List[Float32]]):
+        try:
+            try: print("[DBG] _fpn_heads_predict_por_nivel: enter")
+            except _: pass
+            try: print("[DBG] _fpn_heads_predict_por_nivel: fmaps_levels=" + String(len(fmaps)) + " anchors_levels=" + String(len(anchors_by_level)))
+            except _: pass
+        except _:
+            pass
         var cls_out: List[Float32] = List[Float32]()
         var reg_out: List[List[Float32]] = List[List[Float32]]()
         var mean_out: List[Float32] = List[Float32]()
         var base_out: List[List[Float32]] = List[List[Float32]]()
         var feat: List[Float32] = List[Float32]()
+        # Guard: if backbone produced no feature maps, return zeroed predictions
+        try:
+            if len(fmaps) == 0:
+                try: print("[ERROR] _fpn_heads_predict_por_nivel: empty fmaps — returning zero outputs")
+                except _: pass
+                var total_a: Int = 0
+                for lvl in anchors_by_level:
+                    total_a = total_a + len(lvl)
+                for _ in range(total_a):
+                    cls_out.append(0.0)
+                    var rrow = List[Float32]()
+                    rrow.append(0.0); rrow.append(0.0); rrow.append(0.0); rrow.append(0.0)
+                    reg_out.append(rrow^)
+                    mean_out.append(0.0)
+                    var brow = List[Float32]()
+                    brow.append(0.0); brow.append(0.0); brow.append(0.0); brow.append(0.0)
+                    base_out.append(brow^)
+                return (cls_out^, reg_out^, mean_out^, base_out^)
+        except _:
+            pass
         try:
             var C = 8
             # prepare head weights from placeholders or defaults
@@ -1102,9 +1152,21 @@ struct RetinaFace(Movable):
             var strides = List[Int](); strides.append(8); strides.append(16); strides.append(32)
             # iterate per level so outputs stay in a deterministic flattened order
             for level_idx in range(len(anchors_by_level)):
+                try:
+                    try: print("[DBG] _fpn: processing level=" + String(level_idx))
+                    except _: pass
+                except _:
+                    pass
                 var fmap = List[List[List[Float32]]]()
                 try:
-                    fmap = fmaps[level_idx]
+                    try:
+                        fmap = fmaps[level_idx]
+                        try: print("[DBG] _fpn: fmap_len=" + String(len(fmap)) + " row0_len=" + (String(len(fmap[0])) if len(fmap) > 0 else String(0)))
+                        except _: pass
+                    except _:
+                        try: print("[DBG] _fpn: fmap missing for level=" + String(level_idx))
+                        except _: pass
+                        fmap = List[List[List[Float32]]]()
                 except _:
                     fmap = List[List[List[Float32]]]()
                 var stride = strides[level_idx] if level_idx < len(strides) else 8 * (1 << level_idx)
