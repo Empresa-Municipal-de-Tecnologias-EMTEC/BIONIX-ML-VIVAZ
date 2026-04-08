@@ -667,10 +667,23 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                         for yy in range(patch_size):
                             var row = List[List[Float32]]()
                             for xx in range(patch_size):
-                                row.append(List[Float32]())
+                                var pix = List[Float32](); pix.append(0.0); pix.append(0.0); pix.append(0.0)
+                                row.append(pix.copy())
                             patch_rgb_sel.append(row.copy())
                     selected_indices.append(ai)
                     selected_patches.append(patch_rgb_sel.copy())
+                    # Safety cap: avoid collecting more patches than the training quota
+                    var quota_cap: Int = 0
+                    try:
+                        quota_cap = _max_pos_per_image + max_neg_per_image
+                    except _:
+                        quota_cap = 4096
+                    if len(selected_indices) >= quota_cap:
+                        try:
+                            print("[DEBUG] trainer: reached selected_indices quota_cap=" + String(quota_cap) + ", breaking selection loop")
+                        except _:
+                            pass
+                        break
 
                 # Prepare placeholder features list for all anchors
                 var feats_list = List[tensor_defs.Tensor]()
@@ -688,10 +701,11 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                             for yy in range(patch_size):
                                 for xx in range(patch_size):
                                     var gray: Float32 = Float32(0.0)
-                                    try:
+                                    # explicit bounds checks to avoid relying on exceptions
+                                    if yy < len(p) and xx < len(p[yy]) and len(p[yy][xx]) >= 3:
                                         var pix = p[yy][xx].copy()
                                         gray = Float32(0.299) * pix[0] + Float32(0.587) * pix[1] + Float32(0.114) * pix[2]
-                                    except _:
+                                    else:
                                         gray = Float32(0.0)
                                     inputs.dados[si * (patch_size * patch_size) + (yy * patch_size + xx)] = gray
                         try:
@@ -706,11 +720,52 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                                     var single = tensor_defs.Tensor(shape_single^, detector.tipo_computacao)
                                     for d in range(Dbatch):
                                         single.dados[d] = feats_batch.dados[base + d]
-                                    feats_list[selected_indices[si]] = single^
+                                    # Defensive: ensure the selected index is valid before assignment
+                                    var tgt_idx: Int = -1
+                                    try:
+                                        tgt_idx = selected_indices[si]
+                                    except _:
+                                        try:
+                                            logger.error_log(String("trainer_assign_feat_idx_error"), String("bad_selected_index_access si=") + String(si) + String(" Nsel=") + String(len(selected_indices)))
+                                        except _:
+                                            pass
+                                        continue
+                                    if tgt_idx < 0 or tgt_idx >= len(feats_list):
+                                        try:
+                                            logger.error_log(String("trainer_assign_feat_oob"), String("tgt=") + String(tgt_idx) + String(" feats_len=") + String(len(feats_list)) + String(" anchors_len=") + String(len(anchors)))
+                                        except _:
+                                            pass
+                                        continue
+                                    feats_list[tgt_idx] = single^
                             else:
                                 for si in range(len(selected_indices)):
+                                    # Defensive: ensure selected_patches and selected_indices are sane
+                                    try:
+                                        if si < 0 or si >= len(selected_patches) or si >= len(selected_indices):
+                                            try:
+                                                logger.error_log(String("trainer_feat_fallback_index_error"), String("si=") + String(si) + String(" Nsel=") + String(len(selected_indices)) + String(" patches=") + String(len(selected_patches)))
+                                            except _:
+                                                pass
+                                            continue
+                                    except _:
+                                        continue
                                     var single = detector.extrair_features_patch(selected_patches[si].copy())
-                                    feats_list[selected_indices[si]] = single^
+                                    var tgt_idx2: Int = -1
+                                    try:
+                                        tgt_idx2 = selected_indices[si]
+                                    except _:
+                                        try:
+                                            logger.error_log(String("trainer_assign_feat_idx_error2"), String("bad_selected_index_access si=") + String(si))
+                                        except _:
+                                            pass
+                                        continue
+                                    if tgt_idx2 < 0 or tgt_idx2 >= len(feats_list):
+                                        try:
+                                            logger.error_log(String("trainer_assign_feat_oob2"), String("tgt=") + String(tgt_idx2) + String(" feats_len=") + String(len(feats_list)) + String(" anchors_len=") + String(len(anchors)))
+                                        except _:
+                                            pass
+                                        continue
+                                    feats_list[tgt_idx2] = single^
                         except _:
                             # leave feats_list entries empty on failure
                             pass
