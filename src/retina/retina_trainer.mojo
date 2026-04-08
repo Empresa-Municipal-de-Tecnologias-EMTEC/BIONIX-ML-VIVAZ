@@ -351,270 +351,187 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
 
         if cur_ck != anchors_checksum:
             print("[DBG-ERR] anchors checksum mismatch at epoch", ep, "gen_ck=", anchors_checksum, "cur_ck=", cur_ck)
-            # attempt to locate first differing anchor
+        # Do not pre-resize the full image (high peak allocations).
+        # We'll attempt flat-buffer crops first; only if that fails we'll
+        # lazily construct a nested `img_matrix` for the fallback path.
+        img_matrix = List[List[List[Float32]]]()
+
+        # load ground-truth box if exists
+        # Ensure `img_path` exists to avoid referencing an undefined variable introduced
+        # by earlier edits; it will be overwritten by the actual sample-selection
+        # logic later in the loop when a real image path is available.
+        var img_path = String("")
+        # placeholder bmp to ensure variable exists in this scope; real bmp is loaded later
+        var bmp = dados_pkg.carregar_bmp_rgb(img_path, largura, altura)
+        var tx0: Float32 = 0.0; var ty0: Float32 = 0.0; var tx1: Float32 = 0.0; var ty1: Float32 = 0.0
+        var parsed: Bool = False
+        try:
+            var box_path = img_path.replace('.bmp', '.box')
+            var lines = dados_pkg.carregar_txt_linhas(box_path)
+            if len(lines) > 0:
+                var parts = _split_fields(lines[0])
+                if len(parts) >= 4:
+                    tx0 = Float32(uteis.parse_float_ascii(String(parts[0])))
+                    ty0 = Float32(uteis.parse_float_ascii(String(parts[1])))
+                    tx1 = Float32(uteis.parse_float_ascii(String(parts[2])))
+                    ty1 = Float32(uteis.parse_float_ascii(String(parts[3])))
+                    parsed = True
+        except _:
+            pass
+
+        var gt_x0: Int; var gt_y0: Int; var gt_x1: Int; var gt_y1: Int
+        if parsed:
+            if tx0 > 1.5 or ty0 > 1.5 or tx1 > 1.5 or ty1 > 1.5:
+                # Pixel coords in original image space → scale to training resolution
+                var sx = Float32(largura) / Float32(max(1, bmp.width))
+                var sy = Float32(altura)  / Float32(max(1, bmp.height))
+                gt_x0 = Int(tx0 * sx); gt_y0 = Int(ty0 * sy)
+                gt_x1 = Int(tx1 * sx); gt_y1 = Int(ty1 * sy)
+            else:
+                # Normalized [0,1] → training resolution
+                gt_x0 = Int(tx0 * Float32(largura))
+                gt_y0 = Int(ty0 * Float32(altura))
+                gt_x1 = Int(tx1 * Float32(largura))
+                gt_y1 = Int(ty1 * Float32(altura))
+        else:
+            gt_x0 = 0; gt_y0 = 0; gt_x1 = 0; gt_y1 = 0
+
+        var gt_box = List[Int]()
+        gt_box.append(gt_x0); gt_box.append(gt_y0); gt_box.append(gt_x1); gt_box.append(gt_y1)
+
+        var gt_list = List[List[Int]]()
+        if len(gt_box) == 4:
+            gt_list.append(gt_box.copy())
+
+        # Apply resizing to training resolution and adjust GT boxes so anchors align
+        var img_matrix = List[List[List[Float32]]]()
+        try:
+            var resized_tuple = detector.redimensionar_para_tamanho_entrada(bmp.pixels.copy(), gt_list.copy(), largura)
+            img_matrix = resized_tuple[0].copy()
+            if len(resized_tuple[1]) > 0:
+                gt_list = resized_tuple[1].copy()
+        except _:
+            # cascateamento de 2 cópias aqui (bmp.pixels → img_matrix → assigner) é ineficiente mas necessário para isolar o assigner de mutações externas
             try:
-                var first_diff = -1
-                var scan_lim = min(len(anchors), 200)
-                for ii in range(scan_lim):
-                    var orig = anchors_snapshot[ii].copy()
-                    var cur = anchors[ii].copy()
-                    var diff = False
-                    for jj in range(4):
-                        if orig[jj] != cur[jj]:
-                            diff = True
-                            break
-                    if diff:
-                        first_diff = ii
-                        break
-                print("[DBG-ERR] first differing anchor idx=", first_diff)
-                if first_diff >= 0:
-                    try:
-                        var osnap = anchors_snapshot[first_diff].copy()
-                        var ocurr = anchors[first_diff].copy()
-                        print("[DBG-ERR] snapshot=", osnap[0], osnap[1], osnap[2], osnap[3], "current=", ocurr[0], ocurr[1], ocurr[2], ocurr[3])
-                    except _:
-                        pass
+                img_matrix = bmp.pixels.copy()
             except _:
-                pass
-        
-        
-        
-        
-        var soma_loss: Float32 = 0.0
-        var count_pos: Int = 0
+                img_matrix = List[List[List[Float32]]]()
+
+        # Faz a associação e uma cópia explícita das ancoras
+        var res = assigner.associar_ancoras(anchors.copy(), gt_list.copy(), 0.5, 0.4, detector.bbox_reg_weights.copy())
+        # avoid copying large lists here (reduce peak memory)
+        var labels = res.labels.copy()
+        var targets = res.targets.copy()
+
+        # Quick checksum of anchors immediately after assigner to detect early mutations
+        try:
+            var post_assign_ck: Float32 = Float32(0.0)
+            var lim_ck = 100
+            if len(anchors) < lim_ck:
+                lim_ck = len(anchors)
+            for i_ck in range(lim_ck):
+                var a_ckv = anchors[i_ck].copy()
+                for vv in a_ckv:
+                    post_assign_ck = post_assign_ck + vv * Float32(i_ck + 1)
+            if post_assign_ck != anchors_checksum:
+                print("[DBG-ERR] anchors checksum changed after assigner: gen_ck=", anchors_checksum, "post_assign_ck=", post_assign_ck)
+                # locate first diff
+                try:
+                    var first_diff2 = -1
+                    for ii in range(min(len(anchors), 200)):
+                        var o2 = anchors_snapshot[ii].copy()
+                        var c2 = anchors[ii].copy()
+                        var d2 = False
+                        for jj in range(4):
+                            if o2[jj] != c2[jj]:
+                                d2 = True; break
+                        if d2:
+                            first_diff2 = ii; break
+                    print("[DBG-ERR] first differing anchor after assigner idx=", first_diff2)
+                except _:
+                    pass
+                return "Falha: anchors mutated after assigner"
+        except _:
+            pass
+
+        # Diagnostic: report basic /proc/meminfo lines (available on Linux/WSL)
+        try:
+            var memtxt = arquivo_pkg.ler_arquivo_texto("/proc/meminfo")
+            if len(memtxt) > 0:
+                var memlines = memtxt.split("\n")
+        except _:
+            pass
+
+        # for each positive anchor update regression+cls heads, and for sampled negative anchors update cls head
+        # limit processing of positive anchors per image to avoid peak memory spikes
+        var pos_processed: Int = 0
+        var _max_pos_per_image: Int = 8
+        var neg_step_counter: Int = 0
+        var neg_processed_anchor: Int = 0
+        var max_neg_per_image: Int = _max_pos_per_image * 3
+        var neg_sample_rate: Int = 30
+
+        # training accumulators (ensure defined before use)
         var iou_sum: Float32 = 0.0
         var count_iou: Int = 0
         var penalty_count: Int = 0
+        var soma_loss: Float32 = 0.0
+        var count_pos: Int = 0
 
-        # Escalonamento dinâmico do lote: batch_size_inicio→batch_size_fim conforme LR cai
-        var batch_size_atual: Int
-        var lr_range = lr_inicial - min_lr
-        if lr_range > 0.0:
-            var t = (lr_inicial - lr_atual) / lr_range
-            if t < 0.0: t = 0.0
-            if t > 1.0: t = 1.0
-            batch_size_atual = batch_size_inicio + Int(Float32(batch_size_fim - batch_size_inicio) * t)
-        else:
-            batch_size_atual = batch_size_fim
-        var samples_per_class_atual = max(1, batch_size_atual // max(1, len(class_names)))
+        # Tensor grayscale [1, patch*patch] — tamanho correto para BlocoCNN de patch_size×patch_size
+        var in_shape = List[Int](); in_shape.append(1); in_shape.append(patch_size * patch_size)
+        # Create a temporary BlocoCNN from stored tensors once per image to avoid
+        # recreating it for every anchor (speeds up training loops).
+        var tmp_bloco = camadas_pkg.criar_bloco_cnn(4, 4, 1, 3, 3, detector.tipo_computacao)
+        var tmp_bloco_ok: Bool = False
+        var kernel_h: Int = 3
+        var kernel_w: Int = 3
+        try:
+            kernel_h = detector.parametros.kernel_h
+            kernel_w = detector.parametros.kernel_w
+        except _:
+            pass
+        try:
+            tmp_bloco = camadas_pkg.criar_bloco_de_tensores(patch_size, patch_size, detector.parametros.num_filtros, kernel_h, kernel_w, detector.bloco_kernels.copy(), detector.bloco_peso_saida.copy(), detector.bloco_bias_saida.copy(), detector.tipo_computacao)
+            tmp_bloco_ok = True
+        except _:
+            tmp_bloco_ok = False
 
-        # build mini-batch list. Default: sample `samples_per_class_atual` images per class.
-        # If `randomize` is True, pick random images per class; otherwise use round-robin pointers.
-        var batch_paths = List[String]()
-        for c in range(len(class_names)):
-            var imgs = class_images[c].copy()
-            var nimgs = len(imgs)
-            if nimgs == 0:
-                continue
-            # number of samples to draw for this class
-            var to_draw = samples_per_class_atual
-            if to_draw <= 0:
-                to_draw = 1
-            if randomize:
-                # LCG seeded by epoch, class and a constant offset to avoid seed=0 when ep=c=0
-                var seed = (ep * 1664525 + c * 1013904223 + 0xabcdef) & 0x7fffffff
-                for s in range(min(to_draw, nimgs)):
-                    seed = (1103515245 * seed + 12345) & 0x7fffffff
-                    var idx = seed % nimgs
-                    batch_paths.append(imgs[idx])
-            else:
-                var ptr = class_ptrs[c]
-                for s in range(min(to_draw, nimgs)):
-                    if ptr >= nimgs:
-                        ptr = 0
-                    batch_paths.append(imgs[ptr])
-                    ptr = ptr + 1
-                class_ptrs[c] = ptr
+        print("chegou aqui")
 
-        
-
-        var E = len(batch_paths)
-        if E == 0:
-            print("Nenhuma imagem para treinar; verifique DATASET")
-            return "Falha: sem imagens"
-        for bstart in range(0, E, batch_size_inicio):
-            var bend = bstart + batch_size_inicio
-            if bend > E:
-                bend = E
-            
-            for i in range(bstart, bend):
-                
-                var path = batch_paths[i]
-                var bmp = dados_pkg.carregar_bmp_rgb(path)
-                if bmp.width == 0:
-                    continue
-                # Do not pre-resize the full image (high peak allocations).
-                # We'll attempt flat-buffer crops first; only if that fails we'll
-                # lazily construct a nested `img_matrix` for the fallback path.
-                img_matrix = List[List[List[Float32]]]()
-
-                # load ground-truth box if exists
-                var tx0: Float32 = 0.0; var ty0: Float32 = 0.0; var tx1: Float32 = 0.0; var ty1: Float32 = 0.0
-                var parsed: Bool = False
-                try:
-                    var box_path = path.replace('.bmp', '.box')
-                    var lines = dados_pkg.carregar_txt_linhas(box_path)
-                    if len(lines) > 0:
-                        var parts = _split_fields(lines[0])
-                        if len(parts) >= 4:
-                            tx0 = Float32(uteis.parse_float_ascii(String(parts[0])))
-                            ty0 = Float32(uteis.parse_float_ascii(String(parts[1])))
-                            tx1 = Float32(uteis.parse_float_ascii(String(parts[2])))
-                            ty1 = Float32(uteis.parse_float_ascii(String(parts[3])))
-                            parsed = True
-                except _:
-                    pass
-
-                
-
-                var gt_x0: Int; var gt_y0: Int; var gt_x1: Int; var gt_y1: Int
-                if parsed:
-                    if tx0 > 1.5 or ty0 > 1.5 or tx1 > 1.5 or ty1 > 1.5:
-                        # Pixel coords in original image space → scale to training resolution
-                        var sx = Float32(largura) / Float32(max(1, bmp.width))
-                        var sy = Float32(altura)  / Float32(max(1, bmp.height))
-                        gt_x0 = Int(tx0 * sx); gt_y0 = Int(ty0 * sy)
-                        gt_x1 = Int(tx1 * sx); gt_y1 = Int(ty1 * sy)
-                    else:
-                        # Normalized [0,1] → training resolution
-                        gt_x0 = Int(tx0 * Float32(largura))
-                        gt_y0 = Int(ty0 * Float32(altura))
-                        gt_x1 = Int(tx1 * Float32(largura))
-                        gt_y1 = Int(ty1 * Float32(altura))
-                else:
-                    gt_x0 = 0; gt_y0 = 0; gt_x1 = 0; gt_y1 = 0
-
-                var gt_box = List[Int]()
-                gt_box.append(gt_x0); gt_box.append(gt_y0); gt_box.append(gt_x1); gt_box.append(gt_y1)
-
-                var gt_list = List[List[Int]]()
-                if len(gt_box) == 4:
-                    gt_list.append(gt_box.copy())
-
-                # Apply resizing to training resolution and adjust GT boxes so anchors align
-                var img_matrix = List[List[List[Float32]]]()
-                try:
-                    var resized_tuple = detector.redimensionar_para_tamanho_entrada(bmp.pixels.copy(), gt_list.copy(), largura)
-                    img_matrix = resized_tuple[0].copy()
-                    if len(resized_tuple[1]) > 0:
-                        gt_list = resized_tuple[1].copy()
-                except _:
-                    # cascateamento de 2 cópias aqui (bmp.pixels → img_matrix → assigner) é ineficiente mas necessário para isolar o assigner de mutações externas
-                    try:
-                        img_matrix = bmp.pixels.copy()
-                    except _:
-                        img_matrix = List[List[List[Float32]]]()
-
-                # Faz a associação e uma cópia explícita das ancoras
-                var res = assigner.associar_ancoras(anchors.copy(), gt_list.copy(), 0.5, 0.4, detector.bbox_reg_weights.copy())
-                # avoid copying large lists here (reduce peak memory)
-                var labels = res.labels.copy()
-                var targets = res.targets.copy()
-
-                # Quick checksum of anchors immediately after assigner to detect early mutations
-                try:
-                    var post_assign_ck: Float32 = Float32(0.0)
-                    var lim_ck = 100
-                    if len(anchors) < lim_ck:
-                        lim_ck = len(anchors)
-                    for i_ck in range(lim_ck):
-                        var a_ckv = anchors[i_ck].copy()
-                        for vv in a_ckv:
-                            post_assign_ck = post_assign_ck + vv * Float32(i_ck + 1)
-                    if post_assign_ck != anchors_checksum:
-                        print("[DBG-ERR] anchors checksum changed after assigner: gen_ck=", anchors_checksum, "post_assign_ck=", post_assign_ck)
-                        # locate first diff
-                        try:
-                            var first_diff2 = -1
-                            for ii in range(min(len(anchors), 200)):
-                                var o2 = anchors_snapshot[ii].copy()
-                                var c2 = anchors[ii].copy()
-                                var d2 = False
-                                for jj in range(4):
-                                    if o2[jj] != c2[jj]:
-                                        d2 = True; break
-                                if d2:
-                                    first_diff2 = ii; break
-                            print("[DBG-ERR] first differing anchor after assigner idx=", first_diff2)
-                        except _:
-                            pass
-                        return "Falha: anchors mutated after assigner"
-                except _:
-                    pass
-
-                
-
-                # Diagnostic: report basic /proc/meminfo lines (available on Linux/WSL)
-                try:
-                    var memtxt = arquivo_pkg.ler_arquivo_texto("/proc/meminfo")
-                    if len(memtxt) > 0:
-                        var memlines = memtxt.split("\n")
-                except _:
-                    pass
-
-                # for each positive anchor update regression+cls heads, and for sampled negative anchors update cls head
-                # limit processing of positive anchors per image to avoid peak memory spikes
-                var pos_processed: Int = 0
-                var _max_pos_per_image: Int = 8
-                var neg_step_counter: Int = 0
-                var neg_processed_anchor: Int = 0
-                var max_neg_per_image: Int = _max_pos_per_image * 3
-                var neg_sample_rate: Int = 30
-
-                # Tensor grayscale [1, patch*patch] — tamanho correto para BlocoCNN de patch_size×patch_size
-                var in_shape = List[Int](); in_shape.append(1); in_shape.append(patch_size * patch_size)
-                # Create a temporary BlocoCNN from stored tensors once per image to avoid
-                # recreating it for every anchor (speeds up training loops).
-                var tmp_bloco = camadas_pkg.criar_bloco_cnn(4, 4, 1, 3, 3, detector.tipo_computacao)
-                var tmp_bloco_ok: Bool = False
-                var kernel_h: Int = 3
-                var kernel_w: Int = 3
-                try:
-                    kernel_h = detector.parametros.kernel_h
-                    kernel_w = detector.parametros.kernel_w
-                except _:
-                    pass
-                try:
-                    tmp_bloco = camadas_pkg.criar_bloco_de_tensores(patch_size, patch_size, detector.parametros.num_filtros, kernel_h, kernel_w, detector.bloco_kernels.copy(), detector.bloco_peso_saida.copy(), detector.bloco_bias_saida.copy(), detector.tipo_computacao)
-                    tmp_bloco_ok = True
-                except _:
-                    tmp_bloco_ok = False
-
-                print("chegou aqui")
-
-                # Precompute conv-FPN predictions for this image if requested (once per image)
-                var using_conv_preds: Bool = False
-                var pr_cls = List[Float32]()
-                var pr_reg = List[List[Float32]]()
+        # Precompute conv-FPN predictions for this image if requested (once per image)
+        var using_conv_preds: Bool = False
+        var pr_cls = List[Float32]()
+        var pr_reg = List[List[Float32]]()
+        var pr_mean = List[Float32]()
+        var pr_base = List[List[Float32]]()
+        try:
+            using_conv_preds = detector.usar_conv_fpn
+        except _:
+            using_conv_preds = False
+        if using_conv_preds:
+            try:
+                print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
+                var pr = model_utils.gerar_predicoes_por_ancora_convfpn_module(detector, img_matrix.copy(), anchors.copy(), patch_size)
+                print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
+                pr_cls = pr[0].copy()
+                pr_reg = pr[1].copy()
+                # auxiliary data: mean summaries and base (pre-multiplier) reg deltas
                 var pr_mean = List[Float32]()
                 var pr_base = List[List[Float32]]()
                 try:
-                    using_conv_preds = detector.usar_conv_fpn
+                    pr_mean = pr[2].copy()
                 except _:
-                    using_conv_preds = False
-                if using_conv_preds:
-                    try:
-                        print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
-                        var pr = model_utils.gerar_predicoes_por_ancora_convfpn_module(detector, img_matrix.copy(), anchors.copy(), patch_size)
-                        print("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
-                        pr_cls = pr[0].copy()
-                        pr_reg = pr[1].copy()
-                        # auxiliary data: mean summaries and base (pre-multiplier) reg deltas
-                        var pr_mean = List[Float32]()
-                        var pr_base = List[List[Float32]]()
-                        try:
-                            pr_mean = pr[2].copy()
-                        except _:
-                            pr_mean = List[Float32]()
-                        try:
-                            pr_base = pr[3].copy()
-                        except _:
-                            pr_base = List[List[Float32]]()
-                    except _:
-                        pr_cls = List[Float32]()
-                        pr_reg = List[List[Float32]]()
-                        pr_mean = List[Float32]()
-                        pr_base = List[List[Float32]]()
+                    pr_mean = List[Float32]()
+                try:
+                    pr_base = pr[3].copy()
+                except _:
+                    pr_base = List[List[Float32]]()
+            except _:
+                pr_cls = List[Float32]()
+                pr_reg = List[List[Float32]]()
+                pr_mean = List[Float32]()
+                pr_base = List[List[Float32]]()
 
                 # Select anchors to process (limit positives & sampled negatives),
                 # build a batch of patches and extract features in one call.
@@ -708,47 +625,63 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                                     else:
                                         gray = Float32(0.0)
                                     inputs.dados[si * (patch_size * patch_size) + (yy * patch_size + xx)] = gray
-                        try:
-                            if tmp_bloco_ok:
-                                var feats_batch = cnn_pkg.extrair_features(tmp_bloco, inputs)
-                                var Dbatch = 0
-                                try: Dbatch = feats_batch.formato[1]
-                                except _: Dbatch = 0
-                                for si in range(len(selected_indices)):
-                                    var base = si * Dbatch
-                                    var shape_single = List[Int](); shape_single.append(1); shape_single.append(Dbatch)
-                                    var single = tensor_defs.Tensor(shape_single^, detector.tipo_computacao)
-                                    for d in range(Dbatch):
-                                        single.dados[d] = feats_batch.dados[base + d]
-                                    # Defensive: ensure the selected index is valid before assignment
-                                    var tgt_idx: Int = -1
-                                    try:
-                                        tgt_idx = selected_indices[si]
-                                    except _:
-                                        try:
-                                            logger.error_log(String("trainer_assign_feat_idx_error"), String("bad_selected_index_access si=") + String(si) + String(" Nsel=") + String(len(selected_indices)))
-                                        except _:
-                                            pass
-                                        continue
-                                    if tgt_idx < 0 or tgt_idx >= len(feats_list):
-                                        try:
-                                            logger.error_log(String("trainer_assign_feat_oob"), String("tgt=") + String(tgt_idx) + String(" feats_len=") + String(len(feats_list)) + String(" anchors_len=") + String(len(anchors)))
-                                        except _:
-                                            pass
-                                        continue
-                                    feats_list[tgt_idx] = single^
+
+                        var feats_batch = tensor_defs.Tensor(List[Int](), detector.tipo_computacao)
+                        if tmp_bloco_ok:
+                            # Defensive: ensure inputs buffer size matches expected shape before calling into CNN
+                            var expect_vals: Int = 0
+                            try:
+                                expect_vals = inputs.formato[0] * inputs.formato[1]
+                            except _:
+                                expect_vals = 0
+                            if expect_vals <= 0 or len(inputs.dados) < expect_vals:
+                                try:
+                                    logger.error_log(String("trainer_inputs_short"), String("expect=") + String(expect_vals) + String(" actual=") + String(len(inputs.dados)))
+                                except _:
+                                    pass
+                                # fallback to per-patch extraction path
+                                tmp_bloco_ok = False
                             else:
-                                for si in range(len(selected_indices)):
-                                    # Defensive: ensure selected_patches and selected_indices are sane
+                                try:
+                                    feats_batch = cnn_pkg.extrair_features(tmp_bloco, inputs)
+                                except _:
+                                    feats_batch = tensor_defs.Tensor(List[Int](), detector.tipo_computacao)
+                        else:
+                            feats_batch = tensor_defs.Tensor(List[Int](), detector.tipo_computacao)
+
+                        var Dbatch = 0
+                        try:
+                            Dbatch = feats_batch.formato[1]
+                        except _:
+                            Dbatch = 0
+
+                        for si in range(len(selected_indices)):
+                            if Dbatch > 0:
+                                var base = si * Dbatch
+                                var shape_single = List[Int](); shape_single.append(1); shape_single.append(Dbatch)
+                                var single = tensor_defs.Tensor(shape_single^, detector.tipo_computacao)
+                                for d in range(Dbatch):
+                                    single.dados[d] = feats_batch.dados[base + d]
+                                # Defensive: ensure the selected index is valid before assignment
+                                var tgt_idx: Int = -1
+                                try:
+                                    tgt_idx = selected_indices[si]
+                                except _:
                                     try:
-                                        if si < 0 or si >= len(selected_patches) or si >= len(selected_indices):
-                                            try:
-                                                logger.error_log(String("trainer_feat_fallback_index_error"), String("si=") + String(si) + String(" Nsel=") + String(len(selected_indices)) + String(" patches=") + String(len(selected_patches)))
-                                            except _:
-                                                pass
-                                            continue
+                                        logger.error_log(String("trainer_assign_feat_idx_error"), String("bad_selected_index_access si=") + String(si) + String(" Nsel=") + String(len(selected_indices)))
                                     except _:
-                                        continue
+                                        pass
+                                    continue
+                                if tgt_idx < 0 or tgt_idx >= len(feats_list):
+                                    try:
+                                        logger.error_log(String("trainer_assign_feat_oob"), String("tgt=") + String(tgt_idx) + String(" feats_len=") + String(len(feats_list)) + String(" anchors_len=") + String(len(anchors)))
+                                    except _:
+                                        pass
+                                    continue
+                                feats_list[tgt_idx] = single^
+                            else:
+                                # fallback to per-patch extraction
+                                try:
                                     var single = detector.extrair_features_patch(selected_patches[si].copy())
                                     var tgt_idx2: Int = -1
                                     try:
@@ -766,13 +699,32 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                                             pass
                                         continue
                                     feats_list[tgt_idx2] = single^
-                        except _:
-                            # leave feats_list entries empty on failure
-                            pass
+                                except _:
+                                    # leave entry empty on failure
+                                    pass
                 except _:
                     pass
 
                 for a_idx in range(len(anchors)):
+                    # Trace: log basic invariants before doing any indexing to capture crash context
+                    try:
+                        try:
+                            print("[TRACE] processing a_idx=" + String(a_idx) + " anchors_len=" + String(len(anchors)) + " labels_len=" + String(len(labels)) + " selected_indices=" + String(len(selected_indices)) + " selected_patches=" + String(len(selected_patches)) + " feats_list=" + String(len(feats_list)))
+                        except _:
+                            pass
+                        if a_idx < 0 or a_idx >= len(anchors):
+                            try:
+                                logger.error_log(String("trainer_loop_idx_oob"), String("a_idx=") + String(a_idx) + String(" anchors_len=") + String(len(anchors)) + String(" labels_len=") + String(len(labels)))
+                            except _:
+                                pass
+                            continue
+                        if len(labels) != len(anchors):
+                            try:
+                                logger.error_log(String("trainer_labels_anchors_len_mismatch"), String("labels=") + String(len(labels)) + String(" anchors=") + String(len(anchors)))
+                            except _:
+                                pass
+                    except _:
+                        pass
                     # Exit early when both positive and negative anchor quotas are satisfied
                     if pos_processed >= _max_pos_per_image and neg_processed_anchor >= max_neg_per_image:
                         break
@@ -1054,7 +1006,7 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                                 pass
                             if should_print:
                                 try:
-                                    print("[DBG-TRAIN] img", path, "a_idx", a_idx, "aw", a[2], "ah", a[3], "tgt", tgt[0], tgt[1], tgt[2], tgt[3], "pred", px0, py0, px1, py1, "feat_norm_sq", feat_norm_sq, "lr_w", lr_w)
+                                    print("[DBG-TRAIN] img", img_path, "a_idx", a_idx, "aw", a[2], "ah", a[3], "tgt", tgt[0], tgt[1], tgt[2], tgt[3], "pred", px0, py0, px1, py1, "feat_norm_sq", feat_norm_sq, "lr_w", lr_w)
                                 except _:
                                     pass
                         except _:
