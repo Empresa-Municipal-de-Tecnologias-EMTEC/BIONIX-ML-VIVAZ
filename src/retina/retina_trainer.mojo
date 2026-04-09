@@ -15,6 +15,7 @@ import os
 import math
 import diagnostics.logger as logger
 import bionix_ml.camadas as camadas_pkg
+var TRAINER_DEBUG: Bool = False
 
 
 # Sigmoid scalar (stable)
@@ -105,12 +106,13 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
         pass
     # Debug: print initial head/weight summaries
     try:
-        try: print("[DEBUG] head_cls_pesos_conv_len=", len(detector.head_cls_pesos_conv.dados))
-        except _: pass
-        try: print("[DEBUG] head_reg_pesos_conv_len=", len(detector.head_reg_pesos_conv.dados))
-        except _: pass
-        try: print("[DEBUG] bloco_peso_saida_len=", len(detector.bloco_peso_saida.dados))
-        except _: pass
+        if TRAINER_DEBUG:
+            try: print("[DEBUG] head_cls_pesos_conv_len=", len(detector.head_cls_pesos_conv.dados))
+            except _: pass
+            try: print("[DEBUG] head_reg_pesos_conv_len=", len(detector.head_reg_pesos_conv.dados))
+            except _: pass
+            try: print("[DEBUG] bloco_peso_saida_len=", len(detector.bloco_peso_saida.dados))
+            except _: pass
     except _:
         pass
 
@@ -269,21 +271,23 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                 if len(bad_examples) < 10:
                     bad_examples.append(i)
         if bad > 0:
-            try:
-                print("[DBG] varredura da geração de âncoras: encontrado", bad, "corrupted anchors immediately after generation; sample indices:")
-                for idx in bad_examples:
-                    try:
-                        print(idx)
-                    except _:
-                        pass
-                for idx in bad_examples:
-                    try:
-                        var aex = anchors[idx].copy()
-                        print("[DBG] varredura : idx", idx, "vals:", aex[0], aex[1], aex[2], aex[3])
-                    except _:
-                        print("[DBG] varredura da geraçao de ancoras: idx", idx, "(unable to format)")
-            except _:
-                pass
+            if TRAINER_DEBUG:
+                try:
+                    print("[DBG] varredura da geração de âncoras: encontrado", bad, "corrupted anchors immediately after generation; sample indices:")
+                    for idx in bad_examples:
+                        try:
+                            print(idx)
+                        except _:
+                            pass
+                    for idx in bad_examples:
+                        try:
+                            var aex = anchors[idx].copy()
+                            print("[DBG] varredura : idx", idx, "vals:", aex[0], aex[1], aex[2], aex[3])
+                        except _:
+                            try: print("[DBG] varredura da geraçao de ancoras: idx", idx, "(unable to format)")
+                            except _: pass
+                except _:
+                    pass
     except _:
         pass
 
@@ -346,27 +350,28 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
         print("Epoca", ep, "/", epocas - 1, "iniciando...")
         # epoch debug: show small snapshot of weights before epoch
         try:
-            try:
-                var ncls = min(20, len(detector.head_cls_pesos_conv.dados))
-                var svals = List[String]()
-                for i in range(ncls): svals.append(String(detector.head_cls_pesos_conv.dados[i]))
-                print("[EPOCH-DEBUG] head_cls_pesos_conv: " + String(ncls) + " = " + String(",").join(svals.copy()))
-            except _:
-                pass
-            try:
-                var nreg = min(20, len(detector.head_reg_pesos_conv.dados))
-                var svals2 = List[String]()
-                for i in range(nreg): svals2.append(String(detector.head_reg_pesos_conv.dados[i]))
-                print("[EPOCH-DEBUG] head_reg_pesos_conv: " + String(nreg) + " = " + String(",").join(svals2.copy()))
-            except _:
-                pass
-            try:
-                var nb = min(20, len(detector.bloco_peso_saida.dados))
-                var svals3 = List[String]()
-                for i in range(nb): svals3.append(String(detector.bloco_peso_saida.dados[i]))
-                print("[EPOCH-DEBUG] bloco_peso_saida: " + String(nb) + " = " + String(",").join(svals3.copy()))
-            except _:
-                pass
+            if TRAINER_DEBUG:
+                try:
+                    var ncls = min(20, len(detector.head_cls_pesos_conv.dados))
+                    var svals = List[String]()
+                    for i in range(ncls): svals.append(String(detector.head_cls_pesos_conv.dados[i]))
+                    print("[EPOCH-DEBUG] head_cls_pesos_conv: " + String(ncls) + " = " + String(",").join(svals.copy()))
+                except _:
+                    pass
+                try:
+                    var nreg = min(20, len(detector.head_reg_pesos_conv.dados))
+                    var svals2 = List[String]()
+                    for i in range(nreg): svals2.append(String(detector.head_reg_pesos_conv.dados[i]))
+                    print("[EPOCH-DEBUG] head_reg_pesos_conv: " + String(nreg) + " = " + String(",").join(svals2.copy()))
+                except _:
+                    pass
+                try:
+                    var nb = min(20, len(detector.bloco_peso_saida.dados))
+                    var svals3 = List[String]()
+                    for i in range(nb): svals3.append(String(detector.bloco_peso_saida.dados[i]))
+                    print("[EPOCH-DEBUG] bloco_peso_saida: " + String(nb) + " = " + String(",").join(svals3.copy()))
+                except _:
+                    pass
         except _:
             pass
         # check anchors checksum at epoch start to detect mutation timing
@@ -385,7 +390,9 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
             cur_ck = Float32(-2.0)
 
         if cur_ck != anchors_checksum:
-            print("[DBG-ERR] anchors checksum mismatch at epoch", ep, "gen_ck=", anchors_checksum, "cur_ck=", cur_ck)
+            if TRAINER_DEBUG:
+                try: print("[DBG-ERR] anchors checksum mismatch at epoch", ep, "gen_ck=", anchors_checksum, "cur_ck=", cur_ck)
+                except _: pass
         # Do not pre-resize the full image (high peak allocations).
         # We'll attempt flat-buffer crops first; only if that fails we'll
         # lazily construct a nested `img_matrix` for the fallback path.
@@ -469,7 +476,9 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                 for vv in a_ckv:
                     post_assign_ck = post_assign_ck + vv * Float32(i_ck + 1)
             if post_assign_ck != anchors_checksum:
-                print("[DBG-ERR] anchors checksum changed after assigner: gen_ck=", anchors_checksum, "post_assign_ck=", post_assign_ck)
+                if TRAINER_DEBUG:
+                    try: print("[DBG-ERR] anchors checksum changed after assigner: gen_ck=", anchors_checksum, "post_assign_ck=", post_assign_ck)
+                    except _: pass
                 # locate first diff
                 try:
                     var first_diff2 = -1
@@ -482,7 +491,9 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                                 d2 = True; break
                         if d2:
                             first_diff2 = ii; break
-                    print("[DBG-ERR] first differing anchor after assigner idx=", first_diff2)
+                    if TRAINER_DEBUG:
+                        try: print("[DBG-ERR] first differing anchor after assigner idx=", first_diff2)
+                        except _: pass
                 except _:
                     pass
                 return "Falha: anchors mutated after assigner"
@@ -1046,7 +1057,9 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                                 pass
                             if should_print:
                                 try:
-                                    print("[DBG-TRAIN] img", img_path, "a_idx", a_idx, "aw", a[2], "ah", a[3], "tgt", tgt[0], tgt[1], tgt[2], tgt[3], "pred", px0, py0, px1, py1, "feat_norm_sq", feat_norm_sq, "lr_w", lr_w)
+                                    if TRAINER_DEBUG:
+                                        try: print("[DBG-TRAIN] img", img_path, "a_idx", a_idx, "aw", a[2], "ah", a[3], "tgt", tgt[0], tgt[1], tgt[2], tgt[3], "pred", px0, py0, px1, py1, "feat_norm_sq", feat_norm_sq, "lr_w", lr_w)
+                                        except _: pass
                                 except _:
                                     pass
                         except _:
