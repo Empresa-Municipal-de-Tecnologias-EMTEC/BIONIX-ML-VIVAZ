@@ -5,7 +5,7 @@ import os
 fn main() raises -> None:
     # ── Configuração do treino ──────────────────────────────────────────────
     # For quick debug/tuning we use a small number of epochs and early stop
-    var epocas: Int = 1         # número máximo de épocas (debug) - smoke test
+    var epocas: Int = 1000         # número máximo de épocas (debug) - smoke test
     var early_stop: Bool = False    # para automaticamente ao convergir
     # ───────────────────────────────────────────────────────────────────────
     print("Iniciando treino RetinaFace... epocas=", epocas, " early_stop=", early_stop)
@@ -15,6 +15,12 @@ fn main() raises -> None:
     try:
         # enable spatial conv heads (3x3) for more accurate head outputs
         _ = detector.configurar_conv_fpn("mobilenet_v2", 3)
+    except _:
+        pass
+    # For debugging: prefer patch-based training to ensure full-weight updates
+    try:
+        detector.usar_conv_fpn = False
+        print("[DEBUG] Forced usar_conv_fpn=False for debug training")
     except _:
         pass
     # Reduced LR for stability during tuning
