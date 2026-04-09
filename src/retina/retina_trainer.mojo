@@ -103,6 +103,16 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
             os.mkdir(export_dir)
     except _:
         pass
+    # Debug: print initial head/weight summaries
+    try:
+        try: print("[DEBUG] head_cls_pesos_conv_len=", len(detector.head_cls_pesos_conv.dados))
+        except _: pass
+        try: print("[DEBUG] head_reg_pesos_conv_len=", len(detector.head_reg_pesos_conv.dados))
+        except _: pass
+        try: print("[DEBUG] bloco_peso_saida_len=", len(detector.bloco_peso_saida.dados))
+        except _: pass
+    except _:
+        pass
 
     # allocate placeholder heads (use detector's backend)
     var head_peso_cls = tensor_defs.Tensor(List[Int](), detector.tipo_computacao)
@@ -334,6 +344,31 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
 
     for ep in range(epocas):
         print("Epoca", ep, "/", epocas - 1, "iniciando...")
+        # epoch debug: show small snapshot of weights before epoch
+        try:
+            try:
+                var ncls = min(20, len(detector.head_cls_pesos_conv.dados))
+                var svals = List[String]()
+                for i in range(ncls): svals.append(String(detector.head_cls_pesos_conv.dados[i]))
+                print("[EPOCH-DEBUG] head_cls_pesos_conv: " + String(ncls) + " = " + String(",").join(svals.copy()))
+            except _:
+                pass
+            try:
+                var nreg = min(20, len(detector.head_reg_pesos_conv.dados))
+                var svals2 = List[String]()
+                for i in range(nreg): svals2.append(String(detector.head_reg_pesos_conv.dados[i]))
+                print("[EPOCH-DEBUG] head_reg_pesos_conv: " + String(nreg) + " = " + String(",").join(svals2.copy()))
+            except _:
+                pass
+            try:
+                var nb = min(20, len(detector.bloco_peso_saida.dados))
+                var svals3 = List[String]()
+                for i in range(nb): svals3.append(String(detector.bloco_peso_saida.dados[i]))
+                print("[EPOCH-DEBUG] bloco_peso_saida: " + String(nb) + " = " + String(",").join(svals3.copy()))
+            except _:
+                pass
+        except _:
+            pass
         # check anchors checksum at epoch start to detect mutation timing
         # ensure `cur_ck` is always initialized outside the try/except
         var cur_ck: Float32 = Float32(-2.0)
@@ -844,6 +879,11 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                     var feat_norm_sq: Float32 = 0.0
                     for d_ns in range(D):
                         feat_norm_sq = feat_norm_sq + feats.dados[d_ns] * feats.dados[d_ns]
+                    # Debug: log feature dim and norm
+                    try:
+                        print("[DEBUG] a_idx=", a_idx, " D=", D, " feat_norm_sq=", feat_norm_sq)
+                    except _:
+                        pass
                     var lr_w = lr_atual / max(Float32(1.0), feat_norm_sq)
 
                     # Ensure regression head has correct shape [D, 4] regardless of whether
@@ -1052,7 +1092,29 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                                     var dw = lr_atual * grad_factor * base_j * bbox_w
                                     if dw > 100.0: dw = 100.0
                                     if dw < -100.0: dw = -100.0
-                                    detector.head_reg_pesos_conv.dados[j] = detector.head_reg_pesos_conv.dados[j] - dw
+                                    # Distribute update across all parameters that correspond to output j
+                                    try:
+                                        var n_hr = len(detector.head_reg_pesos_conv.dados)
+                                        var outch = 4
+                                        try: outch = detector.head_reg_pesos_conv.formato[3]
+                                        except _: outch = 4
+                                        if outch <= 0: outch = 4
+                                        var count_j = 0
+                                        for idx_hr in range(n_hr):
+                                            if (idx_hr % outch) == j:
+                                                count_j = count_j + 1
+                                        if count_j <= 0:
+                                            detector.head_reg_pesos_conv.dados[j] = detector.head_reg_pesos_conv.dados[j] - dw
+                                        else:
+                                            var per = dw / Float32(count_j)
+                                            for idx_hr in range(n_hr):
+                                                if (idx_hr % outch) == j:
+                                                    detector.head_reg_pesos_conv.dados[idx_hr] = detector.head_reg_pesos_conv.dados[idx_hr] - per
+                                    except _:
+                                        try:
+                                            detector.head_reg_pesos_conv.dados[j] = detector.head_reg_pesos_conv.dados[j] - dw
+                                        except _:
+                                            pass
                             except _:
                                 pass
                         else:
@@ -1086,7 +1148,20 @@ fn treinar_retina_minimal(mut detector: model_utils.RetinaFace, var dataset_dir:
                                     var dwc2 = lr_atual * grad_p * mean_v2
                                     if dwc2 > 5.0: dwc2 = 5.0
                                     if dwc2 < -5.0: dwc2 = -5.0
-                                    detector.head_cls_pesos_conv.dados[0] = detector.head_cls_pesos_conv.dados[0] - dwc2
+                                    # distribute update across all cls head params
+                                    try:
+                                        var n_hc = len(detector.head_cls_pesos_conv.dados)
+                                        if n_hc <= 0:
+                                            detector.head_cls_pesos_conv.dados[0] = detector.head_cls_pesos_conv.dados[0] - dwc2
+                                        else:
+                                            var per = dwc2 / Float32(n_hc)
+                                            for hid2 in range(n_hc):
+                                                detector.head_cls_pesos_conv.dados[hid2] = detector.head_cls_pesos_conv.dados[hid2] - per
+                                    except _:
+                                        try:
+                                            detector.head_cls_pesos_conv.dados[0] = detector.head_cls_pesos_conv.dados[0] - dwc2
+                                        except _:
+                                            pass
                             except _:
                                 pass
                         else:
