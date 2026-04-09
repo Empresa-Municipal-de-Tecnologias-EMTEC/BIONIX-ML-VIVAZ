@@ -19,7 +19,7 @@ fn main() raises -> None:
         pass
     # For debugging: prefer patch-based training to ensure full-weight updates
     try:
-        detector.usar_conv_fpn = False
+        detector.usar_conv_fpn = True
         print("[DEBUG] Forced usar_conv_fpn=False for debug training")
     except _:
         pass

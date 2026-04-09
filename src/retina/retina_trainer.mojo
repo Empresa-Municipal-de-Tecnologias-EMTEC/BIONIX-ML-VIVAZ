@@ -15,7 +15,9 @@ import os
 import math
 import diagnostics.logger as logger
 import bionix_ml.camadas as camadas_pkg
-var TRAINER_DEBUG: Bool = False
+
+
+alias TRAINER_DEBUG: Bool = False
 
 
 # Sigmoid scalar (stable)

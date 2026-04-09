@@ -1,6 +1,6 @@
 import bionix_ml.nucleo.Tensor as tensor_defs
 import math
-var RETINA_DEBUG: Bool = False
+alias RETINA_DEBUG: Bool = False
 
 # detector de NaN/Inf ou valores absurdos
 fn _verificar_valor(var v: Float32) -> Bool:

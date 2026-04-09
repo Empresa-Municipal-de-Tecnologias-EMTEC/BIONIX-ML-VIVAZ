@@ -15,7 +15,8 @@ import bionix_ml.nucleo.Tensor as tensor_defs_local
 import math
 import retina.retina_trainer as trainer
 import bionix_ml.camadas as camadas_pkg
-var RETINA_DEBUG: Bool = False
+
+alias RETINA_DEBUG: Bool = False
 
 # Utilitários para configuração, construção, inferência e persistência do modelo RetinaFace.
 
@@ -741,30 +742,40 @@ struct RetinaFace(Movable):
             var hcf = List[Int]()
             var hrf = List[Int]()
             try:
-                try: hcf = self.head_cls_pesos_conv.formato.copy()
-                except _: hcf = List[Int]()
-                try: hrf = self.head_reg_pesos_conv.formato.copy()
-                except _: hrf = List[Int]()
-                    try:
+                try:
+                    hcf = self.head_cls_pesos_conv.formato.copy()
+                except _:
+                    hcf = List[Int]()
+                try:
+                    hrf = self.head_reg_pesos_conv.formato.copy()
+                except _:
+                    hrf = List[Int]()
+                try:
                     var s_hcf = String("[")
                     for i_h in range(len(hcf)):
-                        if i_h > 0: s_hcf = s_hcf + String(",")
+                        if i_h > 0:
+                            s_hcf = s_hcf + String(",")
                         s_hcf = s_hcf + String(hcf[i_h])
                     s_hcf = s_hcf + String("]")
                     if RETINA_DEBUG:
-                        try: print("[DEBUG] head_cls_formato=" + s_hcf)
-                        except _: pass
+                        try:
+                            print("[DEBUG] head_cls_formato=" + s_hcf)
+                        except _:
+                            pass
                 except _:
                     pass
                 try:
                     var s_hrf = String("[")
                     for i_h in range(len(hrf)):
-                        if i_h > 0: s_hrf = s_hrf + String(",")
+                        if i_h > 0:
+                            s_hrf = s_hrf + String(",")
                         s_hrf = s_hrf + String(hrf[i_h])
                     s_hrf = s_hrf + String("]")
                     if RETINA_DEBUG:
-                        try: print("[DEBUG] head_reg_formato=" + s_hrf)
-                        except _: pass
+                        try:
+                            print("[DEBUG] head_reg_formato=" + s_hrf)
+                        except _:
+                            pass
                 except _:
                     pass
             except _:
@@ -896,18 +907,19 @@ struct RetinaFace(Movable):
             # build fmap for this level by running C conv kernels and pooling
             var fmap: List[List[List[Float32]]] = List[List[List[Float32]]]()
             for c_idx in range(C):
-                #print("no _backbone_forward chegou aqui 05.02")
+                # build one channel of the fmap by convolving with kernel c_idx
+                var sampled = List[List[Float32]]()
                 try:
-                    try:
-                        if RETINA_DEBUG:
-                            try:
-                                print("[DEBUG] backbone: entering channel c_idx=" + String(c_idx) + " fh=" + String(fh) + " fw=" + String(fw) + " in_size=" + String(in_size) + " s=" + String(s))
-                            except _:
-                                pass
-                            try:
-                                print("[DEBUG] backbone: bloco_kernels_len=" + String(len(self.bloco_kernels)))
-                            except _:
-                                pass
+                    if RETINA_DEBUG:
+                        try:
+                            print("[DEBUG] backbone: entering channel c_idx=" + String(c_idx) + " fh=" + String(fh) + " fw=" + String(fw) + " in_size=" + String(in_size) + " s=" + String(s))
+                        except _:
+                            pass
+                        try:
+                            print("[DEBUG] backbone: bloco_kernels_len=" + String(len(self.bloco_kernels)))
+                        except _:
+                            pass
+
                     var kern = self.bloco_kernels[c_idx].copy()
                     try:
                         var kform = List[Int]()
@@ -915,7 +927,8 @@ struct RetinaFace(Movable):
                         except _: kform = List[Int]()
                         var s_kf = String("[")
                         for i_kf in range(len(kform)):
-                            if i_kf > 0: s_kf = s_kf + String(",")
+                            if i_kf > 0:
+                                s_kf = s_kf + String(",")
                             s_kf = s_kf + String(kform[i_kf])
                         s_kf = s_kf + String("]")
                         if RETINA_DEBUG:
@@ -923,6 +936,7 @@ struct RetinaFace(Movable):
                             except _: pass
                     except _:
                         pass
+
                     var conv = cnn_impl._conv2d_valid_relu(flat.copy(), H, W, kern.copy(), self.tipo_computacao)
                     var conv_h = H - kern.formato[0] + 1
                     var conv_w = W - kern.formato[1] + 1
@@ -931,114 +945,95 @@ struct RetinaFace(Movable):
                     var pw = conv_w // 2
                     if ph <= 0: ph = 1
                     if pw <= 0: pw = 1
-                        if RETINA_DEBUG:
-                            try: print("[DEBUG] backbone: conv_h=" + String(conv_h) + " conv_w=" + String(conv_w) + " ph=" + String(ph) + " pw=" + String(pw) + " pooled_len=" + String(len(pooled)))
-                            except _: pass
-                    except _:
-                        pass
-                    var sampled = _sample_grid(pooled, ph, pw, fh, fw, c_idx, C).copy()
-                    try:
-                        var sampled_h = 0
-                        var sampled_w = 0
-                        try:
-                            sampled_h = len(sampled)
-                            if sampled_h > 0: sampled_w = len(sampled[0])
-                        except _: sampled_h = 0; sampled_w = 0
-                        if RETINA_DEBUG:
-                            try: print("[DEBUG] backbone: sampled_h=" + String(sampled_h) + " sampled_w=" + String(sampled_w) + " fh=" + String(fh) + " fw=" + String(fw))
-                            except _: pass
-                    except _:
-                        pass
-                    # merge sampled channel into fmap
-                    for y in range(fh):
-                        #print("no _backbone_forward chegou aqui 05.03")
-                        #print("no _backbone_forward chegou aqui 05.03.01")
-                        #print(y)
-                        var fmap_len: Int = 0
-                        try:
-                            fmap_len = len(fmap)
-                        except _:
-                            fmap_len = 0
-                        if RETINA_DEBUG:
-                            try:
-                                print("[DEBUG] backbone: fmap_len=" + String(fmap_len))
-                            except _:
-                                pass
+                    if RETINA_DEBUG:
+                        try: print("[DEBUG] backbone: conv_h=" + String(conv_h) + " conv_w=" + String(conv_w) + " ph=" + String(ph) + " pw=" + String(pw) + " pooled_len=" + String(len(pooled)))
+                        except _: pass
 
-                        var row: List[List[Float32]] = List[List[Float32]]()
-                        if y < fmap_len:
-                            try:
-                                row = fmap[y].copy()
-                            except _:
-                                row = List[List[Float32]]()
-                                try: fmap.append(row^)
-                                except _: pass
-                        else:
+                    var sampled = _sample_grid(pooled, ph, pw, fh, fw, c_idx, C).copy()
+                except _:
+                    # on error, create a zero-sampled map for this channel
+                    var sampled = List[List[Float32]]()
+                    for _y in range(fh):
+                        var rrow = List[Float32]()
+                        for _x in range(fw):
+                            rrow.append(0.0)
+                        sampled.append(rrow^)
+
+                try:
+                    var sampled_h = 0
+                    var sampled_w = 0
+                    try:
+                        sampled_h = len(sampled)
+                        if sampled_h > 0: sampled_w = len(sampled[0])
+                    except _:
+                        sampled_h = 0; sampled_w = 0
+                    if RETINA_DEBUG:
+                        try: print("[DEBUG] backbone: sampled_h=" + String(sampled_h) + " sampled_w=" + String(sampled_w) + " fh=" + String(fh) + " fw=" + String(fw))
+                        except _: pass
+                except _:
+                    pass
+
+                # merge sampled channel into fmap
+                for y in range(fh):
+                    var fmap_len: Int = 0
+                    try:
+                        fmap_len = len(fmap)
+                    except _:
+                        fmap_len = 0
+                    if RETINA_DEBUG:
+                        try:
+                            print("[DEBUG] backbone: fmap_len=" + String(fmap_len))
+                        except _:
+                            pass
+
+                    var row: List[List[Float32]] = List[List[Float32]]()
+                    if y < fmap_len:
+                        try:
+                            row = fmap[y].copy()
+                        except _:
                             row = List[List[Float32]]()
                             try: fmap.append(row^)
                             except _: pass
+                    else:
+                        row = List[List[Float32]]()
+                        try: fmap.append(row^)
+                        except _: pass
 
-                        #print("no _backbone_forward chegou aqui 05.03.06")
-
-                        for x in range(fw):
-                            #print("no _backbone_forward chegou aqui 05.04")
-                            # ensure cell exists
+                    for x in range(fw):
+                        try:
+                            var cell_exists = False
                             try:
-                                var cell_exists = False
-                                try:
-                                    if len(fmap) > y and len(fmap[y]) > x:
-                                        cell_exists = True
-                                except _:
-                                    cell_exists = False
-                                if cell_exists:
-                                    var cell = fmap[y][x].copy()
-                                else:
-                                    var cell = List[Float32]()
-                                    for _ in range(c_idx): cell.append(0.0)
-                                    try: fmap[y].append(cell^)
-                                    except _: pass
+                                if len(fmap) > y and len(fmap[y]) > x:
+                                    cell_exists = True
                             except _:
+                                cell_exists = False
+                            if cell_exists:
+                                var cell = fmap[y][x].copy()
+                            else:
                                 var cell = List[Float32]()
                                 for _ in range(c_idx): cell.append(0.0)
                                 try: fmap[y].append(cell^)
                                 except _: pass
-                            # append this channel value (safe guard)
-                            var sval: Float32 = 0.0
-                            try:
-                                sval = sampled[y][x]
-                            except _:
-                                sval = 0.0
-                            try:
-                                fmap[y][x].append(sval)
-                            except _:
-                                try:
-                                    var cell = List[Float32]()
-                                    for _ in range(c_idx): cell.append(0.0)
-                                    cell.append(sval)
-                                    fmap[y].append(cell^)
-                                except _:
-                                    pass
-
-                        #print("no _backbone_forward chegou aqui 05.05")
-                except _:
-                    # on error, fill zeros for this channel
-
-                    #print("no _backbone_forward chegou aqui 05.06")
-
-                    for y in range(fh):
-                        try:
-                            var row = fmap[y].copy()
                         except _:
-                            var row = List[List[Float32]]()
-                            fmap.append(row^)
-                        for x in range(fw):
+                            var cell = List[Float32]()
+                            for _ in range(c_idx): cell.append(0.0)
+                            try: fmap[y].append(cell^)
+                            except _: pass
+                        var sval: Float32 = 0.0
+                        try:
+                            sval = sampled[y][x]
+                        except _:
+                            sval = 0.0
+                        try:
+                            fmap[y][x].append(sval)
+                        except _:
                             try:
-                                fmap[y][x].append(0.0)
-                            except _:
                                 var cell = List[Float32]()
                                 for _ in range(c_idx): cell.append(0.0)
-                                cell.append(0.0)
+                                cell.append(sval)
                                 fmap[y].append(cell^)
+                            except _:
+                                pass
 
             #print("no _backbone_forward chegou aqui 05.07")
             # ensure every cell has C channels
