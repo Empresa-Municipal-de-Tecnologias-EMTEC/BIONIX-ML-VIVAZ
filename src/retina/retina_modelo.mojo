@@ -15,6 +15,7 @@ import bionix_ml.nucleo.Tensor as tensor_defs_local
 import math
 import retina.retina_trainer as trainer
 import bionix_ml.camadas as camadas_pkg
+var RETINA_DEBUG: Bool = False
 
 # Utilitários para configuração, construção, inferência e persistência do modelo RetinaFace.
 
@@ -141,7 +142,8 @@ struct RetinaFace(Movable):
     var treinamento_meta: String
 
     fn __init__(out self, var parametros_in: BlocoRetinaFaceParametros = BlocoRetinaFaceParametros(), var diretorio_modelo_in: String = "MODELO/retina_modelo"):
-        print("[DEBUG] RetinaFace.__init__: start; parametros.input_size=", parametros_in.input_size)
+        if RETINA_DEBUG:
+            print("[DEBUG] RetinaFace.__init__: start; parametros.input_size=", parametros_in.input_size)
         self.parametros = parametros_in^
         # Inicializar tensores do bloco como formato vazio (compatibilidade)
         self.tipo_computacao = String(self.parametros.tipo_ctx)
@@ -688,15 +690,17 @@ struct RetinaFace(Movable):
         except _:
             img_matrix = img_pixels.copy()
 
-        print("na geração de predições chegou aqui 00")
+        if RETINA_DEBUG:
+            print("na geração de predições chegou aqui 00")
 
         # Build backbone feature maps (P3,P4,P5)
         var fmaps = self._backbone_forward(img_matrix, in_size)
 
         # Extra diagnostics: report structure of feature maps to isolate crashes
         try:
-            try: print("[DBG] gerar_predicoes: fmaps_levels=" + String(len(fmaps)))
-            except _: pass
+            if RETINA_DEBUG:
+                try: print("[DBG] gerar_predicoes: fmaps_levels=" + String(len(fmaps)))
+                except _: pass
             for lvl_idx in range(len(fmaps)):
                 try:
                     var lvl = fmaps[lvl_idx]
@@ -708,15 +712,18 @@ struct RetinaFace(Movable):
                             Cc = len(lvl[0][0])
                     except _:
                         Hf = 0; Wf = 0; Cc = 0
-                    try: print("[DBG] gerar_predicoes: fmap[level]=" + String(lvl_idx) + " Hf=" + String(Hf) + " Wf=" + String(Wf) + " C=" + String(Cc))
-                    except _: pass
+                    if RETINA_DEBUG:
+                        try: print("[DBG] gerar_predicoes: fmap[level]=" + String(lvl_idx) + " Hf=" + String(Hf) + " Wf=" + String(Wf) + " C=" + String(Cc))
+                        except _: pass
                 except _:
-                    try: print("[DBG] gerar_predicoes: fmap[level]=" + String(lvl_idx) + " UNAVAILABLE")
-                    except _: pass
+                    if RETINA_DEBUG:
+                        try: print("[DBG] gerar_predicoes: fmap[level]=" + String(lvl_idx) + " UNAVAILABLE")
+                        except _: pass
         except _:
             pass
 
-        print("na geração de predições chegou aqui 01")
+        if RETINA_DEBUG:
+            print("na geração de predições chegou aqui 01")
 
         # Generate anchors per-level (keeps backward compatibility with flat anchors elsewhere)
         var anchors_by_level = gerador_ancoras_pkg.gerar_ancoras_por_nivel(in_size, self.anchor_passos.copy(), self.anchor_escalas.copy(), self.anchor_multiplicadores.copy(), self.anchor_proporcoes.copy())
@@ -727,8 +734,9 @@ struct RetinaFace(Movable):
             var total_anchors = 0
             for lvl in anchors_by_level:
                 total_anchors = total_anchors + len(lvl)
-            try: print("[DEBUG] gerar_predicoes: total_anchors=", total_anchors)
-            except _: pass
+            if RETINA_DEBUG:
+                try: print("[DEBUG] gerar_predicoes: total_anchors=", total_anchors)
+                except _: pass
             # inspect head placeholder formatos
             var hcf = List[Int]()
             var hrf = List[Int]()
@@ -737,13 +745,15 @@ struct RetinaFace(Movable):
                 except _: hcf = List[Int]()
                 try: hrf = self.head_reg_pesos_conv.formato.copy()
                 except _: hrf = List[Int]()
-                try:
+                    try:
                     var s_hcf = String("[")
                     for i_h in range(len(hcf)):
                         if i_h > 0: s_hcf = s_hcf + String(",")
                         s_hcf = s_hcf + String(hcf[i_h])
                     s_hcf = s_hcf + String("]")
-                    print("[DEBUG] head_cls_formato=" + s_hcf)
+                    if RETINA_DEBUG:
+                        try: print("[DEBUG] head_cls_formato=" + s_hcf)
+                        except _: pass
                 except _:
                     pass
                 try:
@@ -752,7 +762,9 @@ struct RetinaFace(Movable):
                         if i_h > 0: s_hrf = s_hrf + String(",")
                         s_hrf = s_hrf + String(hrf[i_h])
                     s_hrf = s_hrf + String("]")
-                    print("[DEBUG] head_reg_formato=" + s_hrf)
+                    if RETINA_DEBUG:
+                        try: print("[DEBUG] head_reg_formato=" + s_hrf)
+                        except _: pass
                 except _:
                     pass
             except _:
@@ -789,7 +801,8 @@ struct RetinaFace(Movable):
         # multi-scale feature maps. It's intentionally small and deterministic so
         # it can be used for smoke tests and incremental migration.
 
-        print("no _backbone_forward chegou aqui 00")
+        if RETINA_DEBUG:
+            print("no _backbone_forward chegou aqui 00")
 
         var levels: List[List[List[List[Float32]]]] = List[List[List[List[Float32]]]]()
         var H: Int = 0
@@ -802,7 +815,8 @@ struct RetinaFace(Movable):
         except _:
             return levels.copy()
 
-        print("no _backbone_forward chegou aqui 01")
+        if RETINA_DEBUG:
+            print("no _backbone_forward chegou aqui 01")
 
         # flatten grayscale image
         var flat: List[Float32] = List[Float32]()
@@ -816,13 +830,15 @@ struct RetinaFace(Movable):
                     v = Float32(0.0)
                 flat.append(v)
 
-        print("no _backbone_forward chegou aqui 02")
+        if RETINA_DEBUG:
+            print("no _backbone_forward chegou aqui 02")
 
         # number of channels per fmap (kept small)
         var C: Int = 8
         var strides = List[Int](); strides.append(8); strides.append(16); strides.append(32)
 
-        print("no _backbone_forward chegou aqui 03")
+        if RETINA_DEBUG:
+            print("no _backbone_forward chegou aqui 03")
 
         # ensure we have kernel tensors available (3x3) in bloco_kernels
         try:
@@ -840,7 +856,8 @@ struct RetinaFace(Movable):
         except _:
             pass
 
-        print("no _backbone_forward chegou aqui 04")
+        if RETINA_DEBUG:
+            print("no _backbone_forward chegou aqui 04")
 
         # helper: sample pooled array into desired fh x fw grid
         fn _sample_grid(var pooled: List[Float32], var ph: Int, var pw: Int, var fh: Int, var fw: Int, var channel_idx: Int, var per_channel: Int) -> List[List[Float32]]:
@@ -882,13 +899,15 @@ struct RetinaFace(Movable):
                 #print("no _backbone_forward chegou aqui 05.02")
                 try:
                     try:
-                        print("[DEBUG] backbone: entering channel c_idx=" + String(c_idx) + " fh=" + String(fh) + " fw=" + String(fw) + " in_size=" + String(in_size) + " s=" + String(s))
-                    except _:
-                        pass
-                    try:
-                        print("[DEBUG] backbone: bloco_kernels_len=" + String(len(self.bloco_kernels)))
-                    except _:
-                        pass
+                        if RETINA_DEBUG:
+                            try:
+                                print("[DEBUG] backbone: entering channel c_idx=" + String(c_idx) + " fh=" + String(fh) + " fw=" + String(fw) + " in_size=" + String(in_size) + " s=" + String(s))
+                            except _:
+                                pass
+                            try:
+                                print("[DEBUG] backbone: bloco_kernels_len=" + String(len(self.bloco_kernels)))
+                            except _:
+                                pass
                     var kern = self.bloco_kernels[c_idx].copy()
                     try:
                         var kform = List[Int]()
@@ -899,7 +918,9 @@ struct RetinaFace(Movable):
                             if i_kf > 0: s_kf = s_kf + String(",")
                             s_kf = s_kf + String(kform[i_kf])
                         s_kf = s_kf + String("]")
-                        print("[DEBUG] backbone: kernel_formato=" + s_kf)
+                        if RETINA_DEBUG:
+                            try: print("[DEBUG] backbone: kernel_formato=" + s_kf)
+                            except _: pass
                     except _:
                         pass
                     var conv = cnn_impl._conv2d_valid_relu(flat.copy(), H, W, kern.copy(), self.tipo_computacao)
@@ -910,8 +931,9 @@ struct RetinaFace(Movable):
                     var pw = conv_w // 2
                     if ph <= 0: ph = 1
                     if pw <= 0: pw = 1
-                    try:
-                        print("[DEBUG] backbone: conv_h=" + String(conv_h) + " conv_w=" + String(conv_w) + " ph=" + String(ph) + " pw=" + String(pw) + " pooled_len=" + String(len(pooled)))
+                        if RETINA_DEBUG:
+                            try: print("[DEBUG] backbone: conv_h=" + String(conv_h) + " conv_w=" + String(conv_w) + " ph=" + String(ph) + " pw=" + String(pw) + " pooled_len=" + String(len(pooled)))
+                            except _: pass
                     except _:
                         pass
                     var sampled = _sample_grid(pooled, ph, pw, fh, fw, c_idx, C).copy()
@@ -922,7 +944,9 @@ struct RetinaFace(Movable):
                             sampled_h = len(sampled)
                             if sampled_h > 0: sampled_w = len(sampled[0])
                         except _: sampled_h = 0; sampled_w = 0
-                        print("[DEBUG] backbone: sampled_h=" + String(sampled_h) + " sampled_w=" + String(sampled_w) + " fh=" + String(fh) + " fw=" + String(fw))
+                        if RETINA_DEBUG:
+                            try: print("[DEBUG] backbone: sampled_h=" + String(sampled_h) + " sampled_w=" + String(sampled_w) + " fh=" + String(fh) + " fw=" + String(fw))
+                            except _: pass
                     except _:
                         pass
                     # merge sampled channel into fmap
@@ -935,10 +959,11 @@ struct RetinaFace(Movable):
                             fmap_len = len(fmap)
                         except _:
                             fmap_len = 0
-                        try:
-                            print("[DEBUG] backbone: fmap_len=" + String(fmap_len))
-                        except _:
-                            pass
+                        if RETINA_DEBUG:
+                            try:
+                                print("[DEBUG] backbone: fmap_len=" + String(fmap_len))
+                            except _:
+                                pass
 
                         var row: List[List[Float32]] = List[List[Float32]]()
                         if y < fmap_len:
@@ -1706,27 +1731,111 @@ struct RetinaFace(Movable):
             boxes.append(outb^)
 
         # Simple postprocess: convert to integer boxes and filter by score
+        # NOTE: previously this loop returned the first anchor with score > threshold
+        # which caused a strong bias toward top-left anchors. Instead, select
+        # highest-scoring anchors (top-k) to avoid the "first-anchor" artefact.
         var results: List[List[Int]] = List[List[Int]]()
-        for i in range(len(boxes)):
-            try:
-                if cls_scores[i] <= 0.01:
-                    continue
-            except _:
-                pass
-            var b = boxes[i]
-            var ib = List[Int]()
-            var x0v = b[0]
-            if x0v < 0.0: x0v = 0.0
-            var y0v = b[1]
-            if y0v < 0.0: y0v = 0.0
-            var x1v = b[2]
-            if x1v < 0.0: x1v = 0.0
-            var y1v = b[3]
-            if y1v < 0.0: y1v = 0.0
-            ib.append(Int(x0v)); ib.append(Int(y0v)); ib.append(Int(x1v)); ib.append(Int(y1v))
-            results.append(ib^)
-            if max_per_image > 0 and len(results) >= max_per_image:
-                break
+        try:
+            var candidate_indices: List[Int] = List[Int]()
+            for i in range(len(boxes)):
+                try:
+                    if cls_scores[i] > 0.01:
+                        candidate_indices.append(i)
+                except _:
+                    pass
+
+            if len(candidate_indices) == 0:
+                return results
+
+            var k: Int = 1
+            if max_per_image > 0:
+                k = max_per_image
+            if k <= 0:
+                k = 1
+
+            # build ordered list of candidate indices by descending score
+            var ordered: List[Int] = List[Int]()
+            var remaining: List[Int] = candidate_indices^
+            while len(remaining) > 0:
+                var best_pos: Int = -1
+                var best_idx: Int = -1
+                var best_score: Float64 = -1e9
+                for ci_pos in range(len(remaining)):
+                    var idx = remaining[ci_pos]
+                    var sc: Float64 = -1e9
+                    try:
+                        sc = Float64(cls_scores[idx])
+                    except _:
+                        sc = -1e9
+                    if sc > best_score:
+                        best_score = sc
+                        best_pos = ci_pos
+                        best_idx = idx
+                if best_pos < 0:
+                    break
+                ordered.append(best_idx)
+                var new_rem: List[Int] = List[Int]()
+                for j in range(len(remaining)):
+                    if j == best_pos:
+                        continue
+                    new_rem.append(remaining[j])
+                remaining = new_rem^
+
+            # Non-maximum suppression on ordered candidates
+            var kept: List[Int] = List[Int]()
+            var nms_thresh: Float64 = 0.4
+            var limit: Int = k
+            if limit <= 0:
+                limit = 1
+            for oi in range(len(ordered)):
+                if len(kept) >= limit:
+                    break
+                var idx = ordered[oi]
+                var bx = boxes[idx]
+                var x1 = Float64(bx[0]); var y1 = Float64(bx[1]); var x2 = Float64(bx[2]); var y2 = Float64(bx[3])
+                var keep_this: Bool = True
+                for kp in range(len(kept)):
+                    var kidx = kept[kp]
+                    var kb = boxes[kidx]
+                    var kx1 = Float64(kb[0]); var ky1 = Float64(kb[1]); var kx2 = Float64(kb[2]); var ky2 = Float64(kb[3])
+                    var xx1 = x1 if x1 > kx1 else kx1
+                    var yy1 = y1 if y1 > ky1 else ky1
+                    var xx2 = x2 if x2 < kx2 else kx2
+                    var yy2 = y2 if y2 < ky2 else ky2
+                    var w = xx2 - xx1
+                    var h = yy2 - yy1
+                    var inter: Float64 = 0.0
+                    if w > 0.0 and h > 0.0:
+                        inter = w * h
+                    var area1 = (x2 - x1) * (y2 - y1)
+                    var area2 = (kx2 - kx1) * (ky2 - ky1)
+                    var union = area1 + area2 - inter
+                    var iou: Float64 = 0.0
+                    if union > 0.0:
+                        iou = inter / union
+                    if iou >= nms_thresh:
+                        keep_this = False
+                        break
+                if keep_this:
+                    kept.append(idx)
+
+            for ri in range(len(kept)):
+                var bidx = kept[ri]
+                var b = boxes[bidx]
+                var ib = List[Int]()
+                var x0v = b[0]
+                if x0v < 0.0: x0v = 0.0
+                var y0v = b[1]
+                if y0v < 0.0: y0v = 0.0
+                var x1v = b[2]
+                if x1v < 0.0: x1v = 0.0
+                var y1v = b[3]
+                if y1v < 0.0: y1v = 0.0
+                ib.append(Int(x0v)); ib.append(Int(y0v)); ib.append(Int(x1v)); ib.append(Int(y1v))
+                results.append(ib^)
+
+        except _:
+            pass
 
         return results
 

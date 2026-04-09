@@ -1,5 +1,6 @@
 import bionix_ml.nucleo.Tensor as tensor_defs
 import math
+var RETINA_DEBUG: Bool = False
 
 # detector de NaN/Inf ou valores absurdos
 fn _verificar_valor(var v: Float32) -> Bool:
@@ -47,10 +48,12 @@ fn gerar_ancoras(tamanho_entrada: Int = 640, passos: List[Int] = [8,16,32],
                                 ok = False
                                 break
                         if not ok:
-                            try:
-                                print("[DBG] gerar_ancoras: ignorando ancora corrompida no passo", stride, "cx,cy,w,h=", cx, cy, w, h)
-                            except _:
-                                print("[DBG] gerar_ancoras: ignorando ancora corrompida (impossível pormatar os valores)")
+                            if RETINA_DEBUG:
+                                try:
+                                    print("[DBG] gerar_ancoras: ignorando ancora corrompida no passo", stride, "cx,cy,w,h=", cx, cy, w, h)
+                                except _:
+                                    try: print("[DBG] gerar_ancoras: ignorando ancora corrompida (impossível pormatar os valores)")
+                                    except _: pass
                             continue
                         out.append(a^)
     escalas_local = escalas_local^
