@@ -691,11 +691,18 @@ struct RetinaFace(Movable):
         except _:
             img_matrix = img_pixels.copy()
 
-        if RETINA_DEBUG:
-            print("na geração de predições chegou aqui 00")
+        try:
+            print("[TRACE] gerar_predicoes_por_ancora_convfpn: start")
+        except _:
+            pass
 
         # Build backbone feature maps (P3,P4,P5)
         var fmaps = self._backbone_forward(img_matrix, in_size)
+
+        try:
+            print("[TRACE] gerar_predicoes_por_ancora_convfpn: after backbone_forward; fmaps_levels=", len(fmaps))
+        except _:
+            pass
 
         # Extra diagnostics: report structure of feature maps to isolate crashes
         try:
@@ -723,8 +730,10 @@ struct RetinaFace(Movable):
         except _:
             pass
 
-        if RETINA_DEBUG:
-            print("na geração de predições chegou aqui 01")
+        try:
+            print("[TRACE] gerar_predicoes_por_ancora_convfpn: before anchors_by_level")
+        except _:
+            pass
 
         # Generate anchors per-level (keeps backward compatibility with flat anchors elsewhere)
         var anchors_by_level = gerador_ancoras_pkg.gerar_ancoras_por_nivel(in_size, self.anchor_passos.copy(), self.anchor_escalas.copy(), self.anchor_multiplicadores.copy(), self.anchor_proporcoes.copy())
@@ -805,7 +814,7 @@ struct RetinaFace(Movable):
         return preds_conv
 
     # Lightweight backbone: create three downsampled feature maps (simulated convs)
-    fn _backbone_forward(mut self, img_matrix: List[List[List[Float32]]], in_size: Int) -> List[List[List[List[Float32]]]]:
+    fn _backbone_forward(mut self, input_img_matrix: List[List[List[Float32]]], in_size: Int) -> List[List[List[List[Float32]]]]:
         # Lightweight conv+pool backbone using existing CNN helpers
         # Produces P3,P4,P5 as List[level][y][x][c]. This is a small, deterministic
         # MobileNet-like skeleton that uses simple 3x3 convs + avgpool to create
@@ -815,6 +824,10 @@ struct RetinaFace(Movable):
         if RETINA_DEBUG:
             print("no _backbone_forward chegou aqui 00")
 
+        # copy the incoming parameter into a mutable local variable so we can
+        # safely replace/modify it (parameters are immutable in this context)
+        var img_matrix = input_img_matrix
+
         var levels: List[List[List[List[Float32]]]] = List[List[List[List[Float32]]]]()
         var H: Int = 0
         var W: Int = 0
@@ -822,12 +835,27 @@ struct RetinaFace(Movable):
             H = len(img_matrix)
             if H > 0: W = len(img_matrix[0])
             if H == 0 or W == 0:
-                return levels.copy()
+                try: print("[TRACE-BACKBONE] early: H=" + String(H) + " W=" + String(W) + " — creating zeroed image fallback")
+                except _: pass
+                # Create a zero image fallback of size `in_size` to allow backbone to run
+                try:
+                    var zero_img = List[List[List[Float32]]]()
+                    for _y in range(in_size):
+                        var row = List[List[Float32]]()
+                        for _x in range(in_size):
+                            var pix = List[Float32]()
+                            pix.append(0.0); pix.append(0.0); pix.append(0.0)
+                            row.append(pix^)
+                        zero_img.append(row^)
+                    img_matrix = zero_img
+                    H = in_size; W = in_size
+                except _:
+                    return levels.copy()
         except _:
             return levels.copy()
 
-        if RETINA_DEBUG:
-            print("no _backbone_forward chegou aqui 01")
+        try: print("[TRACE-BACKBONE] enter: H=" + String(H) + " W=" + String(W))
+        except _: pass
 
         # flatten grayscale image
         var flat: List[Float32] = List[Float32]()
@@ -848,8 +876,8 @@ struct RetinaFace(Movable):
         var C: Int = 8
         var strides = List[Int](); strides.append(8); strides.append(16); strides.append(32)
 
-        if RETINA_DEBUG:
-            print("no _backbone_forward chegou aqui 03")
+        try: print("[TRACE-BACKBONE] before levels loop; bloco_kernels_len=" + String(len(self.bloco_kernels)))
+        except _: pass
 
         # ensure we have kernel tensors available (3x3) in bloco_kernels
         try:
@@ -900,6 +928,8 @@ struct RetinaFace(Movable):
 
         # produce per-level maps
         for s_idx in range(len(strides)):
+            try: print("[TRACE-BACKBONE] level-loop s_idx=" + String(s_idx) + " stride=" + String(strides[s_idx]))
+            except _: pass
             #print("no _backbone_forward chegou aqui 05.01")
             var s = strides[s_idx]
             var fh = max(1, in_size // s)
@@ -1001,39 +1031,46 @@ struct RetinaFace(Movable):
 
                     for x in range(fw):
                         try:
-                            var cell_exists = False
+                            var sval: Float32 = 0.0
+                            try:
+                                sval = sampled[y][x]
+                            except _:
+                                sval = 0.0
                             try:
                                 if len(fmap) > y and len(fmap[y]) > x:
-                                    cell_exists = True
+                                    try:
+                                        try: print("[TRACE-BB] s_idx=" + String(s_idx) + " c_idx=" + String(c_idx) + " before append existing cell y=" + String(y) + " x=" + String(x) + " fmap_len=" + String(len(fmap)) + " row_len=" + String(len(fmap[y])))
+                                        except _: pass
+                                        fmap[y][x].append(sval)
+                                        try: print("[TRACE-BB] appended to existing cell s_idx=" + String(s_idx) + " c_idx=" + String(c_idx) + " y=" + String(y) + " x=" + String(x))
+                                        except _: pass
+                                    except _:
+                                        try: print("[TRACE-BB] append existing cell EXCEPT s_idx=" + String(s_idx) + " c_idx=" + String(c_idx) + " y=" + String(y) + " x=" + String(x))
+                                        except _: pass
+                                        pass
+                                else:
+                                    var newcell = List[Float32]()
+                                    for _ in range(c_idx): newcell.append(0.0)
+                                    newcell.append(sval)
+                                    try:
+                                        try: print("[TRACE-BB] before fmap[y].append newcell s_idx=" + String(s_idx) + " c_idx=" + String(c_idx) + " y=" + String(y) + " x=" + String(x) + " fmap_len=" + String(len(fmap)))
+                                        except _: pass
+                                        fmap[y].append(newcell^)
+                                        try: print("[TRACE-BB] fmap[y].append done s_idx=" + String(s_idx) + " c_idx=" + String(c_idx) + " y=" + String(y) + " x=" + String(x))
+                                        except _: pass
+                                    except _:
+                                        try: print("[TRACE-BB] fmap[y].append EXCEPT s_idx=" + String(s_idx) + " c_idx=" + String(c_idx) + " y=" + String(y) + " x=" + String(x))
+                                        except _: pass
                             except _:
-                                cell_exists = False
-                            if cell_exists:
-                                var cell = fmap[y][x].copy()
-                            else:
-                                var cell = List[Float32]()
-                                for _ in range(c_idx): cell.append(0.0)
-                                try: fmap[y].append(cell^)
+                                try: print("[TRACE-BB] outer EXCEPT during append s_idx=" + String(s_idx) + " c_idx=" + String(c_idx) + " y=" + String(y) + " x=" + String(x))
+                                except _: pass
+                                var newcell = List[Float32]()
+                                for _ in range(c_idx): newcell.append(0.0)
+                                newcell.append(sval)
+                                try: fmap[y].append(newcell^)
                                 except _: pass
                         except _:
-                            var cell = List[Float32]()
-                            for _ in range(c_idx): cell.append(0.0)
-                            try: fmap[y].append(cell^)
-                            except _: pass
-                        var sval: Float32 = 0.0
-                        try:
-                            sval = sampled[y][x]
-                        except _:
-                            sval = 0.0
-                        try:
-                            fmap[y][x].append(sval)
-                        except _:
-                            try:
-                                var cell = List[Float32]()
-                                for _ in range(c_idx): cell.append(0.0)
-                                cell.append(sval)
-                                fmap[y].append(cell^)
-                            except _:
-                                pass
+                            pass
 
             #print("no _backbone_forward chegou aqui 05.07")
             # ensure every cell has C channels
@@ -1048,6 +1085,17 @@ struct RetinaFace(Movable):
                 #print("no _backbone_forward chegou aqui 05.10")
             #print("no _backbone_forward chegou aqui 05.11")
             levels.append(fmap^)
+            try:
+                var fmap_h = 0
+                var fmap_w = 0
+                try:
+                    var last = levels[len(levels) - 1]
+                    fmap_h = len(last)
+                    if fmap_h > 0: fmap_w = len(last[0])
+                except _:
+                    pass
+                print("[TRACE-BACKBONE] appended level=" + String(s_idx) + " levels_len=" + String(len(levels)) + " fmap_h=" + String(fmap_h) + " fmap_w=" + String(fmap_w))
+            except _: pass
 
         #print("no _backbone_forward chegou aqui 06")
 
@@ -1113,9 +1161,9 @@ struct RetinaFace(Movable):
     # Simple FPN heads predictor: for each anchor, pick a level and predict using lightweight linear heads
     fn _fpn_heads_predict_por_nivel(self, fmaps: List[List[List[List[Float32]]]], anchors_by_level: List[List[List[Float32]]]) -> (List[Float32], List[List[Float32]], List[Float32], List[List[Float32]]):
         try:
-            try: print("[DBG] _fpn_heads_predict_por_nivel: enter")
+            try: print("[TRACE-LINE-100] _fpn_heads_predict_por_nivel: enter")
             except _: pass
-            try: print("[DBG] _fpn_heads_predict_por_nivel: fmaps_levels=" + String(len(fmaps)) + " anchors_levels=" + String(len(anchors_by_level)))
+            try: print("[TRACE-LINE-101] _fpn_heads_predict_por_nivel: fmaps_levels=" + String(len(fmaps)) + " anchors_levels=" + String(len(anchors_by_level)))
             except _: pass
         except _:
             pass
@@ -1151,21 +1199,90 @@ struct RetinaFace(Movable):
             var hw_reg: List[Float32] = List[Float32]()
             var has_pointwise_cls: Bool = False
             var has_pointwise_reg: Bool = False
+            # Safety: avoid using malformed tensors that would produce huge indices
+            fn _prod_list_int(var lst: List[Int]) -> Int:
+                var p: Int = 1
+                for v in lst:
+                    try:
+                        if v <= 0:
+                            return 0
+                        p = p * v
+                    except _:
+                        return 0
+                return p
+
+            fn _safe_get_dados(var t: tensor_defs.Tensor, var idx: Int) -> Float32:
+                try:
+                    if idx < 0:
+                        return 0.0
+                    if len(t.dados) == 0:
+                        return 0.0
+                    if idx >= len(t.dados):
+                        return 0.0
+                    return t.dados[idx]
+                except _:
+                    return 0.0
+
             try:
-                if len(self.head_cls_pesos_conv.formato) >= 2 and self.head_cls_pesos_conv.formato[0] >= C:
-                    has_pointwise_cls = True
-                elif len(self.head_cls_pesos_conv.dados) >= 1:
-                    for i in range(C): hw_cls.append(self.head_cls_pesos_conv.dados[0])
-                else:
+                # Validate cls head tensor before marking spatial/pointwise use
+                var exp: Int = 0
+                try:
+                    if len(self.head_cls_pesos_conv.formato) > 0:
+                        exp = _prod_list_int(self.head_cls_pesos_conv.formato.copy())
+                    else:
+                        exp = 0
+                except _:
+                    exp = 0
+                try:
+                    try: print("[TRACE-LINE-110] head_cls_formato_len=" + String(len(self.head_cls_pesos_conv.formato)) + " dados_len=" + String(len(self.head_cls_pesos_conv.dados)))
+                    except _: pass
+                    if exp > 0 and len(self.head_cls_pesos_conv.dados) >= exp:
+                        # spatial head available
+                        has_pointwise_cls = True
+                    elif len(self.head_cls_pesos_conv.dados) >= 1:
+                        for i in range(C):
+                            try:
+                                var _l0 = len(self.head_cls_pesos_conv.dados)
+                                if _l0 > 0:
+                                    hw_cls.append(self.head_cls_pesos_conv.dados[0])
+                                else:
+                                    hw_cls.append(0.001)
+                            except _:
+                                hw_cls.append(0.001)
+                    else:
+                        for i in range(C): hw_cls.append(0.001)
+                except _:
                     for i in range(C): hw_cls.append(0.001)
             except _:
                 for i in range(C): hw_cls.append(0.001)
+
             try:
-                if len(self.head_reg_pesos_conv.formato) >= 2 and self.head_reg_pesos_conv.formato[0] >= C and self.head_reg_pesos_conv.formato[1] >= 4:
-                    has_pointwise_reg = True
-                elif len(self.head_reg_pesos_conv.dados) >= 4:
-                    for j in range(4): hw_reg.append(self.head_reg_pesos_conv.dados[j])
-                else:
+                var exp2: Int = 0
+                try:
+                    if len(self.head_reg_pesos_conv.formato) > 0:
+                        exp2 = _prod_list_int(self.head_reg_pesos_conv.formato.copy())
+                    else:
+                        exp2 = 0
+                except _:
+                    exp2 = 0
+                try:
+                    try: print("[TRACE-LINE-111] head_reg_formato_len=" + String(len(self.head_reg_pesos_conv.formato)) + " dados_len=" + String(len(self.head_reg_pesos_conv.dados)))
+                    except _: pass
+                    if exp2 > 0 and len(self.head_reg_pesos_conv.dados) >= exp2:
+                        has_pointwise_reg = True
+                    elif len(self.head_reg_pesos_conv.dados) >= 4:
+                        for j in range(4):
+                            try:
+                                var _l1 = len(self.head_reg_pesos_conv.dados)
+                                if _l1 > j:
+                                    hw_reg.append(self.head_reg_pesos_conv.dados[j])
+                                else:
+                                    hw_reg.append(1.0)
+                            except _:
+                                hw_reg.append(1.0)
+                    else:
+                        for j in range(4): hw_reg.append(1.0)
+                except _:
                     for j in range(4): hw_reg.append(1.0)
             except _:
                 for j in range(4): hw_reg.append(1.0)
@@ -1230,15 +1347,24 @@ struct RetinaFace(Movable):
                                                     for c in range(min(len(neigh), C)):
                                                         var widx = ((ky * kw + kx) * C + c) * outch + 0
                                                         var wval: Float32 = 0.0
-                                                        try: wval = self.head_cls_pesos_conv.dados[widx]
-                                                        except _: wval = 0.0
+                                                        try:
+                                                            var _len = len(self.head_cls_pesos_conv.dados)
+                                                            if _len == 0 or widx >= _len:
+                                                                try: print("[TRACE-LINE-200] cls widx OOB", widx, "len=", _len, "level=", level_idx, "yy=", yy, "xx=", xx)
+                                                                except _: pass
+                                                                # avoid implicit Tensor copy by passing an explicit copy
+                                                                wval = _safe_get_dados(self.head_cls_pesos_conv.copy(), widx)
+                                                        except _:
+                                                            wval = 0.0
                                                         acc = acc + neigh[c] * wval
                                             cell_logit = acc
                                             try: cell_logit = cell_logit + self.head_cls_bias_conv.dados[0]
                                             except _: pass
                                         elif has_pointwise_cls:
                                             for i in range(min(len(cell_feat), self.head_cls_pesos_conv.formato[0])):
-                                                cell_logit = cell_logit + cell_feat[i] * self.head_cls_pesos_conv.dados[i * self.head_cls_pesos_conv.formato[1] + 0]
+                                                var idx_w = i * self.head_cls_pesos_conv.formato[1] + 0
+                                                var w_local = _safe_get_dados(self.head_cls_pesos_conv.copy(), idx_w)
+                                                cell_logit = cell_logit + cell_feat[i] * w_local
                                             try: cell_logit = cell_logit + self.head_cls_bias_conv.dados[0]
                                             except _: pass
                                         else:
@@ -1270,8 +1396,18 @@ struct RetinaFace(Movable):
                                                         for c in range(min(len(neigh2), C)):
                                                             var widx2 = ((ky * kw2 + kx) * C + c) * self.head_reg_pesos_conv.formato[3] + j
                                                             var wval2: Float32 = 0.0
-                                                            try: wval2 = self.head_reg_pesos_conv.dados[widx2]
-                                                            except _: wval2 = 0.0
+                                                            try:
+                                                                var _len2 = len(self.head_reg_pesos_conv.dados)
+                                                                if _len2 == 0 or widx2 >= _len2:
+                                                                    try: print("[TRACE-LINE-210] reg widx2 OOB", widx2, "len=", _len2, "level=", level_idx, "yy=", yy, "xx=", xx)
+                                                                    except _: pass
+                                                                else:
+                                                                    try:
+                                                                        wval2 = self.head_reg_pesos_conv.dados[widx2]
+                                                                    except _:
+                                                                        wval2 = 0.0
+                                                            except _:
+                                                                wval2 = 0.0
                                                             acc2 = acc2 + neigh2[c] * wval2
                                                 try: acc2 = acc2 + self.head_reg_bias_conv.dados[j]
                                                 except _: pass
@@ -1397,7 +1533,7 @@ struct RetinaFace(Movable):
                                             for c in range(min(len(neigh2), C)):
                                                 var widx2 = ((ky * kw2 + kx) * C + c) * self.head_reg_pesos_conv.formato[3] + j
                                                 var wval2: Float32 = 0.0
-                                                try: wval2 = self.head_reg_pesos_conv.dados[widx2]
+                                                try: wval2 = _safe_get_dados(self.head_reg_pesos_conv.copy(), widx2)
                                                 except _: wval2 = 0.0
                                                 acc2 = acc2 + neigh2[c] * wval2
                                     try: acc2 = acc2 + self.head_reg_bias_conv.dados[j]
@@ -1407,7 +1543,9 @@ struct RetinaFace(Movable):
                                 for j in range(4):
                                     var dv: Float32 = 0.0
                                     for i in range(min(len(feat), self.head_reg_pesos_conv.formato[0])):
-                                        dv = dv + feat[i] * self.head_reg_pesos_conv.dados[i * self.head_reg_pesos_conv.formato[1] + j]
+                                        var idxr = i * self.head_reg_pesos_conv.formato[1] + j
+                                        var w_r = _safe_get_dados(self.head_reg_pesos_conv.copy(), idxr)
+                                        dv = dv + feat[i] * w_r
                                     try: dv = dv + self.head_reg_bias_conv.dados[j]
                                     except _: pass
                                     deltas.append(dv)
@@ -1659,7 +1797,24 @@ struct RetinaFace(Movable):
         # real conv-FPN implementation but provides a runnable path so the
         # training loop can exercise the new pipeline without `BlocoCNN`.
         var in_size = input_size if input_size > 0 else self.parametros.input_size
-        var anchors = gerador_ancoras_pkg.gerar_ancoras(in_size)
+        # Use per-level anchor generator and cap total anchors to avoid
+        # excessive list reallocs observed on some systems (segfaults at ~8k).
+        var anchors_by_level = gerador_ancoras_pkg.gerar_ancoras_por_nivel(in_size, self.anchor_passos.copy(), self.anchor_escalas.copy(), self.anchor_multiplicadores.copy(), self.anchor_proporcoes.copy())
+        # Flatten but with a safe cap to prevent allocator issues; log when capped.
+        var MAX_ANCHORS: Int = 6000
+        var anchors: List[List[Float32]] = List[List[Float32]]()
+        var total_acc: Int = 0
+        for lvl in anchors_by_level:
+            for a in lvl:
+                if total_acc >= MAX_ANCHORS:
+                    if RETINA_DEBUG:
+                        try: print("[WARN] inferir_convfpn: anchors capped at ", MAX_ANCHORS)
+                        except _: pass
+                    break
+                anchors.append(a.copy()^)
+                total_acc = total_acc + 1
+            if total_acc >= MAX_ANCHORS:
+                break
         var patched_img = img_pixels
         try:
             var resized_tuple = self.redimensionar_para_tamanho_entrada(img_pixels.copy(), List[List[Int]](), in_size)
@@ -1667,11 +1822,24 @@ struct RetinaFace(Movable):
         except _:
             patched_img = img_pixels
 
+        try:
+            print("[TRACE] inferir_convfpn: calling gerar_predicoes_por_ancora_convfpn; anchors=", len(anchors))
+        except _:
+            pass
         var preds = self.gerar_predicoes_por_ancora_convfpn(patched_img, anchors, self.parametros.patch_size)
-        
+        try:
+            print("[TRACE] inferir_convfpn: gerar_predicoes returned; tuple_len=", len(preds))
+        except _:
+            pass
+
         var cls_logits = preds[0]
         var reg_deltas = preds[1]
         var cls_scores: List[Float32] = List[Float32]()
+
+        try:
+            print("[TRACE] inferir_convfpn: lens -> cls_logits=", len(cls_logits), " reg_deltas=", len(reg_deltas), " anchors=", len(anchors))
+        except _:
+            pass
 
         
 
@@ -1691,7 +1859,22 @@ struct RetinaFace(Movable):
 
         # decode identical to regular inferir after dividing by weights
         var boxes: List[List[Float32]] = List[List[Float32]]()
-        for i in range(len(anchors)):
+        # safe decode: iterate only up to the minimum available length to avoid OOB
+        var decode_n = len(anchors)
+        try:
+            if len(reg_deltas) < decode_n:
+                decode_n = len(reg_deltas)
+            if len(cls_logits) < decode_n:
+                decode_n = len(cls_logits)
+        except _:
+            pass
+        try:
+            if decode_n != len(anchors):
+                print("[WARN] inferir_convfpn: length mismatch anchors/outputs; decoding up to", decode_n)
+        except _:
+            pass
+
+        for i in range(decode_n):
             var a = anchors[i].copy()
             var dx = reg_deltas[i][0]; var dy = reg_deltas[i][1]; var dw = reg_deltas[i][2]; var dh = reg_deltas[i][3]
             try:

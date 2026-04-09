@@ -1,0 +1,2151 @@
+✨ Pixi task (run_retina_train_debug): mojo build -debug-level=line-tables -I ../../BIONIX-ML -o ./run_retina_train run_retina_train.mojo && ./run_retina_train
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:30:94: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+    var result = detector.treinar("DATASET", 320, 320, 32, epocas, 0.05, 8, 128, early_stop, allowed)
+                                                                                             ^~~~~~~
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:30:94: note: consider transferring the value with '^'
+    var result = detector.treinar("DATASET", 320, 320, 32, epocas, 0.05, 8, 128, early_stop, allowed)
+                                                                                             ^
+                                                                                                    ^
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:30:94: note: you can copy it explicitly with '.copy()'
+    var result = detector.treinar("DATASET", 320, 320, 32, epocas, 0.05, 8, 128, early_stop, allowed)
+                                                                                             ^
+                                                                                                    .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:146:12: warning: if statement with constant condition 'if False'
+        if RETINA_DEBUG:
+           ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1535:161: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+        return trainer.treinar_retina_convfpn(self, dataset_dir, altura, largura, patch_size, epocas, taxa_aprendizado, batch_size, batch_size_fim, early_stop, allowed_classes)
+                                                                                                                                                                ^~~~~~~~~~~~~~~
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1535:161: note: consider transferring the value with '^'
+        return trainer.treinar_retina_convfpn(self, dataset_dir, altura, largura, patch_size, epocas, taxa_aprendizado, batch_size, batch_size_fim, early_stop, allowed_classes)
+                                                                                                                                                                ^
+                                                                                                                                                                               ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1535:161: note: you can copy it explicitly with '.copy()'
+        return trainer.treinar_retina_convfpn(self, dataset_dir, altura, largura, patch_size, epocas, taxa_aprendizado, batch_size, batch_size_fim, early_stop, allowed_classes)
+                                                                                                                                                                ^
+                                                                                                                                                                               .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:1733:41: warning: 'Bool' value is unused
+            detector.configurar_conv_fpn("mobilenet_v2", 3)
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~
+            _ = 
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:1738:166: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+        return treinar_retina_minimal(detector, dataset_dir, altura, largura, patch_size, epocas, taxa_aprendizado, batch_size, batch_size_fim, 1, True, early_stop, allowed_classes)
+                                                                                                                                                                     ^~~~~~~~~~~~~~~
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:1738:166: note: consider transferring the value with '^'
+        return treinar_retina_minimal(detector, dataset_dir, altura, largura, patch_size, epocas, taxa_aprendizado, batch_size, batch_size_fim, 1, True, early_stop, allowed_classes)
+                                                                                                                                                                     ^
+                                                                                                                                                                                    ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:1738:166: note: you can copy it explicitly with '.copy()'
+        return treinar_retina_minimal(detector, dataset_dir, altura, largura, patch_size, epocas, taxa_aprendizado, batch_size, batch_size_fim, 1, True, early_stop, allowed_classes)
+                                                                                                                                                                     ^
+                                                                                                                                                                                    .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:111:12: warning: if statement with constant condition 'if False'
+        if TRAINER_DEBUG:
+           ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:241:50: warning: transfer from an owned value has no effect and can be removed
+        anchors_snapshot.append(anchors[i].copy()^)
+                                                 ^
+                                                 
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:276:16: warning: if statement with constant condition 'if False'
+            if TRAINER_DEBUG:
+               ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:355:16: warning: if statement with constant condition 'if False'
+            if TRAINER_DEBUG:
+               ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:395:16: warning: if statement with constant condition 'if False'
+            if TRAINER_DEBUG:
+               ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:481:20: warning: if statement with constant condition 'if False'
+                if TRAINER_DEBUG:
+                   ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:496:24: warning: if statement with constant condition 'if False'
+                    if TRAINER_DEBUG:
+                       ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:1062:40: warning: if statement with constant condition 'if False'
+                                    if TRAINER_DEBUG:
+                                       ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:1389:57: warning: 'Bool' value is unused
+                        dados_pkg.gravar_arquivo_binario(bmp_out_path, bmp_bytes^)
+                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~
+                        _ = 
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:355:42: warning: 'Bool' value is unused
+                uteis.gravar_texto_seguro(os.path.join(model_dir, "retina_state.txt"), String("\n").join(state_lines.copy()))
+                ~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                _ = 
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:709:16: warning: if statement with constant condition 'if False'
+            if RETINA_DEBUG:
+               ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:714:36: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+                    var lvl = fmaps[lvl_idx]
+                              ~~~~~^~~~~~~~~
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:714:36: note: consider transferring the value with '^'
+                    var lvl = fmaps[lvl_idx]
+                                   ^
+                                            ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:714:36: note: you can copy it explicitly with '.copy()'
+                    var lvl = fmaps[lvl_idx]
+                                   ^
+                                            .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:723:24: warning: if statement with constant condition 'if False'
+                    if RETINA_DEBUG:
+                       ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:727:24: warning: if statement with constant condition 'if False'
+                    if RETINA_DEBUG:
+                       ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:747:16: warning: if statement with constant condition 'if False'
+            if RETINA_DEBUG:
+               ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:769:24: warning: if statement with constant condition 'if False'
+                    if RETINA_DEBUG:
+                       ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:783:24: warning: if statement with constant condition 'if False'
+                    if RETINA_DEBUG:
+                       ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:808:40: warning: transfer from an owned value has no effect and can be removed
+                return (List[Float32]()^, List[List[Float32]]()^, List[Float32]()^, List[List[Float32]]()^)
+                                       ^
+                                       
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:808:64: warning: transfer from an owned value has no effect and can be removed
+                return (List[Float32]()^, List[List[Float32]]()^, List[Float32]()^, List[List[Float32]]()^)
+                                                               ^
+                                                               
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:808:82: warning: transfer from an owned value has no effect and can be removed
+                return (List[Float32]()^, List[List[Float32]]()^, List[Float32]()^, List[List[Float32]]()^)
+                                                                                 ^
+                                                                                 
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:808:106: warning: transfer from an owned value has no effect and can be removed
+                return (List[Float32]()^, List[List[Float32]]()^, List[Float32]()^, List[List[Float32]]()^)
+                                                                                                         ^
+                                                                                                         
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:824:12: warning: if statement with constant condition 'if False'
+        if RETINA_DEBUG:
+           ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:855:12: warning: if statement with constant condition 'if False'
+        if RETINA_DEBUG:
+           ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:881:12: warning: if statement with constant condition 'if False'
+        if RETINA_DEBUG:
+           ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:926:24: warning: if statement with constant condition 'if False'
+                    if RETINA_DEBUG:
+                       ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:947:28: warning: if statement with constant condition 'if False'
+                        if RETINA_DEBUG:
+                           ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:961:24: warning: if statement with constant condition 'if False'
+                    if RETINA_DEBUG:
+                       ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:965:48: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+                    var sampled = _sample_grid(pooled, ph, pw, fh, fw, c_idx, C).copy()
+                                               ^~~~~~
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:965:48: note: consider transferring the value with '^'
+                    var sampled = _sample_grid(pooled, ph, pw, fh, fw, c_idx, C).copy()
+                                               ^
+                                                     ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:965:48: note: you can copy it explicitly with '.copy()'
+                    var sampled = _sample_grid(pooled, ph, pw, fh, fw, c_idx, C).copy()
+                                               ^
+                                                     .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:983:24: warning: if statement with constant condition 'if False'
+                    if RETINA_DEBUG:
+                       ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:996:24: warning: if statement with constant condition 'if False'
+                    if RETINA_DEBUG:
+                       ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1093:42: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+                        var val = src[sy][sx]
+                                  ~~~~~~~^~~~
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1093:42: note: consider transferring the value with '^'
+                        var val = src[sy][sx]
+                                         ^
+                                             ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1093:42: note: you can copy it explicitly with '.copy()'
+                        var val = src[sy][sx]
+                                         ^
+                                             .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1094:46: warning: transfer from an owned value has no effect and can be removed
+                        row.append(val.copy()^)
+                                             ^
+                                             
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1101:41: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+                        var base = P4[y][x]
+                                   ~~~~~^~~
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1101:41: note: consider transferring the value with '^'
+                        var base = P4[y][x]
+                                        ^
+                                           ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1101:41: note: you can copy it explicitly with '.copy()'
+                        var base = P4[y][x]
+                                        ^
+                                           .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1102:44: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+                        var addv = up_p5[y][x]
+                                   ~~~~~~~~^~~
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1102:44: note: consider transferring the value with '^'
+                        var addv = up_p5[y][x]
+                                           ^
+                                              ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1102:44: note: you can copy it explicitly with '.copy()'
+                        var addv = up_p5[y][x]
+                                           ^
+                                              .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1107:29: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+                levels[1] = P4
+                            ^~
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1107:29: note: consider transferring the value with '^'
+                levels[1] = P4
+                            ^
+                              ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1107:29: note: you can copy it explicitly with '.copy()'
+                levels[1] = P4
+                            ^
+                              .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1114:41: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+                        var base = P3[y][x]
+                                   ~~~~~^~~
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1114:41: note: consider transferring the value with '^'
+                        var base = P3[y][x]
+                                        ^
+                                           ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1114:41: note: you can copy it explicitly with '.copy()'
+                        var base = P3[y][x]
+                                        ^
+                                           .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1115:44: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+                        var addv = up_p4[y][x]
+                                   ~~~~~~~~^~~
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1115:44: note: consider transferring the value with '^'
+                        var addv = up_p4[y][x]
+                                           ^
+                                              ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1115:44: note: you can copy it explicitly with '.copy()'
+                        var addv = up_p4[y][x]
+                                           ^
+                                              .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1120:29: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+                levels[0] = P3
+                            ^~
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1120:29: note: consider transferring the value with '^'
+                levels[0] = P3
+                            ^
+                              ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1120:29: note: you can copy it explicitly with '.copy()'
+                levels[0] = P3
+                            ^
+                              .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1267:37: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+                        fmap = fmaps[level_idx]
+                               ~~~~~^~~~~~~~~~~
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1267:37: note: consider transferring the value with '^'
+                        fmap = fmaps[level_idx]
+                                    ^
+                                               ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1267:37: note: you can copy it explicitly with '.copy()'
+                        fmap = fmaps[level_idx]
+                                    ^
+                                               .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1764:27: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+        var patched_img = img_pixels
+                          ^~~~~~~~~~
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1764:27: note: consider transferring the value with '^'
+        var patched_img = img_pixels
+                          ^
+                                    ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1764:27: note: you can copy it explicitly with '.copy()'
+        var patched_img = img_pixels
+                          ^
+                                    .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1767:40: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+            patched_img = resized_tuple[0]
+                          ~~~~~~~~~~~~~^~~
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1767:40: note: consider transferring the value with '^'
+            patched_img = resized_tuple[0]
+                                       ^
+                                          ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1767:40: note: you can copy it explicitly with '.copy()'
+            patched_img = resized_tuple[0]
+                                       ^
+                                          .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1769:27: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+            patched_img = img_pixels
+                          ^~~~~~~~~~
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1769:27: note: consider transferring the value with '^'
+            patched_img = img_pixels
+                          ^
+                                    ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1769:27: note: you can copy it explicitly with '.copy()'
+            patched_img = img_pixels
+                          ^
+                                    .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1781:31: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+        var cls_logits = preds[0]
+                         ~~~~~^~~
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1781:31: note: consider transferring the value with '^'
+        var cls_logits = preds[0]
+                              ^
+                                 ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1781:31: note: you can copy it explicitly with '.copy()'
+        var cls_logits = preds[0]
+                              ^
+                                 .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1782:31: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+        var reg_deltas = preds[1]
+                         ~~~~~^~~
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1782:31: note: consider transferring the value with '^'
+        var reg_deltas = preds[1]
+                              ^
+                                 ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1782:31: note: you can copy it explicitly with '.copy()'
+        var reg_deltas = preds[1]
+                              ^
+                                 .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1872:24: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+                return results
+                       ^~~~~~~
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1872:24: note: consider transferring the value with '^'
+                return results
+                       ^
+                              ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1872:24: note: you can copy it explicitly with '.copy()'
+                return results
+                       ^
+                              .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1918:31: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+                var bx = boxes[idx]
+                         ~~~~~^~~~~
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1918:31: note: consider transferring the value with '^'
+                var bx = boxes[idx]
+                              ^
+                                   ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1918:31: note: you can copy it explicitly with '.copy()'
+                var bx = boxes[idx]
+                              ^
+                                   .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1923:35: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+                    var kb = boxes[kidx]
+                             ~~~~~^~~~~~
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1923:35: note: consider transferring the value with '^'
+                    var kb = boxes[kidx]
+                                  ^
+                                        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1923:35: note: you can copy it explicitly with '.copy()'
+                    var kb = boxes[kidx]
+                                  ^
+                                        .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1948:30: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+                var b = boxes[bidx]
+                        ~~~~~^~~~~~
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1948:30: note: consider transferring the value with '^'
+                var b = boxes[bidx]
+                             ^
+                                   ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1948:30: note: you can copy it explicitly with '.copy()'
+                var b = boxes[bidx]
+                             ^
+                                   .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1964:16: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+        return results
+               ^~~~~~~
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1964:16: note: consider transferring the value with '^'
+        return results
+               ^
+                      ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1964:16: note: you can copy it explicitly with '.copy()'
+        return results
+               ^
+                      .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:37:15: warning: Use `str.codepoints()` or `str.codepoint_slices()` instead.
+    for ch in line:
+              ^~~~
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:1: note: '__iter__' declared here
+import retina.retina_modelo as model_mod
+^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:40:52: warning: 'List' is no longer implicitly copyable, because it is O(n) expensive; this warning will be an error in the next release of Mojo
+    return arquivo.gravar_arquivo_binario(caminho, dados)
+                                                   ^~~~~
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:40:52: note: consider transferring the value with '^'
+    return arquivo.gravar_arquivo_binario(caminho, dados)
+                                                   ^
+                                                        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/dados/__init__.mojo:40:52: note: you can copy it explicitly with '.copy()'
+    return arquivo.gravar_arquivo_binario(caminho, dados)
+                                                   ^
+                                                        .copy()
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:11:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_gerador_ancoras.mojo:51:32: warning: if statement with constant condition 'if False'
+                            if RETINA_DEBUG:
+                               ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/graficos/__init__.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/graficos/__init__.mojo:76:35: warning: 'Bool' value is unused
+            bmp.set_flat_pixel_int(flat_rgb, largura, altura, 3, y0 + t, x, color)
+            ~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+            _ = 
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/graficos/__init__.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/graficos/__init__.mojo:77:35: warning: 'Bool' value is unused
+            bmp.set_flat_pixel_int(flat_rgb, largura, altura, 3, y1 - t, x, color)
+            ~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+            _ = 
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/graficos/__init__.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/graficos/__init__.mojo:79:35: warning: 'Bool' value is unused
+            bmp.set_flat_pixel_int(flat_rgb, largura, altura, 3, y, x0 + t, color)
+            ~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+            _ = 
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/graficos/__init__.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/graficos/__init__.mojo:80:35: warning: 'Bool' value is unused
+            bmp.set_flat_pixel_int(flat_rgb, largura, altura, 3, y, x1 - t, color)
+            ~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+            _ = 
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:15:5: warning: try body doesn't raise an exception
+    try:
+    ^
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:21:5: warning: try body doesn't raise an exception
+    try:
+    ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:250:13: warning: try body doesn't raise an exception
+            try:
+            ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:255:13: warning: try body doesn't raise an exception
+            try:
+            ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:260:13: warning: try body doesn't raise an exception
+            try:
+            ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:265:13: warning: try body doesn't raise an exception
+            try:
+            ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:270:13: warning: try body doesn't raise an exception
+            try:
+            ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:276:13: warning: try body doesn't raise an exception
+            try:
+            ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:284:21: warning: try body doesn't raise an exception
+                    try:
+                    ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:288:17: warning: try body doesn't raise an exception
+                try:
+                ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:293:17: warning: try body doesn't raise an exception
+                try:
+                ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:281:13: warning: try body doesn't raise an exception
+            try:
+            ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:301:13: warning: try body doesn't raise an exception
+            try:
+            ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:306:13: warning: try body doesn't raise an exception
+            try:
+            ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:323:40: warning: 'except' logic is unreachable, try doesn't raise an exception
+                    state_lines.append("tipo_computacao:")
+                                       ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:329:40: warning: 'except' logic is unreachable, try doesn't raise an exception
+                    state_lines.append("backbone_tipo:")
+                                       ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:331:17: warning: try body doesn't raise an exception
+                try:
+                ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:339:17: warning: try body doesn't raise an exception
+                try:
+                ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:343:17: warning: try body doesn't raise an exception
+                try:
+                ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:349:17: warning: try body doesn't raise an exception
+                try:
+                ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:313:13: warning: try body doesn't raise an exception
+            try:
+            ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:361:20: warning: 'except' logic is unreachable, try doesn't raise an exception
+            return False
+                   ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:372:26: warning: 'except' logic is unreachable, try doesn't raise an exception
+                any_ok = False
+                         ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:388:33: warning: try body doesn't raise an exception
+                                try:
+                                ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:393:33: warning: try body doesn't raise an exception
+                                try:
+                                ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:398:33: warning: try body doesn't raise an exception
+                                try:
+                                ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:403:33: warning: try body doesn't raise an exception
+                                try:
+                                ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:412:33: warning: try body doesn't raise an exception
+                                try:
+                                ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:421:33: warning: try body doesn't raise an exception
+                                try:
+                                ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:430:33: warning: try body doesn't raise an exception
+                                try:
+                                ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:375:13: warning: try body doesn't raise an exception
+            try:
+            ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:448:25: warning: try body doesn't raise an exception
+                        try: _ = self.backbone_pesos.carregar_dados_bytes_bin(raw_bb.copy())
+                        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:445:17: warning: try body doesn't raise an exception
+                try:
+                ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:444:13: warning: try body doesn't raise an exception
+            try:
+            ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:458:25: warning: try body doesn't raise an exception
+                        try: _ = self.fpn_pesos.carregar_dados_bytes_bin(raw_fpn.copy())
+                        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:455:17: warning: try body doesn't raise an exception
+                try:
+                ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:454:13: warning: try body doesn't raise an exception
+            try:
+            ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:468:25: warning: try body doesn't raise an exception
+                        try: _ = self.head_cls_pesos_conv.carregar_dados_bytes_bin(raw_hc.copy()); any_ok = True
+                        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:465:17: warning: try body doesn't raise an exception
+                try:
+                ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:464:13: warning: try body doesn't raise an exception
+            try:
+            ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:478:25: warning: try body doesn't raise an exception
+                        try: _ = self.head_reg_pesos_conv.carregar_dados_bytes_bin(raw_hr.copy()); any_ok = True
+                        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:475:17: warning: try body doesn't raise an exception
+                try:
+                ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:474:13: warning: try body doesn't raise an exception
+            try:
+            ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:488:25: warning: try body doesn't raise an exception
+                        try: _ = self.head_cls_bias_conv.carregar_dados_bytes_bin(raw_bhc.copy()); any_ok = True
+                        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:485:17: warning: try body doesn't raise an exception
+                try:
+                ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:484:13: warning: try body doesn't raise an exception
+            try:
+            ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:498:25: warning: try body doesn't raise an exception
+                        try: _ = self.head_reg_bias_conv.carregar_dados_bytes_bin(raw_bhr.copy()); any_ok = True
+                        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:495:17: warning: try body doesn't raise an exception
+                try:
+                ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:494:13: warning: try body doesn't raise an exception
+            try:
+            ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:509:25: warning: try body doesn't raise an exception
+                        try: _ = self.bloco_peso_saida.carregar_dados_bytes_bin(raw_pw.copy()); any_ok = True
+                        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:506:17: warning: try body doesn't raise an exception
+                try:
+                ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:516:25: warning: try body doesn't raise an exception
+                        try: _ = self.bloco_bias_saida.carregar_dados_bytes_bin(raw_b.copy()); any_ok = True
+                        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:513:17: warning: try body doesn't raise an exception
+                try:
+                ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:538:50: warning: 'except' logic is unreachable, try doesn't raise an exception
+                                formato_k.append(3); formato_k.append(3)
+                                                 ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:540:29: warning: try body doesn't raise an exception
+                            try:
+                            ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:548:29: warning: 'except' logic is unreachable, try doesn't raise an exception
+                            break
+                            ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:521:17: warning: try body doesn't raise an exception
+                try:
+                ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:504:13: warning: try body doesn't raise an exception
+            try:
+            ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:559:25: warning: try body doesn't raise an exception
+                        try: _ = self.cabeca_classificacao_peso.carregar_dados_bytes_bin(raw_w.copy()); any_ok = True
+                        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:556:17: warning: try body doesn't raise an exception
+                try:
+                ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:555:13: warning: try body doesn't raise an exception
+            try:
+            ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:569:25: warning: try body doesn't raise an exception
+                        try: _ = self.cabeca_classificacao_bias.carregar_dados_bytes_bin(raw_b.copy()); any_ok = True
+                        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:566:17: warning: try body doesn't raise an exception
+                try:
+                ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:565:13: warning: try body doesn't raise an exception
+            try:
+            ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:578:20: warning: 'except' logic is unreachable, try doesn't raise an exception
+            return False
+                   ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:590:17: warning: 'except' logic is unreachable, try doesn't raise an exception
+            h = 0
+                ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:596:17: warning: 'except' logic is unreachable, try doesn't raise an exception
+            w = 0
+                ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:623:21: warning: 'except' logic is unreachable, try doesn't raise an exception
+                    continue
+                    ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:658:21: warning: 'except' logic is unreachable, try doesn't raise an exception
+            scale = 1.0
+                    ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:675:17: warning: 'except' logic is unreachable, try doesn't raise an exception
+                continue
+                ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:692:41: warning: 'except' logic is unreachable, try doesn't raise an exception
+            img_matrix = img_pixels.copy()
+                                        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:694:9: warning: try body doesn't raise an exception
+        try:
+        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:702:9: warning: try body doesn't raise an exception
+        try:
+        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:722:30: warning: 'except' logic is unreachable, try doesn't raise an exception
+                        Hf = 0; Wf = 0; Cc = 0
+                             ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:727:21: warning: 'except' logic is unreachable, try doesn't raise an exception
+                    if RETINA_DEBUG:
+                    ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:708:9: warning: try body doesn't raise an exception
+        try:
+        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:733:9: warning: try body doesn't raise an exception
+        try:
+        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:757:36: warning: 'except' logic is unreachable, try doesn't raise an exception
+                    hcf = List[Int]()
+                                   ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:761:36: warning: 'except' logic is unreachable, try doesn't raise an exception
+                    hrf = List[Int]()
+                                   ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:762:17: warning: try body doesn't raise an exception
+                try:
+                ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:776:17: warning: try body doesn't raise an exception
+                try:
+                ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:753:13: warning: try body doesn't raise an exception
+            try:
+            ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:795:13: warning: try body doesn't raise an exception
+            try:
+            ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:800:13: warning: try body doesn't raise an exception
+            try:
+            ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:806:17: warning: try body doesn't raise an exception
+                try: print("[ERROR] gerar_predicoes: aborting due to suspicious shapes/anchors", total_anchors)
+                ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:742:9: warning: try body doesn't raise an exception
+        try:
+        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:905:37: warning: 'except' logic is unreachable, try doesn't raise an exception
+                    except _: val = 0.0
+                                    ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1083:26: warning: 'except' logic is unreachable, try doesn't raise an exception
+                    sw = 0
+                         ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:834:17: warning: try body doesn't raise an exception
+                try: print("[TRACE-BACKBONE] early return: H=" + String(H) + " W=" + String(W))
+                ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:838:20: warning: 'except' logic is unreachable, try doesn't raise an exception
+            return levels.copy()
+                   ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:840:9: warning: try body doesn't raise an exception
+        try: print("[TRACE-BACKBONE] enter: H=" + String(H) + " W=" + String(W))
+        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:852:33: warning: 'except' logic is unreachable, try doesn't raise an exception
+                    v = Float32(0.0)
+                                ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:862:9: warning: try body doesn't raise an exception
+        try: print("[TRACE-BACKBONE] before levels loop; bloco_kernels_len=" + String(len(self.bloco_kernels)))
+        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:866:9: warning: try body doesn't raise an exception
+        try:
+        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:914:13: warning: try body doesn't raise an exception
+            try: print("[TRACE-BACKBONE] level-loop s_idx=" + String(s_idx) + " stride=" + String(strides[s_idx]))
+            ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:940:52: warning: 'except' logic is unreachable, try doesn't raise an exception
+                        except _: kform = List[Int]()
+                                                   ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:937:21: warning: try body doesn't raise an exception
+                    try:
+                    ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:982:37: warning: 'except' logic is unreachable, try doesn't raise an exception
+                        sampled_h = 0; sampled_w = 0
+                                    ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:975:17: warning: try body doesn't raise an exception
+                try:
+                ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:995:36: warning: 'except' logic is unreachable, try doesn't raise an exception
+                        fmap_len = 0
+                                   ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1012:25: warning: try body doesn't raise an exception
+                        try: fmap.append(row^)
+                        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1007:54: warning: 'except' logic is unreachable, try doesn't raise an exception
+                            row = List[List[Float32]]()
+                                                     ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1022:47: warning: 'except' logic is unreachable, try doesn't raise an exception
+                                cell_exists = False
+                                              ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1028:33: warning: try body doesn't raise an exception
+                                try: fmap[y].append(cell^)
+                                ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1031:33: warning: 'except' logic is unreachable, try doesn't raise an exception
+                            var cell = List[Float32]()
+                                ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1039:36: warning: 'except' logic is unreachable, try doesn't raise an exception
+                            sval = 0.0
+                                   ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1048:36: warning: 'except' logic is unreachable, try doesn't raise an exception
+                            except _:
+                                   ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1064:13: warning: try body doesn't raise an exception
+            try: print("[TRACE-BACKBONE] appended level=" + String(s_idx) + " levels_len=" + String(len(levels)) + " fmap_h=" + String(len(fmap)) + " fmap_w=" + (String(len(fmap[0])) if len(fmap)>0 else String(0)))
+            ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1097:13: warning: try body doesn't raise an exception
+            try:
+            ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1110:13: warning: try body doesn't raise an exception
+            try:
+            ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1070:9: warning: try body doesn't raise an exception
+        try:
+        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1178:32: warning: 'except' logic is unreachable, try doesn't raise an exception
+                        return 0
+                               ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1191:28: warning: 'except' logic is unreachable, try doesn't raise an exception
+                    return 0.0
+                           ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1131:13: warning: try body doesn't raise an exception
+            try: print("[TRACE-LINE-100] _fpn_heads_predict_por_nivel: enter")
+            ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1133:13: warning: try body doesn't raise an exception
+            try: print("[TRACE-LINE-101] _fpn_heads_predict_por_nivel: fmaps_levels=" + String(len(fmaps)) + " anchors_levels=" + String(len(anchors_by_level)))
+            ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1130:9: warning: try body doesn't raise an exception
+        try:
+        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1145:17: warning: try body doesn't raise an exception
+                try: print("[ERROR] _fpn_heads_predict_por_nivel: empty fmaps — returning zero outputs")
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1143:9: warning: try body doesn't raise an exception
+        try:
+        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1202:27: warning: 'except' logic is unreachable, try doesn't raise an exception
+                    exp = 0
+                          ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1204:21: warning: try body doesn't raise an exception
+                    try: print("[TRACE-LINE-110] head_cls_formato_len=" + String(len(self.head_cls_pesos_conv.formato)) + " dados_len=" + String(len(self.head_cls_pesos_conv.dados)))
+                    ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1218:47: warning: 'except' logic is unreachable, try doesn't raise an exception
+                                hw_cls.append(0.001)
+                                              ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1222:36: warning: 'except' logic is unreachable, try doesn't raise an exception
+                    for i in range(C): hw_cls.append(0.001)
+                                   ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1224:32: warning: 'except' logic is unreachable, try doesn't raise an exception
+                for i in range(C): hw_cls.append(0.001)
+                               ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1234:28: warning: 'except' logic is unreachable, try doesn't raise an exception
+                    exp2 = 0
+                           ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1236:21: warning: try body doesn't raise an exception
+                    try: print("[TRACE-LINE-111] head_reg_formato_len=" + String(len(self.head_reg_pesos_conv.formato)) + " dados_len=" + String(len(self.head_reg_pesos_conv.dados)))
+                    ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1249:47: warning: 'except' logic is unreachable, try doesn't raise an exception
+                                hw_reg.append(1.0)
+                                              ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1253:36: warning: 'except' logic is unreachable, try doesn't raise an exception
+                    for j in range(4): hw_reg.append(1.0)
+                                   ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1255:32: warning: 'except' logic is unreachable, try doesn't raise an exception
+                for j in range(4): hw_reg.append(1.0)
+                               ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1260:21: warning: try body doesn't raise an exception
+                    try: print("[DBG] _fpn: processing level=" + String(level_idx))
+                    ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1259:17: warning: try body doesn't raise an exception
+                try:
+                ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1268:25: warning: try body doesn't raise an exception
+                        try: print("[DBG] _fpn: fmap_len=" + String(len(fmap)) + " row0_len=" + (String(len(fmap[0])) if len(fmap) > 0 else String(0)))
+                        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1272:32: warning: 'except' logic is unreachable, try doesn't raise an exception
+                        except _: pass
+                               ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1275:53: warning: 'except' logic is unreachable, try doesn't raise an exception
+                    fmap = List[List[List[Float32]]]()
+                                                    ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1302:63: warning: 'except' logic is unreachable, try doesn't raise an exception
+                                            except _: outch = 1
+                                                              ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1320:65: warning: try body doesn't raise an exception
+                                                                try: print("[TRACE-LINE-200] cls widx OOB", widx, "len=", _len, "level=", level_idx, "yy=", yy, "xx=", xx)
+                                                                ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1325:68: warning: 'except' logic is unreachable, try doesn't raise an exception
+                                                            wval = 0.0
+                                                                   ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1328:45: warning: try body doesn't raise an exception
+                                            try: cell_logit = cell_logit + self.head_cls_bias_conv.dados[0]
+                                            ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1333:45: warning: try body doesn't raise an exception
+                                            try: cell_logit = cell_logit + self.head_cls_bias_conv.dados[0]
+                                            ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1339:54: warning: 'except' logic is unreachable, try doesn't raise an exception
+                                        cell_logit = 0.0
+                                                     ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1373:81: warning: 'except' logic is unreachable, try doesn't raise an exception
+                                                                        wval2 = 0.0
+                                                                                ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1367:69: warning: try body doesn't raise an exception
+                                                                    try: print("[TRACE-LINE-210] reg widx2 OOB", widx2, "len=", _len2, "level=", level_idx, "yy=", yy, "xx=", xx)
+                                                                    ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1375:73: warning: 'except' logic is unreachable, try doesn't raise an exception
+                                                                wval2 = 0.0
+                                                                        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1377:49: warning: try body doesn't raise an exception
+                                                try: acc2 = acc2 + self.head_reg_bias_conv.dados[j]
+                                                ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1385:49: warning: try body doesn't raise an exception
+                                                try: dv = dv + self.head_reg_bias_conv.dados[j]
+                                                ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1394:56: warning: 'except' logic is unreachable, try doesn't raise an exception
+                                        for j in range(4): deltas_cell.append(0.0)
+                                                       ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1399:35: warning: 'except' logic is unreachable, try doesn't raise an exception
+                    precomputed = False
+                                  ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1405:21: warning: try body doesn't raise an exception
+                    try:
+                    ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1414:30: warning: 'except' logic is unreachable, try doesn't raise an exception
+                        fx = 0; fy = 0
+                             ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1465:62: warning: 'except' logic is unreachable, try doesn't raise an exception
+                                            except _: wval = 0.0
+                                                             ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1468:33: warning: try body doesn't raise an exception
+                                try: logit = logit + self.head_cls_bias_conv.dados[0]
+                                ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1473:33: warning: try body doesn't raise an exception
+                                try: logit = logit + self.head_cls_bias_conv.dados[0]
+                                ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1479:37: warning: 'except' logic is unreachable, try doesn't raise an exception
+                            logit = 0.0
+                                    ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1502:67: warning: 'except' logic is unreachable, try doesn't raise an exception
+                                                except _: wval2 = 0.0
+                                                                  ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1504:37: warning: try body doesn't raise an exception
+                                    try: acc2 = acc2 + self.head_reg_bias_conv.dados[j]
+                                    ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1512:37: warning: try body doesn't raise an exception
+                                    try: dv = dv + self.head_reg_bias_conv.dados[j]
+                                    ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1519:44: warning: 'except' logic is unreachable, try doesn't raise an exception
+                            for j in range(4): deltas.append(0.0)
+                                           ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1438:37: warning: 'except' logic is unreachable, try doesn't raise an exception
+                            logit = 0.0
+                                    ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1442:44: warning: 'except' logic is unreachable, try doesn't raise an exception
+                            for j in range(4): deltas.append(0.0)
+                                           ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1162:9: warning: try body doesn't raise an exception
+        try:
+        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1580:40: warning: 'except' logic is unreachable, try doesn't raise an exception
+                        gray = Float32(0.0)
+                                       ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1591:22: warning: 'except' logic is unreachable, try doesn't raise an exception
+                kh = 3; kw = 3
+                     ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1626:54: warning: 'except' logic is unreachable, try doesn't raise an exception
+            var _empty = tensor_defs.Tensor(List[Int](), self.tipo_computacao)
+                                                     ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1674:21: warning: 'except' logic is unreachable, try doesn't raise an exception
+                self.head_cls_pesos_conv = tensor_defs.Tensor(List[Int](), self.tipo_computacao)
+                    ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1699:21: warning: 'except' logic is unreachable, try doesn't raise an exception
+                self.head_reg_pesos_conv = tensor_defs.Tensor(List[Int](), self.tipo_computacao)
+                    ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1700:13: warning: try body doesn't raise an exception
+            try:
+            ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1716:38: warning: 'except' logic is unreachable, try doesn't raise an exception
+                    s1 = s1 + String("[]")
+                                     ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1705:13: warning: try body doesn't raise an exception
+            try:
+            ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1731:38: warning: 'except' logic is unreachable, try doesn't raise an exception
+                    s2 = s2 + String("[]")
+                                     ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1720:13: warning: try body doesn't raise an exception
+            try:
+            ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1737:20: warning: 'except' logic is unreachable, try doesn't raise an exception
+            return False
+                   ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1769:27: warning: 'except' logic is unreachable, try doesn't raise an exception
+            patched_img = img_pixels
+                          ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1771:9: warning: try body doesn't raise an exception
+        try:
+        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1776:9: warning: try body doesn't raise an exception
+        try:
+        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1785:9: warning: try body doesn't raise an exception
+        try:
+        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1803:21: warning: 'except' logic is unreachable, try doesn't raise an exception
+                s = 0.0
+                    ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1810:9: warning: try body doesn't raise an exception
+        try:
+        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1817:9: warning: try body doesn't raise an exception
+        try:
+        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1826:13: warning: try body doesn't raise an exception
+            try:
+            ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1865:17: warning: try body doesn't raise an exception
+                try:
+                ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1893:30: warning: 'except' logic is unreachable, try doesn't raise an exception
+                        sc = -1e9
+                             ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1862:9: warning: try body doesn't raise an exception
+        try:
+        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:70:16: warning: 'except' logic is unreachable, try doesn't raise an exception
+        return False
+               ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:110:5: warning: try body doesn't raise an exception
+    try:
+    ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:127:5: warning: try body doesn't raise an exception
+    try:
+    ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:133:5: warning: try body doesn't raise an exception
+    try:
+    ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:169:23: warning: 'except' logic is unreachable, try doesn't raise an exception
+            bias_dw = 0.0
+                      ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:187:22: warning: 'except' logic is unreachable, try doesn't raise an exception
+                D2 = 0
+                     ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:162:5: warning: try body doesn't raise an exception
+    try:
+    ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:218:25: warning: 'except' logic is unreachable, try doesn't raise an exception
+                    D = 0
+                        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:231:36: warning: 'except' logic is unreachable, try doesn't raise an exception
+                head_initialized = False
+                                   ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:206:5: warning: try body doesn't raise an exception
+    try:
+    ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:253:36: warning: 'except' logic is unreachable, try doesn't raise an exception
+        anchors_checksum = Float32(-1.0)
+                                   ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:272:23: warning: 'except' logic is unreachable, try doesn't raise an exception
+                bad = bad + 1
+                      ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:256:5: warning: try body doesn't raise an exception
+    try:
+    ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:337:5: warning: try body doesn't raise an exception
+    try:
+    ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:342:5: warning: try body doesn't raise an exception
+    try:
+    ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:346:5: warning: try body doesn't raise an exception
+    try:
+    ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:354:9: warning: try body doesn't raise an exception
+        try:
+        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:392:30: warning: 'except' logic is unreachable, try doesn't raise an exception
+            cur_ck = Float32(-2.0)
+                             ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:461:20: warning: 'except' logic is unreachable, try doesn't raise an exception
+            except _:
+                   ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:485:17: warning: try body doesn't raise an exception
+                try:
+                ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:471:9: warning: try body doesn't raise an exception
+        try:
+        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:506:9: warning: try body doesn't raise an exception
+        try:
+        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:537:9: warning: try body doesn't raise an exception
+        try:
+        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:559:32: warning: 'except' logic is unreachable, try doesn't raise an exception
+            using_conv_preds = False
+                               ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:573:44: warning: 'except' logic is unreachable, try doesn't raise an exception
+                    pr_mean = List[Float32]()
+                                           ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:577:50: warning: 'except' logic is unreachable, try doesn't raise an exception
+                    pr_base = List[List[Float32]]()
+                                                 ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:579:39: warning: 'except' logic is unreachable, try doesn't raise an exception
+                pr_cls = List[Float32]()
+                                      ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:1227:17: warning: try body doesn't raise an exception
+                try:
+                ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:1231:13: warning: try body doesn't raise an exception
+            try:
+            ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:1217:9: warning: try body doesn't raise an exception
+        try:
+        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:1319:56: warning: 'except' logic is unreachable, try doesn't raise an exception
+                                raw_w_bytes = List[Int]()
+                                                       ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:1323:56: warning: 'except' logic is unreachable, try doesn't raise an exception
+                                raw_b_bytes = List[Int]()
+                                                       ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:1311:21: warning: try body doesn't raise an exception
+                    try:
+                    ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:1329:25: warning: try body doesn't raise an exception
+                        try:
+                        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:1338:48: warning: 'except' logic is unreachable, try doesn't raise an exception
+                        boxes = List[List[Int]]()
+                                               ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:1347:21: warning: try body doesn't raise an exception
+                    try:
+                    ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:1361:21: warning: try body doesn't raise an exception
+                    try:
+                    ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:1243:9: warning: try body doesn't raise an exception
+        try:
+        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:1467:64: warning: 'except' logic is unreachable, try doesn't raise an exception
+                                        raw_w_bytes = List[Int]()
+                                                               ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:1471:64: warning: 'except' logic is unreachable, try doesn't raise an exception
+                                        raw_b_bytes = List[Int]()
+                                                               ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:1474:37: warning: try body doesn't raise an exception
+                                    try:
+                                    ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:1483:60: warning: 'except' logic is unreachable, try doesn't raise an exception
+                                    boxes = List[List[Int]]()
+                                                           ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:1488:41: warning: try body doesn't raise an exception
+                                        try:
+                                        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:1534:38: warning: 'except' logic is unreachable, try doesn't raise an exception
+                    median_val_iou = mean_val_iou
+                                     ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:1545:39: warning: 'except' logic is unreachable, try doesn't raise an exception
+                composite_val_score = mean_val_iou
+                                      ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:1399:9: warning: try body doesn't raise an exception
+        try:
+        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:1635:64: warning: 'except' logic is unreachable, try doesn't raise an exception
+                                        raw_w_bytes = List[Int]()
+                                                               ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:1639:64: warning: 'except' logic is unreachable, try doesn't raise an exception
+                                        raw_b_bytes = List[Int]()
+                                                               ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:1642:37: warning: try body doesn't raise an exception
+                                    try:
+                                    ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:1651:60: warning: 'except' logic is unreachable, try doesn't raise an exception
+                                    boxes = List[List[Int]]()
+                                                           ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:1673:59: warning: 'except' logic is unreachable, try doesn't raise an exception
+                                            center_dist = 0.0; w_ratio = 0.0; h_ratio = 0.0
+                                                          ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:1571:9: warning: try body doesn't raise an exception
+        try:
+        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:1688:9: warning: try body doesn't raise an exception
+        try:
+        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:1710:9: warning: try body doesn't raise an exception
+        try:
+        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:1714:9: warning: try body doesn't raise an exception
+        try:
+        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:1704:5: warning: try body doesn't raise an exception
+    try:
+    ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:1731:9: warning: try body doesn't raise an exception
+        try:
+        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:11:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_gerador_ancoras.mojo:14:16: warning: 'except' logic is unreachable, try doesn't raise an exception
+        return False
+               ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:12:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_associar_ancoras.mojo:27:16: warning: 'except' logic is unreachable, try doesn't raise an exception
+        return 0.0
+               ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:12:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_associar_ancoras.mojo:66:29: warning: 'except' logic is unreachable, try doesn't raise an exception
+            invalid_count = invalid_count + 1
+                            ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:12:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_associar_ancoras.mojo:68:9: warning: try body doesn't raise an exception
+        try:
+        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:12:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_associar_ancoras.mojo:93:13: warning: try body doesn't raise an exception
+            try:
+            ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:12:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_associar_ancoras.mojo:115:13: warning: try body doesn't raise an exception
+            try:
+            ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:12:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_associar_ancoras.mojo:142:21: warning: try body doesn't raise an exception
+                    try:
+                    ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:12:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_associar_ancoras.mojo:140:13: warning: try body doesn't raise an exception
+            try:
+            ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:12:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_associar_ancoras.mojo:151:13: warning: try body doesn't raise an exception
+            try:
+            ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:12:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_associar_ancoras.mojo:175:17: warning: try body doesn't raise an exception
+                try:
+                ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:12:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_associar_ancoras.mojo:203:25: warning: try body doesn't raise an exception
+                        try:
+                        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:12:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_associar_ancoras.mojo:185:17: warning: try body doesn't raise an exception
+                try:
+                ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:12:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_associar_ancoras.mojo:165:5: warning: try body doesn't raise an exception
+    try:
+    ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:13:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_utils.mojo:41:16: warning: 'except' logic is unreachable, try doesn't raise an exception
+        return 0.0
+               ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:2:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/computacao/adaptadores/contexto.mojo:2:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/computacao/adaptadores/adaptador_dispositivo.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/computacao/cuda/conjunto_de_buffers_dispositivo.mojo:29:9: warning: unreachable code after return statement
+        return
+        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:10:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/computacao/dispatcher_tensor.mojo:48:9: warning: try body doesn't raise an exception
+        try:
+        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/camadas/cnn/__init__.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/camadas/cnn/__init__.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/camadas/cnn/cnn.mojo:3:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/computacao/captura_camadas.mojo:2:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/computacao/storage_sessao.mojo:70:16: warning: 'except' logic is unreachable, try doesn't raise an exception
+        return False
+               ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/nucleo/Tensor.mojo:38:17: warning: try body doesn't raise an exception
+                try: print("[ERROR] Tensor.__init__: formato contem dimensao invalida")
+                ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/nucleo/Tensor.mojo:52:31: warning: 'except' logic is unreachable, try doesn't raise an exception
+                    too_big = True
+                              ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/nucleo/Tensor.mojo:58:13: warning: try body doesn't raise an exception
+            try:
+            ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:3:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/nucleo/Tensor.mojo:158:20: warning: 'except' logic is unreachable, try doesn't raise an exception
+            return False
+                   ^
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/camadas/__init__.mojo:82:17: warning: 'except' logic is unreachable, try doesn't raise an exception
+                continue
+                ^
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/camadas/__init__.mojo:76:5: warning: try body doesn't raise an exception
+    try:
+    ^
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/camadas/__init__.mojo:85:5: warning: try body doesn't raise an exception
+    try:
+    ^
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/camadas/__init__.mojo:89:5: warning: try body doesn't raise an exception
+    try:
+    ^
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/graficos/__init__.mojo:15:57: warning: self recursive call will cause an infinite loop
+    return bmp.redimensionar_matriz_preto_branco_nearest(origem.copy(), altura_alvo, largura_alvo)
+                                                        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:254:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/diagnostics/logger.mojo:19:16: warning: 'except' logic is unreachable, try doesn't raise an exception
+        return False
+               ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:254:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/diagnostics/logger.mojo:62:9: warning: try body doesn't raise an exception
+        try:
+        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:254:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/diagnostics/logger.mojo:58:5: warning: try body doesn't raise an exception
+    try:
+    ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:366:28: warning: assignment to 'any_ok' was never used; assign to '_' instead?
+        var any_ok: Bool = False
+                           ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:586:22: warning: assignment to 'h' was never used; assign to '_' instead?
+        var h: Int = 0
+                     ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:603:27: warning: assignment to 'crop_x' was never used; assign to '_' instead?
+        var crop_x: Int = 0
+                          ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:604:27: warning: assignment to 'crop_y' was never used; assign to '_' instead?
+        var crop_y: Int = 0
+                          ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:605:25: warning: assignment to 'side' was never used; assign to '_' instead?
+        var side: Int = 0
+                        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:654:30: warning: assignment to 'scale' was never used; assign to '_' instead?
+        var scale: Float32 = 1.0
+                             ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:720:37: warning: assignment to 'Cc' was never used; assign to '_' instead?
+                            Cc = len(lvl[0][0])
+                                    ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:715:54: warning: assignment to 'Cc' was never used; assign to '_' instead?
+                    var Hf = 0; var Wf = 0; var Cc = 0
+                                                     ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:715:30: warning: assignment to 'Hf' was never used; assign to '_' instead?
+                    var Hf = 0; var Wf = 0; var Cc = 0
+                             ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:687:41: warning: assignment to 'img_matrix' was never used; assign to '_' instead?
+        var img_matrix = img_pixels.copy()
+                                        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:751:32: warning: assignment to 'hcf' was never used; assign to '_' instead?
+            var hcf = List[Int]()
+                               ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:752:32: warning: assignment to 'hrf' was never used; assign to '_' instead?
+            var hrf = List[Int]()
+                               ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:768:35: warning: assignment to 's_hcf' was never used; assign to '_' instead?
+                    s_hcf = s_hcf + String("]")
+                                  ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:782:35: warning: assignment to 's_hrf' was never used; assign to '_' instead?
+                    s_hrf = s_hrf + String("]")
+                                  ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:903:40: warning: assignment to 'val' was never used; assign to '_' instead?
+                    var val: Float32 = 0.0
+                                       ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:890:35: warning: assignment to 'x' was never used; assign to '_' instead?
+                    for x in range(fw): row.append(0.0)
+                                  ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:888:31: warning: assignment to 'y' was never used; assign to '_' instead?
+                for y in range(fh):
+                              ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1064:139: error: use of uninitialized value 'fmap'
+            try: print("[TRACE-BACKBONE] appended level=" + String(s_idx) + " levels_len=" + String(len(levels)) + " fmap_h=" + String(len(fmap)) + " fmap_w=" + (String(len(fmap[0])) if len(fmap)>0 else String(0)))
+                                                                                                                                          ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:921:17: note: 'fmap' declared here
+            var fmap: List[List[List[Float32]]] = List[List[List[Float32]]]()
+                ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1035:45: warning: assignment to 'sval' was never used; assign to '_' instead?
+                        var sval: Float32 = 0.0
+                                            ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1024:59: warning: assignment to 'cell' was never used; assign to '_' instead?
+                                var cell = fmap[y][x].copy()
+                                                          ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1005:47: warning: assignment to 'row' was never used; assign to '_' instead?
+                            row = fmap[y].copy()
+                                              ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1002:71: warning: assignment to 'row' was never used; assign to '_' instead?
+                    var row: List[List[Float32]] = List[List[Float32]]()
+                                                                      ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:991:41: warning: assignment to 'fmap_len' was never used; assign to '_' instead?
+                    var fmap_len: Int = 0
+                                        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:980:58: warning: assignment to 'sampled_w' was never used; assign to '_' instead?
+                        if sampled_h > 0: sampled_w = len(sampled[0])
+                                                         ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:977:37: warning: assignment to 'sampled_w' was never used; assign to '_' instead?
+                    var sampled_w = 0
+                                    ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:976:37: warning: assignment to 'sampled_h' was never used; assign to '_' instead?
+                    var sampled_h = 0
+                                    ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:965:86: warning: assignment to 'sampled' was never used; assign to '_' instead?
+                    var sampled = _sample_grid(pooled, ph, pw, fh, fw, c_idx, C).copy()
+                                                                                     ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:946:37: warning: assignment to 's_kf' was never used; assign to '_' instead?
+                        s_kf = s_kf + String("]")
+                                    ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:938:46: warning: assignment to 'kform' was never used; assign to '_' instead?
+                        var kform = List[Int]()
+                                             ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:847:41: warning: assignment to 'v' was never used; assign to '_' instead?
+                var v: Float32 = Float32(0.0)
+                                        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:828:22: warning: assignment to 'H' was never used; assign to '_' instead?
+        var H: Int = 0
+                     ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1522:35: warning: assignment to 'j' was never used; assign to '_' instead?
+                    for j in range(4): base.append((mval - 0.5) * 0.1)
+                                  ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1500:70: warning: assignment to 'wval2' was never used; assign to '_' instead?
+                                                var wval2: Float32 = 0.0
+                                                                     ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1463:65: warning: assignment to 'wval' was never used; assign to '_' instead?
+                                            var wval: Float32 = 0.0
+                                                                ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1420:39: warning: assignment to 'i' was never used; assign to '_' instead?
+                        for i in range(C): feat.append(0.0)
+                                      ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1409:42: warning: assignment to 'fy' was never used; assign to '_' instead?
+                    var fx = 0; var fy = 0
+                                         ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1409:30: warning: assignment to 'fx' was never used; assign to '_' instead?
+                    var fx = 0; var fy = 0
+                             ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1404:39: warning: assignment to 'cy' was never used; assign to '_' instead?
+                    var cy: Float32 = 0.0
+                                      ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1403:39: warning: assignment to 'cx' was never used; assign to '_' instead?
+                    var cx: Float32 = 0.0
+                                      ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1300:57: warning: assignment to 'outch' was never used; assign to '_' instead?
+                                            var outch = 1
+                                                        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1264:53: warning: assignment to 'fmap' was never used; assign to '_' instead?
+                var fmap = List[List[List[Float32]]]()
+                                                    ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1251:39: warning: assignment to 'j' was never used; assign to '_' instead?
+                        for j in range(4): hw_reg.append(1.0)
+                                      ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1220:39: warning: assignment to 'i' was never used; assign to '_' instead?
+                        for i in range(C): hw_cls.append(0.001)
+                                      ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1210:39: warning: assignment to 'i' was never used; assign to '_' instead?
+                        for i in range(C):
+                                      ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1141:48: warning: assignment to 'feat' was never used; assign to '_' instead?
+        var feat: List[Float32] = List[Float32]()
+                                               ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1195:32: warning: assignment to 'exp' was never used; assign to '_' instead?
+                var exp: Int = 0
+                               ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1227:33: warning: assignment to 'exp2' was never used; assign to '_' instead?
+                var exp2: Int = 0
+                                ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1575:48: warning: assignment to 'gray' was never used; assign to '_' instead?
+                    var gray: Float32 = Float32(0.0)
+                                               ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1586:22: warning: assignment to 'kh' was never used; assign to '_' instead?
+            var kh = 3; var kw = 3
+                     ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1586:34: warning: assignment to 'kw' was never used; assign to '_' instead?
+            var kh = 3; var kw = 3
+                                 ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1889:39: warning: assignment to 'sc' was never used; assign to '_' instead?
+                    var sc: Float64 = -1e9
+                                      ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1794:30: warning: assignment to 's' was never used; assign to '_' instead?
+            var s: Float32 = 0.0
+                             ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:1764:27: warning: assignment to 'patched_img' was never used; assign to '_' instead?
+        var patched_img = img_pixels
+                          ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:1663:64: warning: assignment to 'h_ratio' was never used; assign to '_' instead?
+                                        var h_ratio: Float32 = 0.0
+                                                               ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:1662:64: warning: assignment to 'w_ratio' was never used; assign to '_' instead?
+                                        var w_ratio: Float32 = 0.0
+                                                               ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:1661:68: warning: assignment to 'center_dist' was never used; assign to '_' instead?
+                                        var center_dist: Float32 = 0.0
+                                                                   ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:1640:60: warning: assignment to 'boxes' was never used; assign to '_' instead?
+                                var boxes = List[List[Int]]()
+                                                           ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:1472:60: warning: assignment to 'boxes' was never used; assign to '_' instead?
+                                var boxes = List[List[Int]]()
+                                                           ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:1327:48: warning: assignment to 'boxes' was never used; assign to '_' instead?
+                    var boxes = List[List[Int]]()
+                                               ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:1310:48: warning: assignment to 'raw_b_bytes' was never used; assign to '_' instead?
+                    var raw_b_bytes = List[Int]()
+                                               ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:1309:48: warning: assignment to 'raw_w_bytes' was never used; assign to '_' instead?
+                    var raw_w_bytes = List[Int]()
+                                               ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:546:28: warning: assignment to 'tmp_bloco_ok' was never used; assign to '_' instead?
+            tmp_bloco_ok = False
+                           ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:495:43: warning: assignment to 'first_diff2' was never used; assign to '_' instead?
+                            first_diff2 = ii; break
+                                          ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:1538:48: warning: assignment to 'composite_val_score' was never used; assign to '_' instead?
+            var composite_val_score: Float32 = mean_val_iou
+                                               ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:575:41: warning: assignment to 'pr_base' was never used; assign to '_' instead?
+                    pr_base = pr[3].copy()
+                                        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:571:41: warning: assignment to 'pr_mean' was never used; assign to '_' instead?
+                    pr_mean = pr[2].copy()
+                                        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:569:50: warning: assignment to 'pr_base' was never used; assign to '_' instead?
+                var pr_base = List[List[Float32]]()
+                                                 ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:568:44: warning: assignment to 'pr_mean' was never used; assign to '_' instead?
+                var pr_mean = List[Float32]()
+                                           ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:566:36: warning: assignment to 'pr_reg' was never used; assign to '_' instead?
+                pr_reg = pr[1].copy()
+                                   ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:565:36: warning: assignment to 'pr_cls' was never used; assign to '_' instead?
+                pr_cls = pr[0].copy()
+                                   ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:555:42: warning: assignment to 'pr_base' was never used; assign to '_' instead?
+        var pr_base = List[List[Float32]]()
+                                         ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:554:36: warning: assignment to 'pr_mean' was never used; assign to '_' instead?
+        var pr_mean = List[Float32]()
+                                   ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:553:41: warning: assignment to 'pr_reg' was never used; assign to '_' instead?
+        var pr_reg = List[List[Float32]]()
+                                        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:552:35: warning: assignment to 'pr_cls' was never used; assign to '_' instead?
+        var pr_cls = List[Float32]()
+                                  ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:551:38: warning: assignment to 'using_conv_preds' was never used; assign to '_' instead?
+        var using_conv_preds: Bool = False
+                                     ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:544:28: warning: assignment to 'tmp_bloco_ok' was never used; assign to '_' instead?
+            tmp_bloco_ok = True
+                           ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:543:60: warning: assignment to 'tmp_bloco' was never used; assign to '_' instead?
+            tmp_bloco = camadas_pkg.criar_bloco_de_tensores(patch_size, patch_size, detector.parametros.num_filtros, kernel_h, kernel_w, detector.bloco_kernels.copy(), detector.bloco_peso_saida.copy(), detector.bloco_bias_saida.copy(), detector.tipo_computacao)
+                                                           ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:536:29: warning: assignment to 'kernel_w' was never used; assign to '_' instead?
+        var kernel_w: Int = 3
+                            ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:535:29: warning: assignment to 'kernel_h' was never used; assign to '_' instead?
+        var kernel_h: Int = 3
+                            ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:534:34: warning: assignment to 'tmp_bloco_ok' was never used; assign to '_' instead?
+        var tmp_bloco_ok: Bool = False
+                                 ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:525:34: warning: assignment to 'penalty_count' was never used; assign to '_' instead?
+        var penalty_count: Int = 0
+                                 ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:524:30: warning: assignment to 'count_iou' was never used; assign to '_' instead?
+        var count_iou: Int = 0
+                             ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:523:32: warning: assignment to 'iou_sum' was never used; assign to '_' instead?
+        var iou_sum: Float32 = 0.0
+                               ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:520:36: warning: assignment to 'neg_sample_rate' was never used; assign to '_' instead?
+        var neg_sample_rate: Int = 30
+                                   ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:519:57: warning: assignment to 'max_neg_per_image' was never used; assign to '_' instead?
+        var max_neg_per_image: Int = _max_pos_per_image * 3
+                                                        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:518:41: warning: assignment to 'neg_processed_anchor' was never used; assign to '_' instead?
+        var neg_processed_anchor: Int = 0
+                                        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:517:37: warning: assignment to 'neg_step_counter' was never used; assign to '_' instead?
+        var neg_step_counter: Int = 0
+                                    ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:515:34: warning: assignment to 'pos_processed' was never used; assign to '_' instead?
+        var pos_processed: Int = 0
+                                 ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:509:44: warning: assignment to 'memlines' was never used; assign to '_' instead?
+                var memlines = memtxt.split("\n")
+                                           ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:486:39: warning: assignment to 'first_diff2' was never used; assign to '_' instead?
+                    var first_diff2 = -1
+                                      ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:468:39: warning: assignment to 'targets' was never used; assign to '_' instead?
+        var targets = res.targets.copy()
+                                      ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:467:37: warning: assignment to 'labels' was never used; assign to '_' instead?
+        var labels = res.labels.copy()
+                                    ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:451:51: warning: assignment to 'img_matrix' was never used; assign to '_' instead?
+        var img_matrix = List[List[List[Float32]]]()
+                                                  ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:401:47: warning: assignment to 'img_matrix' was never used; assign to '_' instead?
+        img_matrix = List[List[List[Float32]]]()
+                                              ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:381:38: warning: assignment to 'cur_ck' was never used; assign to '_' instead?
+        var cur_ck: Float32 = Float32(-2.0)
+                                     ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:83:22: warning: assignment to 'lr_inicial' was never used; assign to '_' instead?
+    var lr_inicial = taxa_aprendizado
+                     ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:163:39: warning: assignment to 'bias_dw' was never used; assign to '_' instead?
+        var bias_dw: Float32 = Float32(0.0)
+                                      ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:164:39: warning: assignment to 'bias_dh' was never used; assign to '_' instead?
+        var bias_dh: Float32 = Float32(0.0)
+                                      ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:180:22: warning: assignment to 'D2' was never used; assign to '_' instead?
+            var D2 = 0
+                     ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:212:25: warning: assignment to 'D' was never used; assign to '_' instead?
+                var D = 0
+                        ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:11:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_gerador_ancoras.mojo:59:34: warning: assignment to 'escalas_local' was never used; assign to '_' instead?
+    escalas_local = escalas_local^
+                                 ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:12:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_associar_ancoras.mojo:74:19: warning: assignment to 'i' was never used; assign to '_' instead?
+    for i in range(N):
+                  ^
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/graficos/__init__.mojo:113:28: warning: assignment to 'xx' was never used; assign to '_' instead?
+            for xx in range(out_w):
+                           ^
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/../../BIONIX-ML/bionix_ml/graficos/__init__.mojo:111:24: warning: assignment to 'yy' was never used; assign to '_' instead?
+        for yy in range(out_h):
+                       ^
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/run_retina_train.mojo:1:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_modelo.mojo:16:
+Included from /mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/retina/retina_trainer.mojo:254:
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/diagnostics/logger.mojo:11:25: warning: assignment to 'out' was never used; assign to '_' instead?
+        var out = String("")
+                        ^
+/mnt/c/PROJETOS/BIONIX/BIONIX-ML-VIVAZ/src/.pixi/envs/default/bin/mojo: error: failed to run the pass manager

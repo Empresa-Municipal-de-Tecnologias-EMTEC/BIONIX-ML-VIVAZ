@@ -1,6 +1,6 @@
 import bionix_ml.nucleo.Tensor as tensor_defs
 import math
-alias RETINA_DEBUG: Bool = False
+alias RETINA_DEBUG: Bool = True
 
 # detector de NaN/Inf ou valores absurdos
 fn _verificar_valor(var v: Float32) -> Bool:
@@ -16,7 +16,9 @@ fn _verificar_valor(var v: Float32) -> Bool:
 fn gerar_ancoras(tamanho_entrada: Int = 640, passos: List[Int] = [8,16,32],
                  escalas: List[List[Float32]] = List[List[Float32]](), multiplicadores: List[Float32] = [4,8,12], proporcoes: List[Float32] = [0.5, 1.0, 1.5]) -> List[List[Float32]]:
     # Gera anchors como [cx, cy, w, h] em pixels para cada nível.
-    var out: List[List[Float32]] = List[List[Float32]]()
+    var _count_appends: Int = 0
+    # Precompute total anchors and preallocate output list to avoid realloc
+    var out: List[List[Float32]]
     var escalas_local: List[List[Float32]] = escalas.copy()
     if len(escalas_local) == 0:
         var default_scales: List[List[Float32]] = List[List[Float32]]()
@@ -26,6 +28,20 @@ fn gerar_ancoras(tamanho_entrada: Int = 640, passos: List[Int] = [8,16,32],
                 lvl.append(Float32(s) * Float32(m))
             default_scales.append(lvl^)
         escalas_local = default_scales^
+
+    # Estimate total anchors so we can allocate once
+    var total_est: Int = 0
+    for idx in range(len(passos)):
+        var stride = passos[idx]
+        var lvl_scales = escalas_local[idx].copy()
+        var anchors_per_cell = len(lvl_scales) * len(proporcoes)
+        var feat_size = tamanho_entrada // stride
+        total_est = total_est + feat_size * feat_size * anchors_per_cell
+
+    if total_est <= 0:
+        out = List[List[Float32]]()
+    else:
+        out = List[List[Float32]](capacity=total_est)
 
     for idx in range(len(passos)):
         var stride = passos[idx]
@@ -55,7 +71,15 @@ fn gerar_ancoras(tamanho_entrada: Int = 640, passos: List[Int] = [8,16,32],
                                     try: print("[DBG] gerar_ancoras: ignorando ancora corrompida (impossível pormatar os valores)")
                                     except _: pass
                             continue
-                        out.append(a^)
+                        try:
+                            _count_appends = _count_appends + 1
+                            if RETINA_DEBUG:
+                                try: print("[TRACE-ANC] gerar_ancoras: stride=" + String(stride) + " i=" + String(i) + " j=" + String(j) + " sc=" + String(sc) + " r=" + String(r) + " count=" + String(_count_appends))
+                                except _: pass
+                            out.append(a^)
+                        except _:
+                            try: print("[ERROR-ANC] gerar_ancoras: append EXCEPT at count=" + String(_count_appends) + " stride=" + String(stride) + " i=" + String(i) + " j=" + String(j))
+                            except _: pass
     escalas_local = escalas_local^
     return out^
 
@@ -96,6 +120,13 @@ fn gerar_ancoras_por_nivel(tamanho_entrada: Int = 640, passos: List[Int] = [8,16
                                 break
                         if not ok:
                             continue
-                        level_list.append(a^)
+                        try:
+                            if RETINA_DEBUG:
+                                try: print("[TRACE-ANC-LVL] idx=" + String(idx) + " stride=" + String(stride) + " i=" + String(i) + " j=" + String(j))
+                                except _: pass
+                            level_list.append(a^)
+                        except _:
+                            try: print("[ERROR-ANC] gerar_ancoras_por_nivel: append EXCEPT level=" + String(idx) + " i=" + String(i) + " j=" + String(j))
+                            except _: pass
         out_levels.append(level_list^)
     return out_levels^
