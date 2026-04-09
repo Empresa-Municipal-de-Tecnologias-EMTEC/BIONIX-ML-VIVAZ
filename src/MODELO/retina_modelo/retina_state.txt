@@ -1,0 +1,12 @@
+epoch:0
+lr:0.05
+meta:
+input_size:320
+patch_size:32
+tipo_computacao:cpu
+usar_conv_fpn:1
+backbone_tipo:mobilenet_v2
+bbox_reg_weights:0.1,0.1,1.0,1.0
+anchor_passos:8,16,32
+anchor_multiplicadores:4.0,8.0,12.0
+anchor_proporcoes:0.5,1.0,1.5

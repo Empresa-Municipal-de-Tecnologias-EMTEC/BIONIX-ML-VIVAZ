@@ -5,7 +5,7 @@ import os
 fn main() raises -> None:
     # ── Configuração do treino ──────────────────────────────────────────────
     # For quick debug/tuning we use a small number of epochs and early stop
-    var epocas: Int = 1000         # número máximo de épocas (debug) - smoke test
+    var epocas: Int = 2         # número máximo de épocas (debug) - smoke test (reduced for debug)
     var early_stop: Bool = False    # para automaticamente ao convergir
     # ───────────────────────────────────────────────────────────────────────
     print("Iniciando treino RetinaFace... epocas=", epocas, " early_stop=", early_stop)
