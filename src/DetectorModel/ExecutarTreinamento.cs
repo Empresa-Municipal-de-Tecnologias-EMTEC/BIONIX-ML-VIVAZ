@@ -143,12 +143,13 @@ namespace DetectorModel
             var saidaDir = Path.Combine(Directory.GetCurrentDirectory(), "SAIDA");
             Directory.CreateDirectory(saidaDir);
             var saidaLog = Path.Combine(saidaDir, "saida_ops.log");
-            var pesosDirRoot = Path.Combine("PESOS", "DETECTOR");
+            var pesosDirRoot = Path.Combine(Directory.GetCurrentDirectory(), "PESOS", "DETECTOR");
             Directory.CreateDirectory(pesosDirRoot);
 
             for (int epoch = 0; epoch < epochs; epoch++)
             {
                 Console.WriteLine($"Época {epoch}");
+                int testCounter = 0;
                 int localBatch = 0;
                 foreach (var batch in loader.GetBatchesTensors(batchSize, ctx))
                 {
@@ -199,8 +200,9 @@ namespace DetectorModel
                                 if (quickTest)
                                 {
                                     // Quick test: try full annotation first (ImageSharp). If it fails, fallback to raw copy.
-                                    var outPathBaseAnnot = Path.Combine(saidaDir, $"epoch_{epoch}_batch_{localBatch}_{Path.GetFileNameWithoutExtension(sample.ImagePath)}");
-                                    var outPathAnnot = Path.ChangeExtension(outPathBaseAnnot, ".png");
+                                    var outBaseQuick = Path.Combine(saidaDir, $"epoca_{epoch:00}_{testCounter:0000}");
+                                    var outPathAnnot = Path.ChangeExtension(outBaseQuick, ".png");
+                                    var outPathTxt = Path.ChangeExtension(outBaseQuick, ".txt");
                                     Console.WriteLine($" Quick-annotating image to: {outPathAnnot}");
                                     try
                                     {
@@ -211,11 +213,20 @@ namespace DetectorModel
                                             DrawBoxes(img2, detections, bluePx, thickness:3);
                                         using var fs2 = File.OpenWrite(outPathAnnot);
                                         img2.Save(fs2, new SixLabors.ImageSharp.Formats.Png.PngEncoder());
+                                        // save coordinates txt
+                                        try
+                                        {
+                                            using var tw = File.CreateText(outPathTxt);
+                                            foreach (var b in sample.Boxes) tw.WriteLine($"GT {b.X} {b.Y} {b.Width} {b.Height}");
+                                            foreach (var d in detections) tw.WriteLine($"DET {d.X} {d.Y} {d.Width} {d.Height}");
+                                        }
+                                        catch { }
                                         File.AppendAllText(saidaLog, $"{DateTime.UtcNow:o} QUICK_ANNOTATE {sample.ImagePath} -> {outPathAnnot}\n");
                                         Console.WriteLine($" Quick-annotated exists: {File.Exists(outPathAnnot)}");
                                         Console.Out.Flush();
                                         Console.WriteLine("Quick test mode: annotated image saved, exiting.");
                                         Console.Out.Flush();
+                                        testCounter++;
                                         return;
                                     }
                                     catch (Exception ex)
@@ -223,12 +234,19 @@ namespace DetectorModel
                                         Console.WriteLine($"Quick-annotate failed, falling back to raw copy: {ex.Message}");
                                         File.AppendAllText(saidaLog, $"{DateTime.UtcNow:o} QUICK_ANNOTATE_ERROR {ex.Message}\n");
                                         // fallback raw copy
-                                        var outPathCopyBase = Path.Combine(saidaDir, $"epoch_{epoch}_batch_{localBatch}_{Path.GetFileName(sample.ImagePath)}");
-                                        var outPathCopy = outPathCopyBase; // preserve original extension
+                                        var outPathCopy = Path.Combine(saidaDir, $"epoca_{epoch:00}_{testCounter:0000}{Path.GetExtension(sample.ImagePath)}");
                                         try
                                         {
                                             var bytes = File.ReadAllBytes(sample.ImagePath);
                                             File.WriteAllBytes(outPathCopy, bytes);
+                                            // write GT coords txt
+                                            try
+                                            {
+                                                var outTxt = Path.ChangeExtension(outPathCopy, ".txt");
+                                                using var tw2 = File.CreateText(outTxt);
+                                                foreach (var b in sample.Boxes) tw2.WriteLine($"GT {b.X} {b.Y} {b.Width} {b.Height}");
+                                            }
+                                            catch { }
                                             File.AppendAllText(saidaLog, $"{DateTime.UtcNow:o} QUICK_COPY {sample.ImagePath} -> {outPathCopy}\n");
                                         }
                                         catch (Exception ex2)
@@ -240,6 +258,7 @@ namespace DetectorModel
                                         Console.Out.Flush();
                                         Console.WriteLine("Quick test mode: copied image, exiting.");
                                         Console.Out.Flush();
+                                        testCounter++;
                                         return;
                                     }
                                 }
@@ -249,11 +268,20 @@ namespace DetectorModel
                                 var bluePx2 = new SixLabors.ImageSharp.PixelFormats.Rgba32(0, 0, 255, 255);
                                 DrawBoxes(img, sample.Boxes, greenPx2);
                                 DrawBoxes(img, detections, bluePx2);
-                                var outPathBase = Path.Combine(saidaDir, $"epoch_{epoch}_batch_{localBatch}_{Path.GetFileNameWithoutExtension(sample.ImagePath)}");
-                                var outPath = Path.ChangeExtension(outPathBase, ".png");
+                                var outBase = Path.Combine(saidaDir, $"epoca_{epoch:00}_{testCounter:0000}");
+                                var outPath = Path.ChangeExtension(outBase, ".png");
+                                var outTxtPath = Path.ChangeExtension(outBase, ".txt");
                                 Console.WriteLine($" Saving annotated image to: {outPath}");
                                 using var fs = File.OpenWrite(outPath);
                                 img.Save(fs, new SixLabors.ImageSharp.Formats.Png.PngEncoder());
+                                // write coords file
+                                try
+                                {
+                                    using var tw = File.CreateText(outTxtPath);
+                                    foreach (var b in sample.Boxes) tw.WriteLine($"GT {b.X} {b.Y} {b.Width} {b.Height}");
+                                    foreach (var d in detections) tw.WriteLine($"DET {d.X} {d.Y} {d.Width} {d.Height}");
+                                }
+                                catch { }
                                 Console.WriteLine($" Saved exists: {File.Exists(outPath)}");
                                 File.AppendAllText(saidaLog, $"{DateTime.UtcNow:o} ANNOTATED_SAVE {outPath} Exists={File.Exists(outPath)}\n");
                                 Console.Out.Flush();
@@ -261,8 +289,10 @@ namespace DetectorModel
                                 {
                                     Console.WriteLine("Quick test mode: annotated image saved, exiting.");
                                     Console.Out.Flush();
+                                    testCounter++;
                                     return;
                                 }
+                                testCounter++;
                             }
                             catch (Exception ex)
                             {
@@ -318,6 +348,13 @@ namespace DetectorModel
                 catch { }
 
                 Console.WriteLine($"Pesos salvos em {pesosDirRoot}");
+                try
+                {
+                    var files = Directory.GetFiles(pesosDirRoot);
+                    Console.WriteLine("Arquivos em PESOS/DETECTOR:");
+                    foreach (var f in files) Console.WriteLine($" - {f}");
+                }
+                catch { }
             }
 
             Console.WriteLine("Execução de treinamento (esqueleto) finalizada.");
