@@ -3,6 +3,9 @@ using System.IO;
 using DetectorModel.dados;
 using DetectorModel.modelo;
 using Bionix.ML.nucleo.tensor;
+using DetectorModel.modelo;
+using Bionix.ML.nucleo.funcoesPerda.Focal;
+using Bionix.ML.nucleo.funcoesPerda.SmoothL1;
 using System.Linq;
 
 namespace DetectorModel
@@ -162,10 +165,80 @@ namespace DetectorModel
                             // Run model forward (placeholder)
                             var (clsOut, regOut) = model.Forward(sample.Tensor, ctx);
 
-                            // Build loss tensor: sumSquares(clsOut) + sumSquares(regOut)
-                            var loss1 = clsOut.SumSquares();
-                            var loss2 = regOut.SumSquares();
-                            var totalLoss = loss1.Add(loss2);
+                            // Build detection losses via anchor matching + focal + smooth-L1
+                            var clsCpu = clsOut as TensorCPU ?? throw new Exception("Expected TensorCPU for clsOut");
+                            var regCpu = regOut as TensorCPU ?? throw new Exception("Expected TensorCPU for regOut");
+
+                            // derive feature map sizes from input tensor
+                            var inShape = sample.Tensor.Shape; int inH = inShape[0]; int inW = inShape[1];
+                            int fh3 = inH, fw3 = inW;
+                            int fh4 = Math.Max(1, fh3 / 2), fw4 = Math.Max(1, fw3 / 2);
+                            int fh5 = Math.Max(1, fh4 / 2), fw5 = Math.Max(1, fw4 / 2);
+
+                            // generate anchors per scale (one anchor per location: ratios=[1], scales=[1])
+                            var anchors3 = UtilitarioAncoras.GenerateAnchors(fh3, fw3, baseSize: 32, ratios: new double[]{1.0}, scales: new double[]{1.0}, stride: 1);
+                            var anchors4 = UtilitarioAncoras.GenerateAnchors(fh4, fw4, baseSize: 64, ratios: new double[]{1.0}, scales: new double[]{1.0}, stride: 2);
+                            var anchors5 = UtilitarioAncoras.GenerateAnchors(fh5, fw5, baseSize: 128, ratios: new double[]{1.0}, scales: new double[]{1.0}, stride: 4);
+                            var allAnchors = new System.Collections.Generic.List<BoxF>();
+                            allAnchors.AddRange(anchors3); allAnchors.AddRange(anchors4); allAnchors.AddRange(anchors5);
+
+                            // convert GT boxes to BoxF
+                            var gts = new System.Collections.Generic.List<BoxF>();
+                            foreach (var b in sample.Boxes) gts.Add(new BoxF(b.X, b.Y, b.Width, b.Height));
+
+                            // match anchors
+                            UtilitarioAncoras.MatchAnchors(allAnchors, gts, posIou: 0.5, negIou: 0.4, out int[] labels, out int[] matched, out double[][] bboxTargets);
+
+                            // collect active indices (exclude ignore = -1)
+                            var activeIdx = new System.Collections.Generic.List<int>();
+                            var positiveIdx = new System.Collections.Generic.List<int>();
+                            for (int i = 0; i < labels.Length; i++)
+                            {
+                                if (labels[i] != -1) activeIdx.Add(i);
+                                if (labels[i] == 1) positiveIdx.Add(i);
+                            }
+
+                            var fabrica = new Bionix.ML.nucleo.tensor.FabricaTensor(ctx);
+
+                            // classification: logits for active indices and binary targets
+                            double[] clsLogitsArr = new double[activeIdx.Count];
+                            double[] clsTgtArr = new double[activeIdx.Count];
+                            for (int k = 0; k < activeIdx.Count; k++)
+                            {
+                                int ai = activeIdx[k];
+                                clsLogitsArr[k] = clsCpu[ai];
+                                clsTgtArr[k] = labels[ai] == 1 ? 1.0 : 0.0;
+                            }
+                            var clsPred = fabrica.FromArray(new int[]{clsLogitsArr.Length}, clsLogitsArr);
+                            var clsTgt = fabrica.FromArray(new int[]{clsTgtArr.Length}, clsTgtArr);
+
+                            var focal = FocalLoss.Loss(ctx, clsPred, clsTgt, alpha: 0.25, gamma: 2.0);
+
+                            // regression: only positives
+                            Tensor smoothL1Loss;
+                            if (positiveIdx.Count == 0)
+                            {
+                                var zero = fabrica.Criar(1);
+                                zero[0] = 0.0;
+                                smoothL1Loss = zero;
+                            }
+                            else
+                            {
+                                double[] regPredArr = new double[positiveIdx.Count * 4];
+                                double[] regTgtArr = new double[positiveIdx.Count * 4];
+                                for (int p = 0; p < positiveIdx.Count; p++)
+                                {
+                                    int ai = positiveIdx[p];
+                                    for (int k = 0; k < 4; k++) regPredArr[p*4 + k] = regCpu[ai*4 + k];
+                                    var tgt = bboxTargets[ai];
+                                    for (int k = 0; k < 4; k++) regTgtArr[p*4 + k] = tgt[k];
+                                }
+                                var regPred = fabrica.FromArray(new int[]{regPredArr.Length}, regPredArr);
+                                var regTgt = fabrica.FromArray(new int[]{regTgtArr.Length}, regTgtArr);
+                                smoothL1Loss = SmoothL1Loss.Loss(ctx, regPred, regTgt);
+                            }
+
+                            var totalLoss = focal.Add(smoothL1Loss);
                             Console.WriteLine($" Loss (tensor) = {totalLoss[0]:F6}");
 
                             // Backward through autograd
