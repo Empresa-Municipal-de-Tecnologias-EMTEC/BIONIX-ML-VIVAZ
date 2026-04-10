@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "WNemz4cUphQ=",
+  "success": true,
+  "projectFilePath": "C:\\PROJETOS\\BIONIX\\BIONIX-CSHARP\\BIONIX-ML-VIVAZ\\src\\IdentificadorModel\\IdentificadorModel.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\marcelo\\.nuget\\packages\\microsoft.win32.systemevents\\7.0.0\\microsoft.win32.systemevents.7.0.0.nupkg.sha512",
+    "C:\\Users\\marcelo\\.nuget\\packages\\system.drawing.common\\7.0.0\\system.drawing.common.7.0.0.nupkg.sha512"
+  ],
+  "logs": []
+}

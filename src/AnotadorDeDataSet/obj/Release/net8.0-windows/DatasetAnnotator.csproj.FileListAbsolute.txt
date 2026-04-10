@@ -1,0 +1,14 @@
+C:\PROJETOS\BIONIX\BIONIX-CSHARP\BIONIX-ML-VIVAZ\src\AnotadorDeDataSet\bin\Release\net8.0-windows\DatasetAnnotator.exe
+C:\PROJETOS\BIONIX\BIONIX-CSHARP\BIONIX-ML-VIVAZ\src\AnotadorDeDataSet\bin\Release\net8.0-windows\DatasetAnnotator.deps.json
+C:\PROJETOS\BIONIX\BIONIX-CSHARP\BIONIX-ML-VIVAZ\src\AnotadorDeDataSet\bin\Release\net8.0-windows\DatasetAnnotator.runtimeconfig.json
+C:\PROJETOS\BIONIX\BIONIX-CSHARP\BIONIX-ML-VIVAZ\src\AnotadorDeDataSet\bin\Release\net8.0-windows\DatasetAnnotator.dll
+C:\PROJETOS\BIONIX\BIONIX-CSHARP\BIONIX-ML-VIVAZ\src\AnotadorDeDataSet\bin\Release\net8.0-windows\DatasetAnnotator.pdb
+C:\PROJETOS\BIONIX\BIONIX-CSHARP\BIONIX-ML-VIVAZ\src\AnotadorDeDataSet\obj\Release\net8.0-windows\DatasetAnnotator.GeneratedMSBuildEditorConfig.editorconfig
+C:\PROJETOS\BIONIX\BIONIX-CSHARP\BIONIX-ML-VIVAZ\src\AnotadorDeDataSet\obj\Release\net8.0-windows\DatasetAnnotator.AssemblyInfoInputs.cache
+C:\PROJETOS\BIONIX\BIONIX-CSHARP\BIONIX-ML-VIVAZ\src\AnotadorDeDataSet\obj\Release\net8.0-windows\DatasetAnnotator.AssemblyInfo.cs
+C:\PROJETOS\BIONIX\BIONIX-CSHARP\BIONIX-ML-VIVAZ\src\AnotadorDeDataSet\obj\Release\net8.0-windows\DatasetAnnotator.csproj.CoreCompileInputs.cache
+C:\PROJETOS\BIONIX\BIONIX-CSHARP\BIONIX-ML-VIVAZ\src\AnotadorDeDataSet\obj\Release\net8.0-windows\DatasetAnnotator.dll
+C:\PROJETOS\BIONIX\BIONIX-CSHARP\BIONIX-ML-VIVAZ\src\AnotadorDeDataSet\obj\Release\net8.0-windows\refint\DatasetAnnotator.dll
+C:\PROJETOS\BIONIX\BIONIX-CSHARP\BIONIX-ML-VIVAZ\src\AnotadorDeDataSet\obj\Release\net8.0-windows\DatasetAnnotator.pdb
+C:\PROJETOS\BIONIX\BIONIX-CSHARP\BIONIX-ML-VIVAZ\src\AnotadorDeDataSet\obj\Release\net8.0-windows\DatasetAnnotator.genruntimeconfig.cache
+C:\PROJETOS\BIONIX\BIONIX-CSHARP\BIONIX-ML-VIVAZ\src\AnotadorDeDataSet\obj\Release\net8.0-windows\ref\DatasetAnnotator.dll

@@ -1,0 +1,6 @@
+@Vivaz.Api_HostAddress = http://localhost:5152
+
+GET {{Vivaz.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

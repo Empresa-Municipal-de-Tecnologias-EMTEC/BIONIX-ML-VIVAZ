@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>Bionix.ML.Vivaz</AssemblyName>
+    <RootNamespace>Bionix.ML.Vivaz</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\\..\\..\\BIONIX-ML\\src\\Bionix.ML\\Bionix.ML.csproj" />
+  </ItemGroup>
+</Project>
