@@ -9,8 +9,8 @@ namespace Bionix.ML.Vivaz.Runner
             Console.WriteLine("Bionix.ML.Vivaz.Runner starting...");
             try
             {
-                // Delegate to library entry (keeps training implementation inside DetectorModel/ExecutarTreinamento)
-                Bionix.ML.Vivaz.Program.Main(args);
+                // Delegate to training implementation inside DetectorModel
+                DetectorModel.ExecutarTreinamento.Main(args);
             }
             catch (Exception ex)
             {
