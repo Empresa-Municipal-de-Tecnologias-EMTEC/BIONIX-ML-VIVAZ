@@ -3,6 +3,7 @@ using System.IO;
 using DetectorModel.dados;
 using DetectorModel.modelo;
 using Bionix.ML.nucleo.tensor;
+using System.Linq;
 
 namespace DetectorModel
 {
@@ -10,13 +11,49 @@ namespace DetectorModel
     {
         public static void Main(string[] args)
         {
-            // Paths (workspace-relative); adjust if necessary
-            var datasetRoot = Path.Combine("DATASET", "dataset_deteccao");
+            // Resolve DATASET folder by walking up from current directory (so runner works from any CWD)
+            string resolvedDatasetRoot = null;
+            var initialCwd = Directory.GetCurrentDirectory();
+            var cur = initialCwd;
+            while (cur != null)
+            {
+                if (Directory.Exists(Path.Combine(cur, "DATASET"))) { resolvedDatasetRoot = Path.Combine(cur, "DATASET", "dataset_deteccao"); break; }
+                var parent = Directory.GetParent(cur);
+                cur = parent?.FullName;
+            }
+            if (resolvedDatasetRoot == null)
+            {
+                // Try repository-specific known locations under workspace root
+                var alt1 = Path.Combine(initialCwd, "BIONIX-ML-VIVAZ", "DATASET", "dataset_deteccao");
+                var alt2 = Path.Combine(initialCwd, "BIONIX-ML", "DATASET", "dataset_deteccao");
+                if (Directory.Exists(alt1)) resolvedDatasetRoot = alt1;
+                else if (Directory.Exists(alt2)) resolvedDatasetRoot = alt2;
+                else
+                {
+                    // fallback to workspace-relative path (may fail later)
+                    resolvedDatasetRoot = Path.Combine("DATASET", "dataset_deteccao");
+                }
+            }
+
+            var datasetRoot = resolvedDatasetRoot;
             var annotationsFile = Path.Combine(datasetRoot, "wider_face_annotations", "wider_face_split", "wider_face_train_bbx_gt.txt");
-            var imagesFolder = Path.Combine(datasetRoot, "WIDER_train", "WIDER_train", "images", "13--Interview");
+            // Use the root images folder so the annotation paths (which include subfolders) resolve correctly
+            var imagesFolder = Path.Combine(datasetRoot, "WIDER_train", "WIDER_train", "images");
 
             Console.WriteLine("Inicializando DataLoader...");
             var loader = new DataLoader(annotationsFile, imagesFolder);
+
+            // Diagnostic: print first few annotations and whether referenced image files exist
+            Console.WriteLine("Diagnostic: preview annotations (up to 3)");
+            Console.WriteLine($"CWD={Directory.GetCurrentDirectory()}");
+            Console.WriteLine($"Resolved dataset root: {datasetRoot}");
+            Console.WriteLine($"Annotations file: {annotationsFile}");
+            int di = 0;
+            foreach (var ann in loader.ReadAnnotations())
+            {
+                Console.WriteLine($" Ann: {ann.ImagePath} -> Exists: {File.Exists(ann.ImagePath)} | Boxes={ann.Boxes.Count}");
+                di++; if (di >= 3) break;
+            }
 
             Console.WriteLine("Criando modelo RetinaFace (esqueleto)...");
             var model = new RetinaFaceModel();
@@ -31,10 +68,14 @@ namespace DetectorModel
             model.InitializeWeights(ctx);
 
             int epochs = 3;
+            // QUICK_TEST_SAVE: if set to "1", run only one epoch and exit after first annotated image is written
+            var quickTest = Environment.GetEnvironmentVariable("QUICK_TEST_SAVE") == "1";
+            if (quickTest) epochs = 1;
             int batchIndex = 0;
 
-            var saidaDir = Path.Combine("SAIDA");
+            var saidaDir = Path.Combine(Directory.GetCurrentDirectory(), "SAIDA");
             Directory.CreateDirectory(saidaDir);
+            var saidaLog = Path.Combine(saidaDir, "saida_ops.log");
             var pesosDirRoot = Path.Combine("PESOS", "DETECTOR");
             Directory.CreateDirectory(pesosDirRoot);
 
@@ -88,27 +129,102 @@ namespace DetectorModel
                             // Load original image and draw boxes
                             try
                             {
+                                if (quickTest)
+                                {
+                                    // Quick test: write original bytes to SAIDA to ensure a write actually occurs
+                                    var outPathBase = Path.Combine(saidaDir, $"epoch_{epoch}_batch_{localBatch}_{Path.GetFileName(sample.ImagePath)}");
+                                    var outPath = outPathBase; // preserve original extension
+                                    Console.WriteLine($" Quick-copying original image to: {outPath}");
+                                    try
+                                    {
+                                        var bytes = File.ReadAllBytes(sample.ImagePath);
+                                        File.WriteAllBytes(outPath, bytes);
+                                        File.AppendAllText(saidaLog, $"{DateTime.UtcNow:o} QUICK_COPY {sample.ImagePath} -> {outPath}\n");
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                        Console.WriteLine($"Quick-copy failed: {ex.Message}");
+                                        File.AppendAllText(saidaLog, $"{DateTime.UtcNow:o} QUICK_COPY_ERROR {ex.Message}\n");
+                                    }
+                                    Console.WriteLine($" Quick-copy exists: {File.Exists(outPath)}");
+                                    Console.Out.Flush();
+                                    Console.WriteLine("Quick test mode: copied image, exiting.");
+                                    Console.Out.Flush();
+                                    return;
+                                }
+
                                 using var img = SixLabors.ImageSharp.Image.Load<SixLabors.ImageSharp.PixelFormats.Rgba32>(sample.ImagePath);
                                 DrawBoxes(img, sample.Boxes, SixLabors.ImageSharp.Color.Green);
                                 DrawBoxes(img, detections, SixLabors.ImageSharp.Color.Blue);
                                 var outPathBase = Path.Combine(saidaDir, $"epoch_{epoch}_batch_{localBatch}_{Path.GetFileNameWithoutExtension(sample.ImagePath)}");
                                 var outPath = Path.ChangeExtension(outPathBase, ".png");
+                                Console.WriteLine($" Saving annotated image to: {outPath}");
                                 using var fs = File.OpenWrite(outPath);
                                 img.Save(fs, new SixLabors.ImageSharp.Formats.Png.PngEncoder());
+                                Console.WriteLine($" Saved exists: {File.Exists(outPath)}");
+                                File.AppendAllText(saidaLog, $"{DateTime.UtcNow:o} ANNOTATED_SAVE {outPath} Exists={File.Exists(outPath)}\n");
+                                Console.Out.Flush();
+                                if (quickTest)
+                                {
+                                    Console.WriteLine("Quick test mode: annotated image saved, exiting.");
+                                    Console.Out.Flush();
+                                    return;
+                                }
                             }
                             catch (Exception ex)
                             {
                                 Console.WriteLine($"Erro ao salvar imagem anotada: {ex.Message}");
+                                Console.WriteLine(ex.StackTrace);
                             }
                         }
                     }
                     localBatch++;
                 }
 
-                // Save weights at end of epoch
-                var epochPesoDir = Path.Combine(pesosDirRoot, $"epoch_{epoch}");
-                model.SaveWeights(epochPesoDir);
-                Console.WriteLine($"Pesos salvos em {epochPesoDir}");
+                // Save weights (only keep last epoch): clear previous files and write current state
+                // Ensure directory exists and is emptied
+                if (!Directory.Exists(pesosDirRoot)) Directory.CreateDirectory(pesosDirRoot);
+                foreach (var f in Directory.GetFiles(pesosDirRoot)) File.Delete(f);
+
+                // Save main weights
+                if (model.BackboneWeight != null)
+                {
+                    var p1 = Path.Combine(pesosDirRoot, "backbone.bin");
+                    Bionix.ML.dados.serializacao.SerializadorTensor.SaveBinary(p1, model.BackboneWeight);
+                    // save gradient if present
+                    if (model.BackboneWeight.Grad != null)
+                    {
+                        Bionix.ML.dados.serializacao.SerializadorTensor.SaveBinary(Path.Combine(pesosDirRoot, "backbone.grad.bin"), model.BackboneWeight.Shape, model.BackboneWeight.Grad);
+                    }
+                }
+                if (model.HeadClsWeight != null)
+                {
+                    var p2 = Path.Combine(pesosDirRoot, "head_cls.bin");
+                    Bionix.ML.dados.serializacao.SerializadorTensor.SaveBinary(p2, model.HeadClsWeight);
+                    if (model.HeadClsWeight.Grad != null)
+                    {
+                        Bionix.ML.dados.serializacao.SerializadorTensor.SaveBinary(Path.Combine(pesosDirRoot, "head_cls.grad.bin"), model.HeadClsWeight.Shape, model.HeadClsWeight.Grad);
+                    }
+                }
+                if (model.HeadRegWeight != null)
+                {
+                    var p3 = Path.Combine(pesosDirRoot, "head_reg.bin");
+                    Bionix.ML.dados.serializacao.SerializadorTensor.SaveBinary(p3, model.HeadRegWeight);
+                    if (model.HeadRegWeight.Grad != null)
+                    {
+                        Bionix.ML.dados.serializacao.SerializadorTensor.SaveBinary(Path.Combine(pesosDirRoot, "head_reg.grad.bin"), model.HeadRegWeight.Shape, model.HeadRegWeight.Grad);
+                    }
+                }
+
+                // Save optimizer/metadata (learning rate and epoch)
+                try
+                {
+                    var meta = System.Text.Json.JsonSerializer.Serialize(new { epoch = epoch, lr = 1e-3, timestamp = DateTime.UtcNow });
+                    File.WriteAllText(Path.Combine(pesosDirRoot, "meta.json"), meta);
+                }
+                catch { }
+
+                Console.WriteLine($"Pesos salvos em {pesosDirRoot}");
             }
 
             Console.WriteLine("Execução de treinamento (esqueleto) finalizada.");
