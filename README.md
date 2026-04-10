@@ -1,5 +1,9 @@
 # BIONIX-ML-VIVAZ (.NET)
 
+<p align="center">
+	<img src="ICONE.png" alt="Ícone do BIONIX-ML-VIVAZ" width="160">
+</p>
+
 Conjunto de projetos .NET que consomem `Bionix.ML` para prover detecção e reconhecimento facial, além de ferramentas de anotação de dataset e uma API HTTP mínima.
 
 Resumo dos projetos
