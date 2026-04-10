@@ -5,8 +5,10 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <AssemblyName>Bionix.ML.Vivaz</AssemblyName>
     <RootNamespace>Bionix.ML.Vivaz</RootNamespace>
+    <OutputType>Exe</OutputType>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\\..\\..\\BIONIX-ML\\src\\Bionix.ML\\Bionix.ML.csproj" />
+    <ProjectReference Include="..\\DetectorModel\\DetectorModel.csproj" />
   </ItemGroup>
 </Project>
