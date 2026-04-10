@@ -212,7 +212,7 @@ namespace DetectorModel
                             var clsPred = fabrica.FromArray(new int[]{clsLogitsArr.Length}, clsLogitsArr);
                             var clsTgt = fabrica.FromArray(new int[]{clsTgtArr.Length}, clsTgtArr);
 
-                            var focal = FocalLoss.Loss(ctx, clsPred, clsTgt, alpha: 0.25, gamma: 2.0);
+                            var focal = Focal.Loss(ctx, clsPred, clsTgt, alpha: 0.25, gamma: 2.0);
 
                             // regression: only positives
                             Tensor smoothL1Loss;
@@ -235,7 +235,7 @@ namespace DetectorModel
                                 }
                                 var regPred = fabrica.FromArray(new int[]{regPredArr.Length}, regPredArr);
                                 var regTgt = fabrica.FromArray(new int[]{regTgtArr.Length}, regTgtArr);
-                                smoothL1Loss = SmoothL1Loss.Loss(ctx, regPred, regTgt);
+                                smoothL1Loss = SmoothL1.Loss(ctx, regPred, regTgt);
                             }
 
                             var totalLoss = focal.Add(smoothL1Loss);
