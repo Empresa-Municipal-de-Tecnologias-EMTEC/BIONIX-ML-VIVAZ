@@ -1,0 +1,15 @@
+C:\PROJETOS\BIONIX\BIONIX-CSHARP\BIONIX-ML-VIVAZ\src\IdentificadorModel\bin\Release\net8.0\IdentificadorModel.deps.json
+C:\PROJETOS\BIONIX\BIONIX-CSHARP\BIONIX-ML-VIVAZ\src\IdentificadorModel\bin\Release\net8.0\IdentificadorModel.dll
+C:\PROJETOS\BIONIX\BIONIX-CSHARP\BIONIX-ML-VIVAZ\src\IdentificadorModel\bin\Release\net8.0\IdentificadorModel.pdb
+C:\PROJETOS\BIONIX\BIONIX-CSHARP\BIONIX-ML-VIVAZ\src\IdentificadorModel\bin\Release\net8.0\Bionix.ML.dll
+C:\PROJETOS\BIONIX\BIONIX-CSHARP\BIONIX-ML-VIVAZ\src\IdentificadorModel\bin\Release\net8.0\Bionix.ML.pdb
+C:\PROJETOS\BIONIX\BIONIX-CSHARP\BIONIX-ML-VIVAZ\src\IdentificadorModel\obj\Release\net8.0\IdentificadorModel.csproj.AssemblyReference.cache
+C:\PROJETOS\BIONIX\BIONIX-CSHARP\BIONIX-ML-VIVAZ\src\IdentificadorModel\obj\Release\net8.0\IdentificadorModel.GeneratedMSBuildEditorConfig.editorconfig
+C:\PROJETOS\BIONIX\BIONIX-CSHARP\BIONIX-ML-VIVAZ\src\IdentificadorModel\obj\Release\net8.0\IdentificadorModel.AssemblyInfoInputs.cache
+C:\PROJETOS\BIONIX\BIONIX-CSHARP\BIONIX-ML-VIVAZ\src\IdentificadorModel\obj\Release\net8.0\IdentificadorModel.AssemblyInfo.cs
+C:\PROJETOS\BIONIX\BIONIX-CSHARP\BIONIX-ML-VIVAZ\src\IdentificadorModel\obj\Release\net8.0\IdentificadorModel.csproj.CoreCompileInputs.cache
+C:\PROJETOS\BIONIX\BIONIX-CSHARP\BIONIX-ML-VIVAZ\src\IdentificadorModel\obj\Release\net8.0\Identifi.47DE2659.Up2Date
+C:\PROJETOS\BIONIX\BIONIX-CSHARP\BIONIX-ML-VIVAZ\src\IdentificadorModel\obj\Release\net8.0\IdentificadorModel.dll
+C:\PROJETOS\BIONIX\BIONIX-CSHARP\BIONIX-ML-VIVAZ\src\IdentificadorModel\obj\Release\net8.0\refint\IdentificadorModel.dll
+C:\PROJETOS\BIONIX\BIONIX-CSHARP\BIONIX-ML-VIVAZ\src\IdentificadorModel\obj\Release\net8.0\IdentificadorModel.pdb
+C:\PROJETOS\BIONIX\BIONIX-CSHARP\BIONIX-ML-VIVAZ\src\IdentificadorModel\obj\Release\net8.0\ref\IdentificadorModel.dll
