@@ -55,6 +55,73 @@ namespace DetectorModel
                 di++; if (di >= 3) break;
             }
 
+            // QUICK_ANNOTATE_ONLY: annotate the first available sample and exit (skip training)
+            var quickAnnotOnly = Environment.GetEnvironmentVariable("QUICK_ANNOTATE_ONLY") == "1";
+            // QUICK_ANNOTATE_BOTH: annotate first sample with GT (green) and simulated detections (blue)
+            var quickAnnotBoth = Environment.GetEnvironmentVariable("QUICK_ANNOTATE_BOTH") == "1";
+            if (quickAnnotOnly)
+            {
+                var first = loader.ReadAnnotations().FirstOrDefault();
+                if (first != null && File.Exists(first.ImagePath))
+                {
+                    try
+                    {
+                        var outDir = Path.Combine(Directory.GetCurrentDirectory(), "SAIDA");
+                        Directory.CreateDirectory(outDir);
+                        var outPath = Path.Combine(outDir, Path.GetFileNameWithoutExtension(first.ImagePath) + "_qa.png");
+                        using var img = SixLabors.ImageSharp.Image.Load<SixLabors.ImageSharp.PixelFormats.Rgba32>(first.ImagePath);
+                        var greenPx = new SixLabors.ImageSharp.PixelFormats.Rgba32(0, 255, 0, 255);
+                        DrawBoxes(img, first.Boxes, greenPx, thickness: 3);
+                        using var fs = File.OpenWrite(outPath);
+                        img.Save(fs, new SixLabors.ImageSharp.Formats.Png.PngEncoder());
+                        Console.WriteLine($"QUICK_ANNOTATE_ONLY saved: {outPath} Exists={File.Exists(outPath)}");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"QUICK_ANNOTATE_ONLY failed: {ex.Message}");
+                    }
+                }
+                else Console.WriteLine("QUICK_ANNOTATE_ONLY: no annotation found or image missing.");
+                return;
+            }
+
+            if (quickAnnotBoth)
+            {
+                var first2 = loader.ReadAnnotations().FirstOrDefault();
+                if (first2 != null && File.Exists(first2.ImagePath))
+                {
+                    try
+                    {
+                        var outDir2 = Path.Combine(Directory.GetCurrentDirectory(), "SAIDA");
+                        Directory.CreateDirectory(outDir2);
+                        var outPath2 = Path.Combine(outDir2, Path.GetFileNameWithoutExtension(first2.ImagePath) + "_both.png");
+                        using var img = SixLabors.ImageSharp.Image.Load<SixLabors.ImageSharp.PixelFormats.Rgba32>(first2.ImagePath);
+                        var greenPx = new SixLabors.ImageSharp.PixelFormats.Rgba32(0, 255, 0, 255);
+                        var bluePx = new SixLabors.ImageSharp.PixelFormats.Rgba32(0, 0, 255, 255);
+                        // simulated detections: jitter the GT boxes
+                        var rndSim = new Random(123);
+                        var dets = new System.Collections.Generic.List<DetectorModel.dados.Box>();
+                        foreach (var b in first2.Boxes)
+                        {
+                            int jx = rndSim.Next(-8, 9);
+                            int jy = rndSim.Next(-8, 9);
+                            dets.Add(new DetectorModel.dados.Box(b.X + jx, b.Y + jy, Math.Max(1, b.Width + rndSim.Next(-8, 9)), Math.Max(1, b.Height + rndSim.Next(-8, 9))));
+                        }
+                        DrawBoxes(img, first2.Boxes, greenPx, thickness: 3);
+                        DrawBoxes(img, dets, bluePx, thickness: 3);
+                        using var fs2 = File.OpenWrite(outPath2);
+                        img.Save(fs2, new SixLabors.ImageSharp.Formats.Png.PngEncoder());
+                        Console.WriteLine($"QUICK_ANNOTATE_BOTH saved: {outPath2} Exists={File.Exists(outPath2)}");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"QUICK_ANNOTATE_BOTH failed: {ex.Message}");
+                    }
+                }
+                else Console.WriteLine("QUICK_ANNOTATE_BOTH: no annotation found or image missing.");
+                return;
+            }
+
             Console.WriteLine("Criando modelo RetinaFace (esqueleto)...");
             var model = new RetinaFaceModel();
 
@@ -131,31 +198,57 @@ namespace DetectorModel
                             {
                                 if (quickTest)
                                 {
-                                    // Quick test: write original bytes to SAIDA to ensure a write actually occurs
-                                    var outPathBase = Path.Combine(saidaDir, $"epoch_{epoch}_batch_{localBatch}_{Path.GetFileName(sample.ImagePath)}");
-                                    var outPath = outPathBase; // preserve original extension
-                                    Console.WriteLine($" Quick-copying original image to: {outPath}");
+                                    // Quick test: try full annotation first (ImageSharp). If it fails, fallback to raw copy.
+                                    var outPathBaseAnnot = Path.Combine(saidaDir, $"epoch_{epoch}_batch_{localBatch}_{Path.GetFileNameWithoutExtension(sample.ImagePath)}");
+                                    var outPathAnnot = Path.ChangeExtension(outPathBaseAnnot, ".png");
+                                    Console.WriteLine($" Quick-annotating image to: {outPathAnnot}");
                                     try
                                     {
-                                        var bytes = File.ReadAllBytes(sample.ImagePath);
-                                        File.WriteAllBytes(outPath, bytes);
-                                        File.AppendAllText(saidaLog, $"{DateTime.UtcNow:o} QUICK_COPY {sample.ImagePath} -> {outPath}\n");
+                                            using var img2 = SixLabors.ImageSharp.Image.Load<SixLabors.ImageSharp.PixelFormats.Rgba32>(sample.ImagePath);
+                                            var greenPx = new SixLabors.ImageSharp.PixelFormats.Rgba32(0, 255, 0, 255);
+                                            var bluePx = new SixLabors.ImageSharp.PixelFormats.Rgba32(0, 0, 255, 255);
+                                            DrawBoxes(img2, sample.Boxes, greenPx, thickness:3);
+                                            DrawBoxes(img2, detections, bluePx, thickness:3);
+                                        using var fs2 = File.OpenWrite(outPathAnnot);
+                                        img2.Save(fs2, new SixLabors.ImageSharp.Formats.Png.PngEncoder());
+                                        File.AppendAllText(saidaLog, $"{DateTime.UtcNow:o} QUICK_ANNOTATE {sample.ImagePath} -> {outPathAnnot}\n");
+                                        Console.WriteLine($" Quick-annotated exists: {File.Exists(outPathAnnot)}");
+                                        Console.Out.Flush();
+                                        Console.WriteLine("Quick test mode: annotated image saved, exiting.");
+                                        Console.Out.Flush();
+                                        return;
                                     }
                                     catch (Exception ex)
                                     {
-                                        Console.WriteLine($"Quick-copy failed: {ex.Message}");
-                                        File.AppendAllText(saidaLog, $"{DateTime.UtcNow:o} QUICK_COPY_ERROR {ex.Message}\n");
+                                        Console.WriteLine($"Quick-annotate failed, falling back to raw copy: {ex.Message}");
+                                        File.AppendAllText(saidaLog, $"{DateTime.UtcNow:o} QUICK_ANNOTATE_ERROR {ex.Message}\n");
+                                        // fallback raw copy
+                                        var outPathCopyBase = Path.Combine(saidaDir, $"epoch_{epoch}_batch_{localBatch}_{Path.GetFileName(sample.ImagePath)}");
+                                        var outPathCopy = outPathCopyBase; // preserve original extension
+                                        try
+                                        {
+                                            var bytes = File.ReadAllBytes(sample.ImagePath);
+                                            File.WriteAllBytes(outPathCopy, bytes);
+                                            File.AppendAllText(saidaLog, $"{DateTime.UtcNow:o} QUICK_COPY {sample.ImagePath} -> {outPathCopy}\n");
+                                        }
+                                        catch (Exception ex2)
+                                        {
+                                            Console.WriteLine($"Quick-copy failed: {ex2.Message}");
+                                            File.AppendAllText(saidaLog, $"{DateTime.UtcNow:o} QUICK_COPY_ERROR {ex2.Message}\n");
+                                        }
+                                        Console.WriteLine($" Quick-copy exists: {File.Exists(outPathCopy)}");
+                                        Console.Out.Flush();
+                                        Console.WriteLine("Quick test mode: copied image, exiting.");
+                                        Console.Out.Flush();
+                                        return;
                                     }
-                                    Console.WriteLine($" Quick-copy exists: {File.Exists(outPath)}");
-                                    Console.Out.Flush();
-                                    Console.WriteLine("Quick test mode: copied image, exiting.");
-                                    Console.Out.Flush();
-                                    return;
                                 }
 
                                 using var img = SixLabors.ImageSharp.Image.Load<SixLabors.ImageSharp.PixelFormats.Rgba32>(sample.ImagePath);
-                                DrawBoxes(img, sample.Boxes, SixLabors.ImageSharp.Color.Green);
-                                DrawBoxes(img, detections, SixLabors.ImageSharp.Color.Blue);
+                                var greenPx2 = new SixLabors.ImageSharp.PixelFormats.Rgba32(0, 255, 0, 255);
+                                var bluePx2 = new SixLabors.ImageSharp.PixelFormats.Rgba32(0, 0, 255, 255);
+                                DrawBoxes(img, sample.Boxes, greenPx2);
+                                DrawBoxes(img, detections, bluePx2);
                                 var outPathBase = Path.Combine(saidaDir, $"epoch_{epoch}_batch_{localBatch}_{Path.GetFileNameWithoutExtension(sample.ImagePath)}");
                                 var outPath = Path.ChangeExtension(outPathBase, ".png");
                                 Console.WriteLine($" Saving annotated image to: {outPath}");
@@ -230,27 +323,34 @@ namespace DetectorModel
             Console.WriteLine("Execução de treinamento (esqueleto) finalizada.");
         }
 
-        private static void DrawBoxes(SixLabors.ImageSharp.Image<SixLabors.ImageSharp.PixelFormats.Rgba32> img, System.Collections.Generic.List<DetectorModel.dados.Box> boxes, SixLabors.ImageSharp.Color color)
+        private static void DrawBoxes(SixLabors.ImageSharp.Image<SixLabors.ImageSharp.PixelFormats.Rgba32> img, System.Collections.Generic.List<DetectorModel.dados.Box> boxes, SixLabors.ImageSharp.PixelFormats.Rgba32 px, int thickness = 2)
         {
             int w = img.Width;
             int h = img.Height;
+            // pixel color provided by caller (opaque Rgba32)
             foreach (var b in boxes)
             {
                 int x0 = Math.Max(0, b.X);
                 int y0 = Math.Max(0, b.Y);
                 int x1 = Math.Min(w - 1, b.X + b.Width - 1);
                 int y1 = Math.Min(h - 1, b.Y + b.Height - 1);
-                // top & bottom
-                for (int x = x0; x <= x1; x++)
+                for (int t = 0; t < thickness; t++)
                 {
-                    if (y0 >= 0 && y0 < h) img[x, y0] = color.ToPixel<SixLabors.ImageSharp.PixelFormats.Rgba32>();
-                    if (y1 >= 0 && y1 < h) img[x, y1] = color.ToPixel<SixLabors.ImageSharp.PixelFormats.Rgba32>();
-                }
-                // left & right
-                for (int y = y0; y <= y1; y++)
-                {
-                    if (x0 >= 0 && x0 < w) img[x0, y] = color.ToPixel<SixLabors.ImageSharp.PixelFormats.Rgba32>();
-                    if (x1 >= 0 && x1 < w) img[x1, y] = color.ToPixel<SixLabors.ImageSharp.PixelFormats.Rgba32>();
+                    int tx0 = x0 - t; int ty0 = y0 - t; int tx1 = x1 + t; int ty1 = y1 + t;
+                    // clamp
+                    tx0 = Math.Max(0, tx0); ty0 = Math.Max(0, ty0); tx1 = Math.Min(w - 1, tx1); ty1 = Math.Min(h - 1, ty1);
+                    // horizontal
+                    for (int x = tx0; x <= tx1; x++)
+                    {
+                        if (ty0 >= 0 && ty0 < h) img[x, ty0] = px;
+                        if (ty1 >= 0 && ty1 < h) img[x, ty1] = px;
+                    }
+                    // vertical
+                    for (int y = ty0; y <= ty1; y++)
+                    {
+                        if (tx0 >= 0 && tx0 < w) img[tx0, y] = px;
+                        if (tx1 >= 0 && tx1 < w) img[tx1, y] = px;
+                    }
                 }
             }
         }
