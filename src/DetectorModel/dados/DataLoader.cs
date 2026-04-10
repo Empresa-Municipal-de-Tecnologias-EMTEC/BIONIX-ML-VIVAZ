@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Globalization;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using Bionix.ML.dados.imagem;
@@ -14,6 +15,8 @@ namespace DetectorModel.dados
     {
         public string ImagePath { get; set; }
         public List<Box> Boxes { get; set; } = new List<Box>();
+        // Each landmarks entry is an array of 10 values: lx1,ly1,...,lx5,ly5
+        public List<double[]> Landmarks { get; set; } = new List<double[]>();
     }
 
     public struct Box
@@ -41,6 +44,7 @@ namespace DetectorModel.dados
             public Tensor Tensor { get; set; }
             public List<Box> Boxes { get; set; }
             public string ImagePath { get; set; }
+            public List<double[]> Landmarks { get; set; }
         }
 
         // Convert an Annotation to a Sample by loading the image and transforming to Tensor
@@ -64,43 +68,68 @@ namespace DetectorModel.dados
             }
 
             var tensor = ManipuladorDeImagem.transformarEmTensor(bmp, ctx);
-            return new Sample { Tensor = tensor, Boxes = ann.Boxes, ImagePath = ann.ImagePath };
+            return new Sample { Tensor = tensor, Boxes = ann.Boxes, ImagePath = ann.ImagePath, Landmarks = ann.Landmarks };
         }
 
-        // Parse WIDER FACE-style annotations (simple parser tolerant to variations)
+        // Parse annotations. Supports WIDER-style txt (legacy) and CelebA CSV landmarks/bbox files.
         public IEnumerable<Annotation> ReadAnnotations()
         {
             if (!File.Exists(_annotationsFile)) yield break;
 
-            var lines = File.ReadAllLines(_annotationsFile);
-            int i = 0;
-            while (i < lines.Length)
+            // Detect CelebA CSV (landmarks) by header
+            var firstLine = File.ReadLines(_annotationsFile).FirstOrDefault();
+            if (firstLine != null && firstLine.Contains("lefteye_x"))
             {
-                var line = lines[i].Trim();
-                i++;
-                if (string.IsNullOrWhiteSpace(line)) continue;
-
-                string imageRel = line.Replace("/", Path.DirectorySeparatorChar.ToString());
-                if (i >= lines.Length) break;
-                if (!int.TryParse(lines[i].Trim(), out int faceCount)) break;
-                i++;
-
-                var ann = new Annotation();
-                ann.ImagePath = Path.Combine(_imagesRoot, imageRel);
-
-                for (int f = 0; f < faceCount && i < lines.Length; f++, i++)
+                // Parse landmarks CSV: image_id,lefteye_x,lefteye_y,...,rightmouth_y
+                var lmLines = File.ReadAllLines(_annotationsFile);
+                var lmMap = new Dictionary<string, double[]>();
+                for (int i = 1; i < lmLines.Length; i++)
                 {
-                    var parts = lines[i].Trim().Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries);
-                    if (parts.Length < 4) continue;
-                    if (int.TryParse(parts[0], out int x) && int.TryParse(parts[1], out int y) &&
-                        int.TryParse(parts[2], out int w) && int.TryParse(parts[3], out int h))
+                    var parts = lmLines[i].Split(',');
+                    if (parts.Length < 11) continue;
+                    var img = parts[0].Trim();
+                    var arr = new double[10];
+                    for (int k = 0; k < 10; k++)
                     {
-                        ann.Boxes.Add(new Box(x, y, w, h));
+                        double v = 0.0; double.TryParse(parts[1 + k], NumberStyles.Any, CultureInfo.InvariantCulture, out v);
+                        arr[k] = v;
+                    }
+                    lmMap[img] = arr;
+                }
+
+                // Try to load bbox CSV in same folder (list_bbox_celeba.csv)
+                var annDir = Path.GetDirectoryName(_annotationsFile) ?? string.Empty;
+                var bboxPath = Path.Combine(annDir, "list_bbox_celeba.csv");
+                var bboxMap = new Dictionary<string, Box>();
+                if (File.Exists(bboxPath))
+                {
+                    var bbLines = File.ReadAllLines(bboxPath);
+                    for (int i = 1; i < bbLines.Length; i++)
+                    {
+                        var p = bbLines[i].Split(',');
+                        if (p.Length < 5) continue;
+                        var id = p[0].Trim();
+                        if (int.TryParse(p[1], out int x) && int.TryParse(p[2], out int y) && int.TryParse(p[3], out int w) && int.TryParse(p[4], out int h))
+                        {
+                            bboxMap[id] = new Box(x, y, w, h);
+                        }
                     }
                 }
 
-                yield return ann;
+                foreach (var kv in lmMap)
+                {
+                    var ann = new Annotation();
+                    ann.ImagePath = Path.Combine(_imagesRoot, kv.Key);
+                    if (bboxMap.TryGetValue(kv.Key, out var bb)) ann.Boxes.Add(bb);
+                    ann.Landmarks.Add(kv.Value);
+                    yield return ann;
+                }
+
+                yield break;
             }
+
+            // Only CelebA CSV format is supported now. For other formats, no annotations are returned.
+            yield break;
         }
 
         // Simple minibatch generator: returns lists of Annotation objects
