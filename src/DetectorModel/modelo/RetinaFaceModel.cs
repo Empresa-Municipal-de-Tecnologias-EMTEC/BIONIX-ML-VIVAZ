@@ -123,69 +123,126 @@ namespace DetectorModel.modelo
         public void SaveWeights(string dir)
         {
             if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
-            void SaveConv(string name, ConvLayer conv)
+            // save all named parameters (weights + biases) and grads when present
+            foreach (var kv in GetNamedParameters())
             {
+                var name = kv.name;
+                var t = kv.tensor;
                 try
                 {
-                    var w = conv.Weight;
-                    if (w != null)
+                    if (t == null) continue;
+                    var p = Path.Combine(dir, name + ".bin");
+                    Bionix.ML.dados.serializacao.SerializadorTensor.SaveBinary(p, t);
+                    if (t.Grad != null)
                     {
-                        var p = Path.Combine(dir, name + ".bin");
-                        Bionix.ML.dados.serializacao.SerializadorTensor.SaveBinary(p, w);
+                        Bionix.ML.dados.serializacao.SerializadorTensor.SaveBinary(Path.Combine(dir, name + ".grad.bin"), t.Shape, t.Grad);
                     }
                 }
                 catch { }
             }
-            SaveConv("stem", Stem);
-            int i = 0;
-            foreach (var b in Stage2) { SaveConv($"stage2_{i}_conv1", b.Conv1); SaveConv($"stage2_{i}_conv2", b.Conv2); i++; }
-            i = 0; foreach (var b in Stage3) { SaveConv($"stage3_{i}_conv1", b.Conv1); SaveConv($"stage3_{i}_conv2", b.Conv2); i++; }
-            i = 0; foreach (var b in Stage4) { SaveConv($"stage4_{i}_conv1", b.Conv1); SaveConv($"stage4_{i}_conv2", b.Conv2); i++; }
-            SaveConv("fpn_c5", Pyramid.LatC5);
-            SaveConv("fpn_c4", Pyramid.LatC4);
-            SaveConv("fpn_c3", Pyramid.LatC3);
-            SaveConv("head_p3_conv", HeadP3.HeadConv);
-            SaveConv("head_p3_cls", HeadP3.ClsConv);
-            SaveConv("head_p3_reg", HeadP3.RegConv);
-            SaveConv("head_p4_conv", HeadP4.HeadConv);
-            SaveConv("head_p4_cls", HeadP4.ClsConv);
-            SaveConv("head_p4_reg", HeadP4.RegConv);
-            SaveConv("head_p5_conv", HeadP5.HeadConv);
-            SaveConv("head_p5_cls", HeadP5.ClsConv);
-            SaveConv("head_p5_reg", HeadP5.RegConv);
         }
 
         public void LoadWeights(string dir, bool loadGrad = false)
         {
             if (!Directory.Exists(dir)) return;
-            void LoadConv(string name, ConvLayer conv)
+            foreach (var kv in GetNamedParameters())
             {
+                var name = kv.name;
+                var t = kv.tensor;
                 try
                 {
                     var p = Path.Combine(dir, name + ".bin");
-                    if (File.Exists(p))
+                    if (!File.Exists(p) || t == null) continue;
+                    var loaded = Bionix.ML.dados.serializacao.SerializadorTensor.LoadBinary(p);
+                    if (loaded != null && t.Size == loaded.Size)
                     {
-                        var t = Bionix.ML.dados.serializacao.SerializadorTensor.LoadBinary(p);
-                        // copy values into conv weight if shapes match
-                        var w = conv.Weight;
-                        if (w != null && w.Size == t.Size)
+                        for (int i = 0; i < t.Size; i++) t[i] = loaded[i];
+                    }
+                    if (loadGrad)
+                    {
+                        var gpath = Path.Combine(dir, name + ".grad.bin");
+                        if (File.Exists(gpath))
                         {
-                            for (int i = 0; i < w.Size; i++) w[i] = t[i];
+                            var g = Bionix.ML.dados.serializacao.SerializadorTensor.LoadBinary(gpath);
+                            if (g != null && t.Grad != null && t.Grad.Length == g.Size)
+                            {
+                                var arr = g.ToArray();
+                                for (int k = 0; k < t.Grad.Length; k++) t.Grad[k] = arr[k];
+                            }
                         }
                     }
                 }
                 catch { }
             }
-            LoadConv("stem", Stem);
-            int i = 0; foreach (var b in Stage2) { LoadConv($"stage2_{i}_conv1", b.Conv1); LoadConv($"stage2_{i}_conv2", b.Conv2); i++; }
-            i = 0; foreach (var b in Stage3) { LoadConv($"stage3_{i}_conv1", b.Conv1); LoadConv($"stage3_{i}_conv2", b.Conv2); i++; }
-            i = 0; foreach (var b in Stage4) { LoadConv($"stage4_{i}_conv1", b.Conv1); LoadConv($"stage4_{i}_conv2", b.Conv2); i++; }
-            LoadConv("fpn_c5", Pyramid.LatC5);
-            LoadConv("fpn_c4", Pyramid.LatC4);
-            LoadConv("fpn_c3", Pyramid.LatC3);
-            LoadConv("head_p3_conv", HeadP3.HeadConv); LoadConv("head_p3_cls", HeadP3.ClsConv); LoadConv("head_p3_reg", HeadP3.RegConv);
-            LoadConv("head_p4_conv", HeadP4.HeadConv); LoadConv("head_p4_cls", HeadP4.ClsConv); LoadConv("head_p4_reg", HeadP4.RegConv);
-            LoadConv("head_p5_conv", HeadP5.HeadConv); LoadConv("head_p5_cls", HeadP5.ClsConv); LoadConv("head_p5_reg", HeadP5.RegConv);
+        }
+
+        // Return all named parameters (base names used for saving files)
+        public System.Collections.Generic.IEnumerable<(string name, Tensor tensor)> GetNamedParameters()
+        {
+            // stem
+            yield return ("stem", Stem?.Weight);
+            yield return ("stem.bias", Stem?.Bias);
+            int i = 0;
+            foreach (var b in Stage2)
+            {
+                yield return ($"stage2_{i}_conv1", b.Conv1?.Weight);
+                yield return ($"stage2_{i}_conv1.bias", b.Conv1?.Bias);
+                yield return ($"stage2_{i}_conv2", b.Conv2?.Weight);
+                yield return ($"stage2_{i}_conv2.bias", b.Conv2?.Bias);
+                i++;
+            }
+            i = 0;
+            foreach (var b in Stage3)
+            {
+                yield return ($"stage3_{i}_conv1", b.Conv1?.Weight);
+                yield return ($"stage3_{i}_conv1.bias", b.Conv1?.Bias);
+                yield return ($"stage3_{i}_conv2", b.Conv2?.Weight);
+                yield return ($"stage3_{i}_conv2.bias", b.Conv2?.Bias);
+                i++;
+            }
+            i = 0;
+            foreach (var b in Stage4)
+            {
+                yield return ($"stage4_{i}_conv1", b.Conv1?.Weight);
+                yield return ($"stage4_{i}_conv1.bias", b.Conv1?.Bias);
+                yield return ($"stage4_{i}_conv2", b.Conv2?.Weight);
+                yield return ($"stage4_{i}_conv2.bias", b.Conv2?.Bias);
+                i++;
+            }
+            // fpn
+            yield return ("fpn_c5", Pyramid?.LatC5?.Weight);
+            yield return ("fpn_c5.bias", Pyramid?.LatC5?.Bias);
+            yield return ("fpn_c4", Pyramid?.LatC4?.Weight);
+            yield return ("fpn_c4.bias", Pyramid?.LatC4?.Bias);
+            yield return ("fpn_c3", Pyramid?.LatC3?.Weight);
+            yield return ("fpn_c3.bias", Pyramid?.LatC3?.Bias);
+            // heads p3/p4/p5 (include landmark convs and biases)
+            yield return ("head_p3_conv", HeadP3?.HeadConv?.Weight);
+            yield return ("head_p3_conv.bias", HeadP3?.HeadConv?.Bias);
+            yield return ("head_p3_cls", HeadP3?.ClsConv?.Weight);
+            yield return ("head_p3_cls.bias", HeadP3?.ClsConv?.Bias);
+            yield return ("head_p3_reg", HeadP3?.RegConv?.Weight);
+            yield return ("head_p3_reg.bias", HeadP3?.RegConv?.Bias);
+            yield return ("head_p3_lmk", HeadP3?.LandmarksConv?.Weight);
+            yield return ("head_p3_lmk.bias", HeadP3?.LandmarksConv?.Bias);
+
+            yield return ("head_p4_conv", HeadP4?.HeadConv?.Weight);
+            yield return ("head_p4_conv.bias", HeadP4?.HeadConv?.Bias);
+            yield return ("head_p4_cls", HeadP4?.ClsConv?.Weight);
+            yield return ("head_p4_cls.bias", HeadP4?.ClsConv?.Bias);
+            yield return ("head_p4_reg", HeadP4?.RegConv?.Weight);
+            yield return ("head_p4_reg.bias", HeadP4?.RegConv?.Bias);
+            yield return ("head_p4_lmk", HeadP4?.LandmarksConv?.Weight);
+            yield return ("head_p4_lmk.bias", HeadP4?.LandmarksConv?.Bias);
+
+            yield return ("head_p5_conv", HeadP5?.HeadConv?.Weight);
+            yield return ("head_p5_conv.bias", HeadP5?.HeadConv?.Bias);
+            yield return ("head_p5_cls", HeadP5?.ClsConv?.Weight);
+            yield return ("head_p5_cls.bias", HeadP5?.ClsConv?.Bias);
+            yield return ("head_p5_reg", HeadP5?.RegConv?.Weight);
+            yield return ("head_p5_reg.bias", HeadP5?.RegConv?.Bias);
+            yield return ("head_p5_lmk", HeadP5?.LandmarksConv?.Weight);
+            yield return ("head_p5_lmk.bias", HeadP5?.LandmarksConv?.Bias);
         }
     }
 }

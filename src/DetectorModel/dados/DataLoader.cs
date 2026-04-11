@@ -149,11 +149,14 @@ namespace DetectorModel.dados
         }
 
         // Minibatch generator that returns tensors (uses provided computation context)
-        public IEnumerable<List<Sample>> GetBatchesTensors(int batchSize, ComputacaoContexto ctx)
+        // startSample: number of samples to skip (useful for resuming)
+        public IEnumerable<List<Sample>> GetBatchesTensors(int batchSize, ComputacaoContexto ctx, int startSample = 0)
         {
             var buffer = new List<Sample>(batchSize);
+            int globalIndex = 0;
             foreach (var ann in ReadAnnotations())
             {
+                if (globalIndex++ < startSample) continue;
                 var sample = AnnotationToSample(ann, ctx);
                 if (sample == null) continue;
                 buffer.Add(sample);

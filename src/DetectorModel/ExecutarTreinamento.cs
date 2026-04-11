@@ -167,11 +167,8 @@ namespace DetectorModel
                         catch { }
                     }
 
-                    // try load known weights
-                    TryLoadInto("backbone.bin", model.BackboneWeight);
-                    TryLoadInto("head_cls.bin", model.HeadClsWeight);
-                    TryLoadInto("head_reg.bin", model.HeadRegWeight);
-                    TryLoadInto("head_lmk.bin", model.HeadLmkWeight);
+                    // load all known model weights (new central loader)
+                    try { model.LoadWeights(Path.Combine(Directory.GetCurrentDirectory(), "PESOS", "DETECTOR"), loadGrad: false); } catch { }
                     Console.WriteLine("Checkpoint weights loaded (where available).");
                 }
                 catch (Exception ex)
@@ -184,7 +181,12 @@ namespace DetectorModel
             Console.WriteLine($"Iterando batches (tamanho={batchSize})...");
 
             var ctx = new Bionix.ML.computacao.ComputacaoCPUContexto();
-            var rnd = new Random();
+            // RNG seed: use SEED env var if provided, otherwise generate and persist
+            int rngSeed;
+            var seedEnv = Environment.GetEnvironmentVariable("SEED");
+            if (!string.IsNullOrEmpty(seedEnv) && int.TryParse(seedEnv, out var parsed)) rngSeed = parsed;
+            else rngSeed = (new Random()).Next();
+            var rnd = new Random(rngSeed);
 
             // initialize model weights
             model.InitializeWeights(ctx);
@@ -201,23 +203,51 @@ namespace DetectorModel
             var pesosDirRoot = Path.Combine(Directory.GetCurrentDirectory(), "PESOS", "DETECTOR");
             Directory.CreateDirectory(pesosDirRoot);
 
+            // resume offset (number of samples already processed) when resuming
+            int resumeOffsetSamples = 0;
+            if (resume)
+            {
+                try
+                {
+                    var metaPath = Path.Combine(Directory.GetCurrentDirectory(), "PESOS", "DETECTOR", "meta.json");
+                    if (File.Exists(metaPath))
+                    {
+                        var meta = System.Text.Json.JsonSerializer.Deserialize<System.Collections.Generic.Dictionary<string, object>>(File.ReadAllText(metaPath));
+                        if (meta != null && meta.ContainsKey("processedSamples"))
+                        {
+                            try { resumeOffsetSamples = Convert.ToInt32(meta["processedSamples"]); } catch { resumeOffsetSamples = 0; }
+                        }
+                        if (meta != null && meta.ContainsKey("rngSeed"))
+                        {
+                            try { rngSeed = Convert.ToInt32(meta["rngSeed"]); rnd = new Random(rngSeed); } catch { }
+                        }
+                    }
+                }
+                catch { }
+            }
+
+            int processedSamples = 0;
             for (int epoch = 0; epoch < epochs; epoch++)
             {
                 Console.WriteLine($"Época {epoch}");
                 int testCounter = 0;
                 int localBatch = 0;
-                // prepare optimizer once per epoch using model parameters
+                // prepare optimizer once per epoch using model parameters (include all trainable tensors)
                 Bionix.ML.nucleo.otimizadores.StatefulSGD optimizer = null;
                 var epochParameters = new System.Collections.Generic.List<Bionix.ML.nucleo.tensor.Tensor>();
-                if (model.BackboneWeight != null) epochParameters.Add(model.BackboneWeight);
-                if (model.HeadClsWeight != null) epochParameters.Add(model.HeadClsWeight);
-                if (model.HeadRegWeight != null) epochParameters.Add(model.HeadRegWeight);
-                if (model.HeadLmkWeight != null) epochParameters.Add(model.HeadLmkWeight);
-                if (model.Stem != null && model.Stem.Weight != null) epochParameters.Add(model.Stem.Weight);
-                if (model.HeadCls != null && model.HeadCls.Weight != null) epochParameters.Add(model.HeadCls.Weight);
-                if (model.HeadReg != null && model.HeadReg.Weight != null) epochParameters.Add(model.HeadReg.Weight);
+                // collect all named params from model
+                try
+                {
+                    foreach (var kv in model.GetNamedParameters())
+                    {
+                        if (kv.tensor != null) epochParameters.Add(kv.tensor);
+                    }
+                }
+                catch { }
 
-                foreach (var batch in loader.GetBatchesTensors(batchSize, ctx))
+                // pass resume offset only on first epoch when resuming
+                int startSample = (resume && epoch == 0) ? resumeOffsetSamples : 0;
+                foreach (var batch in loader.GetBatchesTensors(batchSize, ctx, startSample))
                 {
                     Console.WriteLine($" Batch {localBatch} com {batch.Count} amostras");
                     foreach (var sample in batch)
@@ -345,6 +375,9 @@ namespace DetectorModel
                                 try { optimizer.LoadState(pesosDirRoot); } catch { }
                             }
                             optimizer.Step();
+
+                            // increment processed samples counter for resume tracking
+                            processedSamples += batch.Count;
 
                             // Decode model predictions -> boxes and apply NMS
                             var detections = new System.Collections.Generic.List<DetectorModel.dados.Box>();
@@ -498,54 +531,43 @@ namespace DetectorModel
                 if (!Directory.Exists(pesosDirRoot)) Directory.CreateDirectory(pesosDirRoot);
                 foreach (var f in Directory.GetFiles(pesosDirRoot)) File.Delete(f);
 
-                // Save main weights
-                if (model.BackboneWeight != null)
-                {
-                    var p1 = Path.Combine(pesosDirRoot, "backbone.bin");
-                    Bionix.ML.dados.serializacao.SerializadorTensor.SaveBinary(p1, model.BackboneWeight);
-                    // save gradient if present
-                    if (model.BackboneWeight.Grad != null)
-                    {
-                        Bionix.ML.dados.serializacao.SerializadorTensor.SaveBinary(Path.Combine(pesosDirRoot, "backbone.grad.bin"), model.BackboneWeight.Shape, model.BackboneWeight.Grad);
-                    }
-                }
-                if (model.HeadClsWeight != null)
-                {
-                    var p2 = Path.Combine(pesosDirRoot, "head_cls.bin");
-                    Bionix.ML.dados.serializacao.SerializadorTensor.SaveBinary(p2, model.HeadClsWeight);
-                    if (model.HeadClsWeight.Grad != null)
-                    {
-                        Bionix.ML.dados.serializacao.SerializadorTensor.SaveBinary(Path.Combine(pesosDirRoot, "head_cls.grad.bin"), model.HeadClsWeight.Shape, model.HeadClsWeight.Grad);
-                    }
-                }
-                if (model.HeadRegWeight != null)
-                {
-                    var p3 = Path.Combine(pesosDirRoot, "head_reg.bin");
-                    Bionix.ML.dados.serializacao.SerializadorTensor.SaveBinary(p3, model.HeadRegWeight);
-                    if (model.HeadRegWeight.Grad != null)
-                    {
-                        Bionix.ML.dados.serializacao.SerializadorTensor.SaveBinary(Path.Combine(pesosDirRoot, "head_reg.grad.bin"), model.HeadRegWeight.Shape, model.HeadRegWeight.Grad);
-                    }
-                }
-                if (model.HeadLmkWeight != null)
-                {
-                    var p4 = Path.Combine(pesosDirRoot, "head_lmk.bin");
-                    Bionix.ML.dados.serializacao.SerializadorTensor.SaveBinary(p4, model.HeadLmkWeight);
-                    if (model.HeadLmkWeight.Grad != null)
-                    {
-                        Bionix.ML.dados.serializacao.SerializadorTensor.SaveBinary(Path.Combine(pesosDirRoot, "head_lmk.grad.bin"), model.HeadLmkWeight.Shape, model.HeadLmkWeight.Grad);
-                    }
-                }
-
-                // Save optimizer/metadata (learning rate and epoch)
+                // Save checkpoint atomically: write to temp dir then swap
                 try
                 {
-                    var meta = System.Text.Json.JsonSerializer.Serialize(new { epoch = epoch, lr = 1e-3, timestamp = DateTime.UtcNow });
-                    File.WriteAllText(Path.Combine(pesosDirRoot, "meta.json"), meta);
-                    // Save optimizer slots if optimizer exists
-                    try { optimizer?.SaveState(pesosDirRoot); } catch { }
+                    var tmpDir = pesosDirRoot + ".tmp_" + DateTime.UtcNow.Ticks;
+                    if (Directory.Exists(tmpDir)) Directory.Delete(tmpDir, true);
+                    Directory.CreateDirectory(tmpDir);
+                    // Save model files into temp dir
+                    try { model.SaveWeights(tmpDir); } catch (Exception ex) { Console.WriteLine($"Error saving model weights to tmp: {ex.Message}"); }
+                    // Save optimizer slots into temp dir
+                    try { optimizer?.SaveState(tmpDir); } catch (Exception ex) { Console.WriteLine($"Error saving optimizer state to tmp: {ex.Message}"); }
+                    // Write meta.json with rngSeed and processedSamples
+                    var metaObj = new { epoch = epoch, lr = 1e-3, timestamp = DateTime.UtcNow, rngSeed = rngSeed, processedSamples = processedSamples };
+                    var metaJson = System.Text.Json.JsonSerializer.Serialize(metaObj);
+                    File.WriteAllText(Path.Combine(tmpDir, "meta.json"), metaJson);
+
+                    // Atomically replace existing dir
+                    try
+                    {
+                        if (Directory.Exists(pesosDirRoot)) Directory.Delete(pesosDirRoot, true);
+                        Directory.Move(tmpDir, pesosDirRoot);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Atomic swap failed, attempting fallback copy: {ex.Message}");
+                        try
+                        {
+                            if (!Directory.Exists(pesosDirRoot)) Directory.CreateDirectory(pesosDirRoot);
+                            foreach (var f in Directory.GetFiles(tmpDir)) File.Copy(f, Path.Combine(pesosDirRoot, Path.GetFileName(f)), overwrite: true);
+                            Directory.Delete(tmpDir, true);
+                        }
+                        catch (Exception ex2) { Console.WriteLine($"Fallback copy failed: {ex2.Message}"); }
+                    }
                 }
-                catch { }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Checkpoint save failed: {ex.Message}");
+                }
 
                 Console.WriteLine($"Pesos salvos em {pesosDirRoot}");
                 try
