@@ -89,7 +89,7 @@ namespace DetectorModel
             int di = 0;
             foreach (var ann in loader.ReadAnnotations())
             {
-                Console.WriteLine($" Ann: {ann.ImagePath} -> Exists: {File.Exists(ann.ImagePath)} | Boxes={ann.Boxes.Count}");
+                Console.WriteLine($" Ann: {ann.ImagePath} -> Exists: {File.Exists(ann.ImagePath)} | Boxes={ann.Boxes.Count} | BoxSource={ann.BoxSource}");
                 di++; if (di >= 3) break;
             }
 
@@ -110,8 +110,20 @@ namespace DetectorModel
                         using var img = SixLabors.ImageSharp.Image.Load<SixLabors.ImageSharp.PixelFormats.Rgba32>(first.ImagePath);
                         var greenPx = new SixLabors.ImageSharp.PixelFormats.Rgba32(0, 255, 0, 255);
                         DrawBoxes(img, first.Boxes, greenPx, thickness: 3);
+                        DrawLandmarks(img, first.Landmarks);
+                        // draw small marker indicating origin near GT
+                        DrawBoxSourceMarker(img, first.BoxSource, first.Boxes.Count > 0 ? first.Boxes[0] : (DetectorModel.dados.Box?)null);
                         using var fs = File.OpenWrite(outPath);
                         img.Save(fs, new SixLabors.ImageSharp.Formats.Png.PngEncoder());
+                        // write coordinates and BOX_SOURCE
+                        try
+                        {
+                            var txtPath = Path.Combine(outDir, Path.GetFileNameWithoutExtension(first.ImagePath) + "_qa.txt");
+                            using var tw = File.CreateText(txtPath);
+                            tw.WriteLine($"BOX_SOURCE {first.BoxSource}");
+                            foreach (var b in first.Boxes) tw.WriteLine($"GT {b.X} {b.Y} {b.Width} {b.Height}");
+                        }
+                        catch { }
                         Console.WriteLine($"QUICK_ANNOTATE_ONLY saved: {outPath} Exists={File.Exists(outPath)}");
                     }
                     catch (Exception ex)
@@ -146,9 +158,21 @@ namespace DetectorModel
                             dets.Add(new DetectorModel.dados.Box(b.X + jx, b.Y + jy, Math.Max(1, b.Width + rndSim.Next(-8, 9)), Math.Max(1, b.Height + rndSim.Next(-8, 9))));
                         }
                         DrawBoxes(img, first2.Boxes, greenPx, thickness: 3);
+                        DrawLandmarks(img, first2.Landmarks);
                         DrawBoxes(img, dets, bluePx, thickness: 3);
+                        // draw marker near GT and write txt info
+                        DrawBoxSourceMarker(img, first2.BoxSource, first2.Boxes.Count > 0 ? first2.Boxes[0] : (DetectorModel.dados.Box?)null);
                         using var fs2 = File.OpenWrite(outPath2);
                         img.Save(fs2, new SixLabors.ImageSharp.Formats.Png.PngEncoder());
+                        try
+                        {
+                            var txtPath2 = Path.Combine(outDir2, Path.GetFileNameWithoutExtension(first2.ImagePath) + "_both.txt");
+                            using var tw2 = File.CreateText(txtPath2);
+                            tw2.WriteLine($"BOX_SOURCE {first2.BoxSource}");
+                            foreach (var b in first2.Boxes) tw2.WriteLine($"GT {b.X} {b.Y} {b.Width} {b.Height}");
+                            foreach (var d in dets) tw2.WriteLine($"DET {d.X} {d.Y} {d.Width} {d.Height}");
+                        }
+                        catch { }
                         Console.WriteLine($"QUICK_ANNOTATE_BOTH saved: {outPath2} Exists={File.Exists(outPath2)}");
                     }
                     catch (Exception ex)
@@ -297,7 +321,7 @@ namespace DetectorModel
                     Console.WriteLine($" Batch {localBatch} com {batch.Count} amostras");
                     foreach (var sample in batch)
                     {
-                        Console.WriteLine(sample.ImagePath);
+                        Console.WriteLine(sample.ImagePath + $" | BoxSource={sample.BoxSource} | Boxes={sample.Boxes?.Count ?? 0}");
                         if (sample.Tensor != null)
                         {
                             // Run model forward (placeholder)
@@ -479,6 +503,8 @@ namespace DetectorModel
                                             var greenPx = new SixLabors.ImageSharp.PixelFormats.Rgba32(0, 255, 0, 255);
                                             var bluePx = new SixLabors.ImageSharp.PixelFormats.Rgba32(0, 0, 255, 255);
                                             DrawBoxes(img2, sample.Boxes, greenPx, thickness:3);
+                                            DrawLandmarks(img2, sample.Landmarks);
+                                            DrawBoxSourceMarker(img2, sample.BoxSource, sample.Boxes != null && sample.Boxes.Count > 0 ? sample.Boxes[0] : (DetectorModel.dados.Box?)null);
                                             DrawBoxes(img2, detections, bluePx, thickness:3);
                                         using var fs2 = File.OpenWrite(outPathAnnot);
                                         img2.Save(fs2, new SixLabors.ImageSharp.Formats.Png.PngEncoder());
@@ -486,6 +512,7 @@ namespace DetectorModel
                                         try
                                         {
                                             using var tw = File.CreateText(outPathTxt);
+                                            tw.WriteLine($"BOX_SOURCE {sample.BoxSource}");
                                             foreach (var b in sample.Boxes) tw.WriteLine($"GT {b.X} {b.Y} {b.Width} {b.Height}");
                                             foreach (var d in detections) tw.WriteLine($"DET {d.X} {d.Y} {d.Width} {d.Height}");
                                         }
@@ -535,7 +562,9 @@ namespace DetectorModel
                                 using var img = SixLabors.ImageSharp.Image.Load<SixLabors.ImageSharp.PixelFormats.Rgba32>(sample.ImagePath);
                                 var greenPx2 = new SixLabors.ImageSharp.PixelFormats.Rgba32(0, 255, 0, 255);
                                 var bluePx2 = new SixLabors.ImageSharp.PixelFormats.Rgba32(0, 0, 255, 255);
-                                DrawBoxes(img, sample.Boxes, greenPx2);
+                                            DrawBoxes(img, sample.Boxes, greenPx2);
+                                            DrawLandmarks(img, sample.Landmarks);
+                                            DrawBoxSourceMarker(img, sample.BoxSource, sample.Boxes != null && sample.Boxes.Count > 0 ? sample.Boxes[0] : (DetectorModel.dados.Box?)null);
                                 DrawBoxes(img, detections, bluePx2);
                                 var outBase = Path.Combine(saidaDir, $"epoca_{epoch:00}_{testCounter:0000}");
                                 var outPath = Path.ChangeExtension(outBase, ".png");
@@ -547,6 +576,7 @@ namespace DetectorModel
                                 try
                                 {
                                     using var tw = File.CreateText(outTxtPath);
+                                    tw.WriteLine($"BOX_SOURCE {sample.BoxSource}");
                                     foreach (var b in sample.Boxes) tw.WriteLine($"GT {b.X} {b.Y} {b.Width} {b.Height}");
                                     foreach (var d in detections) tw.WriteLine($"DET {d.X} {d.Y} {d.Width} {d.Height}");
                                 }
@@ -688,6 +718,64 @@ namespace DetectorModel
                     {
                         if (tx0 >= 0 && tx0 < w) img[tx0, y] = px;
                         if (tx1 >= 0 && tx1 < w) img[tx1, y] = px;
+                    }
+                }
+            }
+        }
+
+        // Draw a small filled marker indicating box source near provided box (or top-left fallback)
+        private static void DrawBoxSourceMarker(SixLabors.ImageSharp.Image<SixLabors.ImageSharp.PixelFormats.Rgba32> img, string source, DetectorModel.dados.Box? nearBox = null)
+        {
+            int w = img.Width;
+            int h = img.Height;
+            int mw = Math.Min(80, Math.Max(20, w / 8));
+            int mh = Math.Min(18, Math.Max(10, h / 40));
+            SixLabors.ImageSharp.PixelFormats.Rgba32 px;
+            if (string.Equals(source, "landmarks", StringComparison.OrdinalIgnoreCase)) px = new SixLabors.ImageSharp.PixelFormats.Rgba32(0, 200, 0, 255);
+            else if (string.Equals(source, "bbox", StringComparison.OrdinalIgnoreCase)) px = new SixLabors.ImageSharp.PixelFormats.Rgba32(200, 0, 0, 255);
+            else px = new SixLabors.ImageSharp.PixelFormats.Rgba32(200, 200, 0, 255);
+
+            int startX = 0, startY = 0;
+            if (nearBox.HasValue)
+            {
+                var nb = nearBox.Value;
+                startX = Math.Max(0, nb.X);
+                startY = Math.Max(0, nb.Y - mh - 2);
+                if (startY < 0) startY = Math.Max(0, nb.Y);
+            }
+
+            for (int yy = 0; yy < mh; yy++)
+            {
+                for (int xx = 0; xx < mw; xx++)
+                {
+                    int pxX = startX + xx;
+                    int pxY = startY + yy;
+                    if (pxX >= 0 && pxX < w && pxY >= 0 && pxY < h) img[pxX, pxY] = px;
+                }
+            }
+        }
+
+        // Draw landmark points (small filled circles) on the image for visual debug
+        private static void DrawLandmarks(SixLabors.ImageSharp.Image<SixLabors.ImageSharp.PixelFormats.Rgba32> img, System.Collections.Generic.List<double[]> landmarks)
+        {
+            if (landmarks == null) return;
+            var px = new SixLabors.ImageSharp.PixelFormats.Rgba32(255, 0, 255, 255);
+            int w = img.Width; int h = img.Height;
+            foreach (var lm in landmarks)
+            {
+                if (lm == null || lm.Length < 10) continue;
+                for (int i = 0; i < 5; i++)
+                {
+                    int lx = (int)Math.Round(lm[i*2 + 0]);
+                    int ly = (int)Math.Round(lm[i*2 + 1]);
+                    // draw small 3x3 square
+                    for (int dy = -1; dy <= 1; dy++)
+                    {
+                        for (int dx = -1; dx <= 1; dx++)
+                        {
+                            int x = lx + dx; int y = ly + dy;
+                            if (x >= 0 && x < w && y >= 0 && y < h) img[x, y] = px;
+                        }
                     }
                 }
             }

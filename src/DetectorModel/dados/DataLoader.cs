@@ -17,6 +17,8 @@ namespace DetectorModel.dados
         public List<Box> Boxes { get; set; } = new List<Box>();
         // Each landmarks entry is an array of 10 values: lx1,ly1,...,lx5,ly5
         public List<double[]> Landmarks { get; set; } = new List<double[]>();
+        // source of the box: "landmarks" or "bbox"
+        public string BoxSource { get; set; }
     }
 
     public struct Box
@@ -45,6 +47,7 @@ namespace DetectorModel.dados
             public List<Box> Boxes { get; set; }
             public string ImagePath { get; set; }
             public List<double[]> Landmarks { get; set; }
+            public string BoxSource { get; set; }
         }
 
         // Convert an Annotation to a Sample by loading the image and transforming to Tensor
@@ -68,7 +71,7 @@ namespace DetectorModel.dados
             }
 
             var tensor = ManipuladorDeImagem.transformarEmTensor(bmp, ctx);
-            return new Sample { Tensor = tensor, Boxes = ann.Boxes, ImagePath = ann.ImagePath, Landmarks = ann.Landmarks };
+            return new Sample { Tensor = tensor, Boxes = ann.Boxes, ImagePath = ann.ImagePath, Landmarks = ann.Landmarks, BoxSource = ann.BoxSource };
         }
 
         // Parse annotations. Supports WIDER-style txt (legacy) and CelebA CSV landmarks/bbox files.
@@ -120,7 +123,34 @@ namespace DetectorModel.dados
                 {
                     var ann = new Annotation();
                     ann.ImagePath = Path.Combine(_imagesRoot, kv.Key);
-                    if (bboxMap.TryGetValue(kv.Key, out var bb)) ann.Boxes.Add(bb);
+                    // If landmarks present, construct a GT bbox from landmarks (better fit for aligned images)
+                    var lm = kv.Value;
+                    if (lm != null && lm.Length >= 10)
+                    {
+                        double minX = double.MaxValue, minY = double.MaxValue, maxX = double.MinValue, maxY = double.MinValue;
+                        for (int k = 0; k < 5; k++)
+                        {
+                            double lx = lm[k * 2 + 0];
+                            double ly = lm[k * 2 + 1];
+                            if (lx < minX) minX = lx;
+                            if (ly < minY) minY = ly;
+                            if (lx > maxX) maxX = lx;
+                            if (ly > maxY) maxY = ly;
+                        }
+                        // add small padding
+                        int pad = 8;
+                        int x = Math.Max(0, (int)Math.Floor(minX) - pad);
+                        int y = Math.Max(0, (int)Math.Floor(minY) - pad);
+                        int w = Math.Max(1, (int)Math.Ceiling(maxX) - x + pad);
+                        int h = Math.Max(1, (int)Math.Ceiling(maxY) - y + pad);
+                        ann.Boxes.Add(new Box(x, y, w, h));
+                        ann.BoxSource = "landmarks";
+                    }
+                    else if (bboxMap.TryGetValue(kv.Key, out var bb))
+                    {
+                        ann.Boxes.Add(bb);
+                        ann.BoxSource = "bbox";
+                    }
                     ann.Landmarks.Add(kv.Value);
                     yield return ann;
                 }
