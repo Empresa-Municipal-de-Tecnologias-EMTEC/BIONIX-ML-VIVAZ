@@ -97,6 +97,23 @@ namespace DetectorModel.modelo
             return new BoxF(gx - gw/2.0, gy - gh/2.0, gw, gh);
         }
 
+        // Decode landmark deltas (relative) back to absolute image coordinates
+        // delta: [lx1,ly1,...,lx5,ly5] where each is normalized by anchor width/height
+        public static double[] DecodeLandmarks(BoxF anchor, double[] delta)
+        {
+            var outL = new double[10];
+            double ax = anchor.X + anchor.W/2.0;
+            double ay = anchor.Y + anchor.H/2.0;
+            double aw = anchor.W;
+            double ah = anchor.H;
+            for (int i = 0; i < 5; i++)
+            {
+                outL[i*2] = delta[i*2] * aw + ax;
+                outL[i*2 + 1] = delta[i*2 + 1] * ah + ay;
+            }
+            return outL;
+        }
+
         // Non-maximum suppression on boxes with scores
         public static List<int> NMS(List<BoxF> boxes, List<double> scores, double iouThresh)
         {
