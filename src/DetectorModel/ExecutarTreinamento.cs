@@ -220,7 +220,7 @@ namespace DetectorModel
                 return;
             }
 
-            Console.WriteLine("Criando modelo RetinaFace (esqueleto)...");
+            Console.WriteLine("Criando modelo RetinaFace...");
             var model = new RetinaFaceModel();
 
             // resume support: if --resume flag or RESUME=1 env var, try to load last checkpoint
@@ -806,7 +806,7 @@ namespace DetectorModel
                 catch { }
             }
 
-            Console.WriteLine("Execução de treinamento (esqueleto) finalizada.");
+            Console.WriteLine("Execução de treinamento finalizada.");
         }
 
         private static void DrawBoxes(SixLabors.ImageSharp.Image<SixLabors.ImageSharp.PixelFormats.Rgba32> img, System.Collections.Generic.List<DetectorModel.dados.Box> boxes, SixLabors.ImageSharp.PixelFormats.Rgba32 px, int thickness = 2)
