@@ -476,6 +476,9 @@ namespace DetectorModel
 
                             var fabrica = new Bionix.ML.nucleo.tensor.FabricaTensor(ctx);
 
+                            // create loss factories for this context
+                            var smoothL1Fn = Bionix.ML.nucleo.funcoesPerda.FabricaFuncoesPerda.CriarSmoothL1(ctx);
+
                             // classification: logits for active indices and binary targets
                             double[] clsLogitsArr = new double[activeIdx.Count];
                             double[] clsTgtArr = new double[activeIdx.Count];
@@ -513,7 +516,7 @@ namespace DetectorModel
                                 }
                                 var regPred = fabrica.FromArray(new int[]{regPredArr.Length}, regPredArr);
                                 var regTgt = fabrica.FromArray(new int[]{regTgtArr.Length}, regTgtArr);
-                                smoothL1Loss = SmoothL1.Loss(ctx, regPred, regTgt);
+                                smoothL1Loss = smoothL1Fn(regPred, regTgt);
                             }
 
                             // landmarks loss (only positives)
@@ -543,7 +546,7 @@ namespace DetectorModel
                                 }
                                 var lmkPred = fabrica.FromArray(new int[]{lmkPredArr.Length}, lmkPredArr);
                                 var lmkTgt = fabrica.FromArray(new int[]{lmkTgtArr.Length}, lmkTgtArr);
-                                lmkLoss = SmoothL1.Loss(ctx, lmkPred, lmkTgt);
+                                lmkLoss = smoothL1Fn(lmkPred, lmkTgt);
                             }
 
                             var totalLoss = focal.Add(smoothL1Loss).Add(lmkLoss);
