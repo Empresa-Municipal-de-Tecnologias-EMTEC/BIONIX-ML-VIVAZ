@@ -1,11 +1,11 @@
 Treino do Zero
 
-dotnet run --project BIONIX-ML-VIVAZ/src/DetectorModel/DetectorModel.csproj
+dotnet run --project BIONIX-ML-VIVAZ/src/Bionix.ML.Vivaz.Runner/Bionix.ML.Vivaz.Runner.csproj -- --mode train
 
 Retomar o treino
 
-dotnet run --project BIONIX-ML-VIVAZ/src/DetectorModel/DetectorModel.csproj -- --resume
+dotnet run --project BIONIX-ML-VIVAZ/src/Bionix.ML.Vivaz.Runner/Bionix.ML.Vivaz.Runner.csproj -- --resume
 
 Forçar semente RNG e retomar
 
-$env:SEED=12345; dotnet run --project BIONIX-ML-VIVAZ/src/DetectorModel/DetectorModel.csproj -- --resume
+$env:SEED=12345; dotnet run --project BIONIX-ML-VIVAZ/src/Bionix.ML.Vivaz.Runner/Bionix.ML.Vivaz.Runner.csproj -- --resume
