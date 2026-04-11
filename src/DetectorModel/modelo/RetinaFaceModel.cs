@@ -1,9 +1,10 @@
 using Bionix.ML.nucleo.tensor;
 using Bionix.ML.nucleo.tensor;
 using Bionix.ML.computacao;
-using Bionix.ML.grafo.CPU;
 using Bionix.ML.dados;
 using Bionix.ML.camadas;
+using Bionix.ML.camadas.Interfaces;
+using Bionix.ML.grafo;
 
 namespace DetectorModel.modelo
 {
@@ -11,40 +12,41 @@ namespace DetectorModel.modelo
     public class RetinaFaceModel
     {
         // backbone
-        public ConvLayer Stem { get; }
-        public ResidualBlock[] Stage2 { get; }
-        public ResidualBlock[] Stage3 { get; }
-        public ResidualBlock[] Stage4 { get; }
+        public IConvLayer Stem { get; private set; }
+        public IResidualBlock[] Stage2 { get; private set; }
+        public IResidualBlock[] Stage3 { get; private set; }
+        public IResidualBlock[] Stage4 { get; private set; }
 
         // FPN
-        public FPN Pyramid { get; }
+        public IFPN Pyramid { get; private set; }
 
         // per-scale heads
-        public DetectionHead HeadP3 { get; }
-        public DetectionHead HeadP4 { get; }
-        public DetectionHead HeadP5 { get; }
+        public IDetectionHead HeadP3 { get; private set; }
+        public IDetectionHead HeadP4 { get; private set; }
+        public IDetectionHead HeadP5 { get; private set; }
 
-        // Compatibility properties for existing training code
-        public Tensor BackboneWeight => Stem?.Weight;
-        public Tensor HeadClsWeight => HeadP3?.ClsConv?.Weight;
-        public Tensor HeadRegWeight => HeadP3?.RegConv?.Weight;
-        public Tensor HeadLmkWeight => HeadP3?.LandmarksConv?.Weight;
-        public ConvLayer HeadCls => HeadP3?.ClsConv;
-        public ConvLayer HeadReg => HeadP3?.RegConv;
+        // Compatibility properties for existing training code (use reflection to access concrete fields)
+        public Tensor BackboneWeight => TryGetPropertyTensor(Stem, "Weight");
+        public Tensor HeadClsWeight => TryGetNestedTensor(HeadP3, "ClsConv", "Weight");
+        public Tensor HeadRegWeight => TryGetNestedTensor(HeadP3, "RegConv", "Weight");
+        public Tensor HeadLmkWeight => TryGetNestedTensor(HeadP3, "LandmarksConv", "Weight");
+        public IConvLayer HeadCls => TryGetNestedLayer<IConvLayer>(HeadP3, "ClsConv");
+        public IConvLayer HeadReg => TryGetNestedLayer<IConvLayer>(HeadP3, "RegConv");
 
-        public RetinaFaceModel()
+        public RetinaFaceModel(ComputacaoContexto ctx = null)
         {
-            Stem = new ConvLayer(inChannels: 3, outChannels: 32, kernelSize: 3);
+            var fabrica = new Bionix.ML.camadas.FabricaCamadas();
+            Stem = FabricaCamadas.CriarConvLayer(inChannels: 3, outChannels: 32, kernelSize: 3, ctx: ctx);
             // small residual stages
-            Stage2 = new ResidualBlock[] { new ResidualBlock(32), new ResidualBlock(32) };
-            Stage3 = new ResidualBlock[] { new ResidualBlock(32), new ResidualBlock(32) };
-            Stage4 = new ResidualBlock[] { new ResidualBlock(32) };
+            Stage2 = new ResidualBlock[] { (FabricaCamadas.CriarResidualBlock(32, ctx) as ResidualBlock) , (FabricaCamadas.CriarResidualBlock(32, ctx) as ResidualBlock) };
+            Stage3 = new ResidualBlock[] { (FabricaCamadas.CriarResidualBlock(32, ctx) as ResidualBlock) , (FabricaCamadas.CriarResidualBlock(32, ctx) as ResidualBlock) };
+            Stage4 = new ResidualBlock[] { (FabricaCamadas.CriarResidualBlock(32, ctx) as ResidualBlock) };
 
-            Pyramid = new FPN(inChannelsC5: 32, inChannelsC4: 32, inChannelsC3: 32, outChannels: 32);
+            Pyramid = FabricaCamadas.CriarFPN(inChannelsC5: 32, inChannelsC4: 32, inChannelsC3: 32, outChannels: 32, ctx: ctx) as FPN;
 
-            HeadP3 = new DetectionHead(inChannels: 32, interChannels: 32);
-            HeadP4 = new DetectionHead(inChannels: 32, interChannels: 32);
-            HeadP5 = new DetectionHead(inChannels: 32, interChannels: 32);
+            HeadP3 = FabricaCamadas.CriarDetectionHead(inChannels: 32, interChannels: 32, ctx: ctx) as DetectionHead;
+            HeadP4 = FabricaCamadas.CriarDetectionHead(inChannels: 32, interChannels: 32, ctx: ctx) as DetectionHead;
+            HeadP5 = FabricaCamadas.CriarDetectionHead(inChannels: 32, interChannels: 32, ctx: ctx) as DetectionHead;
         }
 
         public void InitializeWeights(ComputacaoContexto ctx)
@@ -57,6 +59,46 @@ namespace DetectorModel.modelo
             HeadP3.Initialize(ctx);
             HeadP4.Initialize(ctx);
             HeadP5.Initialize(ctx);
+        }
+
+        private static Tensor TryGetPropertyTensor(object obj, string propName)
+        {
+            if (obj == null) return null;
+            try
+            {
+                var pi = obj.GetType().GetProperty(propName);
+                if (pi == null) return null;
+                return pi.GetValue(obj) as Tensor;
+            }
+            catch { return null; }
+        }
+
+        private static Tensor TryGetNestedTensor(object obj, string childProp, string nestedProp)
+        {
+            if (obj == null) return null;
+            try
+            {
+                var pi = obj.GetType().GetProperty(childProp);
+                if (pi == null) return null;
+                var child = pi.GetValue(obj);
+                if (child == null) return null;
+                var pj = child.GetType().GetProperty(nestedProp);
+                if (pj == null) return null;
+                return pj.GetValue(child) as Tensor;
+            }
+            catch { return null; }
+        }
+
+        private static T TryGetNestedLayer<T>(object obj, string childProp) where T : class
+        {
+            if (obj == null) return null;
+            try
+            {
+                var pi = obj.GetType().GetProperty(childProp);
+                if (pi == null) return null;
+                return pi.GetValue(obj) as T;
+            }
+            catch { return null; }
         }
 
         // Create a simple concatenated output: flatten per-scale cls, reg and landmarks into single tensors
@@ -126,7 +168,7 @@ namespace DetectorModel.modelo
                 dst[(y * dst.Shape[1] + x) * c + ch] = src[(sy * w + sx) * c + ch];
             }
             dst.RequiresGrad = true;
-            dst.GradFn = new DownsampleFunction(src, dst);
+            dst.GradFn = FabricaFuncoesRetropropagacao.CriarDownsample(ctx, src, dst);
             return dst;
         }
 
@@ -141,7 +183,7 @@ namespace DetectorModel.modelo
                 for (int i = 0; i < p.Size; i++) { outT[idx++] = p[i]; }
             }
             outT.RequiresGrad = true;
-            outT.GradFn = new ConcatFunction(parts, outT);
+            outT.GradFn = FabricaFuncoesRetropropagacao.CriarConcat(ctx, parts, outT);
             return outT;
         }
 
@@ -206,69 +248,69 @@ namespace DetectorModel.modelo
         public System.Collections.Generic.IEnumerable<(string name, Tensor tensor)> GetNamedParameters()
         {
             // stem
-            yield return ("stem", Stem?.Weight);
-            yield return ("stem.bias", Stem?.Bias);
+            yield return ("stem", TryGetPropertyTensor(Stem, "Weight"));
+            yield return ("stem.bias", TryGetPropertyTensor(Stem, "Bias"));
             int i = 0;
             foreach (var b in Stage2)
             {
-                yield return ($"stage2_{i}_conv1", b.Conv1?.Weight);
-                yield return ($"stage2_{i}_conv1.bias", b.Conv1?.Bias);
-                yield return ($"stage2_{i}_conv2", b.Conv2?.Weight);
-                yield return ($"stage2_{i}_conv2.bias", b.Conv2?.Bias);
+                yield return ($"stage2_{i}_conv1", TryGetNestedTensor(b, "Conv1", "Weight"));
+                yield return ($"stage2_{i}_conv1.bias", TryGetNestedTensor(b, "Conv1", "Bias"));
+                yield return ($"stage2_{i}_conv2", TryGetNestedTensor(b, "Conv2", "Weight"));
+                yield return ($"stage2_{i}_conv2.bias", TryGetNestedTensor(b, "Conv2", "Bias"));
                 i++;
             }
             i = 0;
             foreach (var b in Stage3)
             {
-                yield return ($"stage3_{i}_conv1", b.Conv1?.Weight);
-                yield return ($"stage3_{i}_conv1.bias", b.Conv1?.Bias);
-                yield return ($"stage3_{i}_conv2", b.Conv2?.Weight);
-                yield return ($"stage3_{i}_conv2.bias", b.Conv2?.Bias);
+                yield return ($"stage3_{i}_conv1", TryGetNestedTensor(b, "Conv1", "Weight"));
+                yield return ($"stage3_{i}_conv1.bias", TryGetNestedTensor(b, "Conv1", "Bias"));
+                yield return ($"stage3_{i}_conv2", TryGetNestedTensor(b, "Conv2", "Weight"));
+                yield return ($"stage3_{i}_conv2.bias", TryGetNestedTensor(b, "Conv2", "Bias"));
                 i++;
             }
             i = 0;
             foreach (var b in Stage4)
             {
-                yield return ($"stage4_{i}_conv1", b.Conv1?.Weight);
-                yield return ($"stage4_{i}_conv1.bias", b.Conv1?.Bias);
-                yield return ($"stage4_{i}_conv2", b.Conv2?.Weight);
-                yield return ($"stage4_{i}_conv2.bias", b.Conv2?.Bias);
+                yield return ($"stage4_{i}_conv1", TryGetNestedTensor(b, "Conv1", "Weight"));
+                yield return ($"stage4_{i}_conv1.bias", TryGetNestedTensor(b, "Conv1", "Bias"));
+                yield return ($"stage4_{i}_conv2", TryGetNestedTensor(b, "Conv2", "Weight"));
+                yield return ($"stage4_{i}_conv2.bias", TryGetNestedTensor(b, "Conv2", "Bias"));
                 i++;
             }
             // fpn
-            yield return ("fpn_c5", Pyramid?.LatC5?.Weight);
-            yield return ("fpn_c5.bias", Pyramid?.LatC5?.Bias);
-            yield return ("fpn_c4", Pyramid?.LatC4?.Weight);
-            yield return ("fpn_c4.bias", Pyramid?.LatC4?.Bias);
-            yield return ("fpn_c3", Pyramid?.LatC3?.Weight);
-            yield return ("fpn_c3.bias", Pyramid?.LatC3?.Bias);
+            yield return ("fpn_c5", TryGetNestedTensor(Pyramid, "LatC5", "Weight"));
+            yield return ("fpn_c5.bias", TryGetNestedTensor(Pyramid, "LatC5", "Bias"));
+            yield return ("fpn_c4", TryGetNestedTensor(Pyramid, "LatC4", "Weight"));
+            yield return ("fpn_c4.bias", TryGetNestedTensor(Pyramid, "LatC4", "Bias"));
+            yield return ("fpn_c3", TryGetNestedTensor(Pyramid, "LatC3", "Weight"));
+            yield return ("fpn_c3.bias", TryGetNestedTensor(Pyramid, "LatC3", "Bias"));
             // heads p3/p4/p5 (include landmark convs and biases)
-            yield return ("head_p3_conv", HeadP3?.HeadConv?.Weight);
-            yield return ("head_p3_conv.bias", HeadP3?.HeadConv?.Bias);
-            yield return ("head_p3_cls", HeadP3?.ClsConv?.Weight);
-            yield return ("head_p3_cls.bias", HeadP3?.ClsConv?.Bias);
-            yield return ("head_p3_reg", HeadP3?.RegConv?.Weight);
-            yield return ("head_p3_reg.bias", HeadP3?.RegConv?.Bias);
-            yield return ("head_p3_lmk", HeadP3?.LandmarksConv?.Weight);
-            yield return ("head_p3_lmk.bias", HeadP3?.LandmarksConv?.Bias);
+            yield return ("head_p3_conv", TryGetNestedTensor(HeadP3, "HeadConv", "Weight"));
+            yield return ("head_p3_conv.bias", TryGetNestedTensor(HeadP3, "HeadConv", "Bias"));
+            yield return ("head_p3_cls", TryGetNestedTensor(HeadP3, "ClsConv", "Weight"));
+            yield return ("head_p3_cls.bias", TryGetNestedTensor(HeadP3, "ClsConv", "Bias"));
+            yield return ("head_p3_reg", TryGetNestedTensor(HeadP3, "RegConv", "Weight"));
+            yield return ("head_p3_reg.bias", TryGetNestedTensor(HeadP3, "RegConv", "Bias"));
+            yield return ("head_p3_lmk", TryGetNestedTensor(HeadP3, "LandmarksConv", "Weight"));
+            yield return ("head_p3_lmk.bias", TryGetNestedTensor(HeadP3, "LandmarksConv", "Bias"));
 
-            yield return ("head_p4_conv", HeadP4?.HeadConv?.Weight);
-            yield return ("head_p4_conv.bias", HeadP4?.HeadConv?.Bias);
-            yield return ("head_p4_cls", HeadP4?.ClsConv?.Weight);
-            yield return ("head_p4_cls.bias", HeadP4?.ClsConv?.Bias);
-            yield return ("head_p4_reg", HeadP4?.RegConv?.Weight);
-            yield return ("head_p4_reg.bias", HeadP4?.RegConv?.Bias);
-            yield return ("head_p4_lmk", HeadP4?.LandmarksConv?.Weight);
-            yield return ("head_p4_lmk.bias", HeadP4?.LandmarksConv?.Bias);
+            yield return ("head_p4_conv", TryGetNestedTensor(HeadP4, "HeadConv", "Weight"));
+            yield return ("head_p4_conv.bias", TryGetNestedTensor(HeadP4, "HeadConv", "Bias"));
+            yield return ("head_p4_cls", TryGetNestedTensor(HeadP4, "ClsConv", "Weight"));
+            yield return ("head_p4_cls.bias", TryGetNestedTensor(HeadP4, "ClsConv", "Bias"));
+            yield return ("head_p4_reg", TryGetNestedTensor(HeadP4, "RegConv", "Weight"));
+            yield return ("head_p4_reg.bias", TryGetNestedTensor(HeadP4, "RegConv", "Bias"));
+            yield return ("head_p4_lmk", TryGetNestedTensor(HeadP4, "LandmarksConv", "Weight"));
+            yield return ("head_p4_lmk.bias", TryGetNestedTensor(HeadP4, "LandmarksConv", "Bias"));
 
-            yield return ("head_p5_conv", HeadP5?.HeadConv?.Weight);
-            yield return ("head_p5_conv.bias", HeadP5?.HeadConv?.Bias);
-            yield return ("head_p5_cls", HeadP5?.ClsConv?.Weight);
-            yield return ("head_p5_cls.bias", HeadP5?.ClsConv?.Bias);
-            yield return ("head_p5_reg", HeadP5?.RegConv?.Weight);
-            yield return ("head_p5_reg.bias", HeadP5?.RegConv?.Bias);
-            yield return ("head_p5_lmk", HeadP5?.LandmarksConv?.Weight);
-            yield return ("head_p5_lmk.bias", HeadP5?.LandmarksConv?.Bias);
+            yield return ("head_p5_conv", TryGetNestedTensor(HeadP5, "HeadConv", "Weight"));
+            yield return ("head_p5_conv.bias", TryGetNestedTensor(HeadP5, "HeadConv", "Bias"));
+            yield return ("head_p5_cls", TryGetNestedTensor(HeadP5, "ClsConv", "Weight"));
+            yield return ("head_p5_cls.bias", TryGetNestedTensor(HeadP5, "ClsConv", "Bias"));
+            yield return ("head_p5_reg", TryGetNestedTensor(HeadP5, "RegConv", "Weight"));
+            yield return ("head_p5_reg.bias", TryGetNestedTensor(HeadP5, "RegConv", "Bias"));
+            yield return ("head_p5_lmk", TryGetNestedTensor(HeadP5, "LandmarksConv", "Weight"));
+            yield return ("head_p5_lmk.bias", TryGetNestedTensor(HeadP5, "LandmarksConv", "Bias"));
         }
     }
 }
