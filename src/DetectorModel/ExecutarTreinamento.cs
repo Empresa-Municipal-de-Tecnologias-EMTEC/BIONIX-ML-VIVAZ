@@ -289,14 +289,41 @@ namespace DetectorModel
 
                             Bionix.ML.nucleo.otimizadores.SGD.Step(parameters, lr: 1e-3);
 
-                            // Simulate detections: copy ground truth boxes with small jitter
+                            // Decode model predictions -> boxes and apply NMS
                             var detections = new System.Collections.Generic.List<DetectorModel.dados.Box>();
-                            foreach (var b in sample.Boxes)
+                            try
                             {
-                                int jx = rnd.Next(-5, 6);
-                                int jy = rnd.Next(-5, 6);
-                                var db = new DetectorModel.dados.Box(b.X + jx, b.Y + jy, Math.Max(1, b.Width + rnd.Next(-5, 6)), Math.Max(1, b.Height + rnd.Next(-5, 6)));
-                                detections.Add(db);
+                                var boxesList = new System.Collections.Generic.List<DetectorModel.modelo.BoxF>();
+                                var scores = new System.Collections.Generic.List<double>();
+                                int A = allAnchors.Count;
+                                for (int iA = 0; iA < A; iA++)
+                                {
+                                    double score = Sigmoid(clsCpu[iA]);
+                                    // threshold detections
+                                    if (score < 0.5) continue;
+                                    // decode box
+                                    var delta = new double[4];
+                                    for (int k = 0; k < 4; k++) delta[k] = regCpu[iA*4 + k];
+                                    var decoded = UtilitarioAncoras.Decode(allAnchors[iA], delta);
+                                    boxesList.Add(decoded);
+                                    scores.Add(score);
+                                }
+                                // apply NMS
+                                var keep = UtilitarioAncoras.NMS(boxesList, scores, 0.4);
+                                foreach (var idx in keep)
+                                {
+                                    var bf = boxesList[idx];
+                                    int x = (int)Math.Round(bf.X);
+                                    int y = (int)Math.Round(bf.Y);
+                                    int w = (int)Math.Max(1, Math.Round(bf.W));
+                                    int h = (int)Math.Max(1, Math.Round(bf.H));
+                                    detections.Add(new DetectorModel.dados.Box(x, y, w, h));
+                                }
+                            }
+                            catch (Exception)
+                            {
+                                // fallback to empty detections on error
+                                detections = new System.Collections.Generic.List<DetectorModel.dados.Box>();
                             }
 
                             // Load original image and draw boxes
@@ -504,6 +531,11 @@ namespace DetectorModel
                     }
                 }
             }
+        }
+
+        private static double Sigmoid(double x)
+        {
+            return 1.0 / (1.0 + Math.Exp(-x));
         }
     }
 }
