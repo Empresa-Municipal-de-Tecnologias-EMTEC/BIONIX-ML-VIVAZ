@@ -4,7 +4,8 @@ dotnet run --project BIONIX-ML-VIVAZ/src/Bionix.ML.Vivaz.Runner/Bionix.ML.Vivaz.
 
 Retomar o treino
 
-dotnet run --project BIONIX-ML-VIVAZ/src/Bionix.ML.Vivaz.Runner/Bionix.ML.Vivaz.Runner.csproj -- --resume
+$env:QUICK_TEST_SAVE='0'
+dotnet run --project BIONIX-ML-VIVAZ/src/Bionix.ML.Vivaz.Runner/Bionix.ML.Vivaz.Runner.csproj -- --mode train
 
 Forçar semente RNG e retomar
 
