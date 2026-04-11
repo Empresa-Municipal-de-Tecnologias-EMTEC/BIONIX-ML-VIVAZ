@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using DetectorModel.dados;
 using DetectorModel.modelo;
+using Bionix.ML.computacao;
 using Bionix.ML.nucleo.tensor;
 using DetectorModel.modelo;
 using Bionix.ML.nucleo.funcoesPerda.Focal;
@@ -46,10 +47,19 @@ namespace DetectorModel
             // sensible default strides for p3,p4,p5 (can be overridden via env/args)
             hp.Strides = new int[] { 8, 16, 32 };
 
-            treinar(hp, args);
+            ComputacaoContexto ctx = new ComputacaoCPUContexto();
+            
+            try
+            {
+                treinar(hp, args, ctx);
+            }
+            finally
+            {
+                if (ctx is IDisposable d) d.Dispose();
+            }
         }
 
-        public static void treinar(HyperParameters hp, string[] args){
+        public static void treinar(HyperParameters hp, string[] args, ComputacaoContexto ctx){
             // Resolve DATASET folder by walking up from current directory (so runner works from any CWD)
             string resolvedDatasetRoot = null;
             var initialCwd = Directory.GetCurrentDirectory();
@@ -286,7 +296,6 @@ namespace DetectorModel
             bool DRAW_ONLY_MODEL_OUTPUTS = hp.DrawOnlyModelOutputs;
             Console.WriteLine($"Iterando batches (tamanho={BATCH_SIZE})...");
 
-            var ctx = new Bionix.ML.computacao.ComputacaoCPUContexto();
             // RNG seed: use SEED env var if provided, otherwise generate and persist
             int rngSeed;
             var seedEnv = Environment.GetEnvironmentVariable("SEED");
@@ -374,8 +383,8 @@ namespace DetectorModel
                             var (clsOut, regOut, lmkOut, clsHeadShapes) = model.Forward(sample.Tensor, ctx);
 
                             // Build detection losses via anchor matching + focal + smooth-L1
-                            var clsCpu = clsOut as TensorCPU ?? throw new Exception("Expected TensorCPU for clsOut");
-                            var regCpu = regOut as TensorCPU ?? throw new Exception("Expected TensorCPU for regOut");
+                            var clsTensor = clsOut as Bionix.ML.nucleo.tensor.Tensor ?? throw new Exception("Expected Tensor for clsOut");
+                            var regTensor = regOut as Bionix.ML.nucleo.tensor.Tensor ?? throw new Exception("Expected Tensor for regOut");
 
                             // derive feature map sizes from model head shapes (ensures anchors match model outputs)
                             int fh3 = Math.Max(1, clsHeadShapes[0][0]);
@@ -440,25 +449,25 @@ namespace DetectorModel
 
                             // defensive checks: ensure tensor sizes match expected anchors count
                             int A = allAnchors.Count;
-                            if (clsCpu.Size < A)
+                            if (clsTensor.Size < A)
                             {
                                     // Detailed diagnostic to help find mismatch between model outputs and generated anchors
                                     var anchors3Count = anchors3.Count;
                                     var anchors4Count = anchors4.Count;
                                     var anchors5Count = anchors5.Count;
-                                    Console.WriteLine($"Runner error: cls tensor size {clsCpu.Size} < anchors {A}. Skipping this sample.");
+                                    Console.WriteLine($"Runner error: cls tensor size {clsTensor.Size} < anchors {A}. Skipping this sample.");
                                     Console.WriteLine($" Diagnostic: inH={inH} inW={inW} -> anchors per scale: p3={anchors3Count}, p4={anchors4Count}, p5={anchors5Count} (sum={anchors3Count+anchors4Count+anchors5Count}).");
                                     try
                                     {
-                                        var lmkCpuLocal = lmkOut as TensorCPU;
-                                        Console.WriteLine($" Tensor sizes: cls={clsCpu.Size}, reg={regCpu.Size}, lmk={(lmkCpuLocal!=null?lmkCpuLocal.Size:-1)}");
+                                        var lmkLocal = lmkOut as Bionix.ML.nucleo.tensor.Tensor;
+                                        Console.WriteLine($" Tensor sizes: cls={clsTensor.Size}, reg={regTensor.Size}, lmk={(lmkLocal!=null?lmkLocal.Size:-1)}");
                                     }
                                     catch { }
                                 continue; // skip this sample to avoid IndexOutOfRange
                             }
-                            if (regCpu.Size < A * 4)
+                            if (regTensor.Size < A * 4)
                             {
-                                Console.WriteLine($"Runner error: reg tensor size {regCpu.Size} < anchors*4 {A * 4}. Skipping this sample.");
+                                Console.WriteLine($"Runner error: reg tensor size {regTensor.Size} < anchors*4 {A * 4}. Skipping this sample.");
                                 continue;
                             }
 
@@ -470,7 +479,7 @@ namespace DetectorModel
                             for (int k = 0; k < activeIdx.Count; k++)
                             {
                                 int ai = activeIdx[k];
-                                clsLogitsArr[k] = clsCpu[ai];
+                                clsLogitsArr[k] = clsTensor[ai];
                                 clsTgtArr[k] = labels[ai] == 1 ? 1.0 : 0.0;
                             }
                             var clsPred = fabrica.FromArray(new int[]{clsLogitsArr.Length}, clsLogitsArr);
@@ -495,7 +504,7 @@ namespace DetectorModel
                                 for (int p = 0; p < positiveIdx.Count; p++)
                                 {
                                     int ai = positiveIdx[p];
-                                    for (int k = 0; k < 4; k++) regPredArr[p*4 + k] = regCpu[ai*4 + k];
+                                    for (int k = 0; k < 4; k++) regPredArr[p*4 + k] = regTensor[ai*4 + k];
                                     var tgt = bboxTargets[ai];
                                     for (int k = 0; k < 4; k++) regTgtArr[p*4 + k] = tgt[k];
                                 }
@@ -506,7 +515,7 @@ namespace DetectorModel
 
                             // landmarks loss (only positives)
                             Tensor lmkLoss;
-                            var lmkCpu = lmkOut as TensorCPU ?? throw new Exception("Expected TensorCPU for lmkOut");
+                                var lmkCpu = lmkOut as Bionix.ML.nucleo.tensor.Tensor ?? throw new Exception("Expected Tensor for lmkOut");
                             // check landmark tensor size before indexing
                             if (lmkCpu.Size < allAnchors.Count * 10)
                             {
@@ -564,7 +573,7 @@ namespace DetectorModel
                                 var scored = new System.Collections.Generic.List<(int idx, double score)>();
                                 for (int iA = 0; iA < anchorCount; iA++)
                                 {
-                                    double score = Sigmoid(clsCpu[iA]);
+                                    double score = Sigmoid(clsTensor[iA]);
                                     if (score < DETECTION_SCORE_THRESHOLD) continue;
                                     scored.Add((iA, score));
                                 }
@@ -576,7 +585,7 @@ namespace DetectorModel
                                 {
                                     int iA = s.idx; double score = s.score;
                                     var delta = new double[4];
-                                    for (int k = 0; k < 4; k++) delta[k] = regCpu[iA*4 + k];
+                                    for (int k = 0; k < 4; k++) delta[k] = regTensor[iA*4 + k];
                                     var decoded = UtilitarioAncoras.Decode(allAnchors[iA], delta);
                                     boxesList.Add(decoded);
                                     scores.Add(score);
