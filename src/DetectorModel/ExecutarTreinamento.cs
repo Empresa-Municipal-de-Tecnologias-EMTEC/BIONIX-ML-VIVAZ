@@ -40,11 +40,46 @@ namespace DetectorModel
 
             var datasetRoot = resolvedDatasetRoot;
             var annotationsFile = Path.Combine(datasetRoot, "wider_face_annotations", "wider_face_split", "wider_face_train_bbx_gt.txt");
+            // Prefer new CelebA-style dataset if present (faces_com_landmarks)
+            DataLoader loader = null;
+            // Try several likely locations for the new CelebA-style dataset
+            string celebaFolder = null;
+            var cand1 = Path.Combine(initialCwd, "BIONIX-ML-VIVAZ", "DATASET", "faces_com_landmarks");
+            var cand2 = Path.Combine(initialCwd, "BIONIX-ML", "DATASET", "faces_com_landmarks");
+            var cand3 = Path.Combine(initialCwd, "DATASET", "faces_com_landmarks");
+            var cand4 = Path.Combine(Path.GetDirectoryName(datasetRoot) ?? string.Empty, "faces_com_landmarks");
+            if (Directory.Exists(cand1)) celebaFolder = cand1;
+            else if (Directory.Exists(cand2)) celebaFolder = cand2;
+            else if (Directory.Exists(cand3)) celebaFolder = cand3;
+            else if (Directory.Exists(cand4)) celebaFolder = cand4;
+            if (!string.IsNullOrEmpty(celebaFolder))
+            {
+                Console.WriteLine($"Detected CelebA dataset at: {celebaFolder}");
+                var celebaImages = Path.Combine(celebaFolder, "img_align_celeba", "img_align_celeba");
+                // discover landmarks file (accept common variants)
+                var lmCandidates = System.IO.Directory.GetFiles(celebaFolder, "list_landmarks*.csv");
+                var celebaLm = lmCandidates.FirstOrDefault();
+                var celebaBbox = Path.Combine(celebaFolder, "list_bbox_celeba.csv");
+                if (!string.IsNullOrEmpty(celebaLm) && File.Exists(celebaLm) && Directory.Exists(celebaImages))
+                {
+                    annotationsFile = celebaLm;
+                    // If bbox file exists, DataLoader will pick it up from same folder
+                    var imagesFolderCeleba = celebaImages;
+                    Console.WriteLine($"Using CelebA annotations: {annotationsFile}");
+                    Console.WriteLine($"Using CelebA images folder: {imagesFolderCeleba}");
+                    Console.WriteLine("Inicializando DataLoader...");
+                    loader = new DataLoader(annotationsFile, imagesFolderCeleba);
+                    // replace existing loader variable in outer scope by shadowing
+                    goto loader_initialized;
+                }
+            }
+
             // Use the root images folder so the annotation paths (which include subfolders) resolve correctly
             var imagesFolder = Path.Combine(datasetRoot, "WIDER_train", "WIDER_train", "images");
 
             Console.WriteLine("Inicializando DataLoader...");
-            var loader = new DataLoader(annotationsFile, imagesFolder);
+            loader ??= new DataLoader(annotationsFile, imagesFolder);
+        loader_initialized: ;
 
             // Diagnostic: print first few annotations and whether referenced image files exist
             Console.WriteLine("Diagnostic: preview annotations (up to 3)");
@@ -191,7 +226,7 @@ namespace DetectorModel
             // initialize model weights
             model.InitializeWeights(ctx);
 
-            int epochs = 3;
+            int epochs = 100;
             // QUICK_TEST_SAVE: if set to "1", run only one epoch and exit after first annotated image is written
             var quickTest = Environment.GetEnvironmentVariable("QUICK_TEST_SAVE") == "1";
             if (quickTest) epochs = 1;
@@ -227,11 +262,21 @@ namespace DetectorModel
             }
 
             int processedSamples = 0;
+
+            // ReduceLROnPlateau scheduler state
+            double bestEpochLoss = double.PositiveInfinity;
+            int lrPatience = 3; // epochs to wait before reducing
+            int epochsSinceImprovement = 0;
+            double lrFactor = 0.5; // multiply lr by this when plateau
+            double minLr = 1e-6;
+
             for (int epoch = 0; epoch < epochs; epoch++)
             {
                 Console.WriteLine($"Época {epoch}");
                 int testCounter = 0;
                 int localBatch = 0;
+                double epochLossSum = 0.0;
+                int epochLossCount = 0;
                 // prepare optimizer once per epoch using model parameters (include all trainable tensors)
                 Bionix.ML.nucleo.otimizadores.StatefulSGD optimizer = null;
                 var epochParameters = new System.Collections.Generic.List<Bionix.ML.nucleo.tensor.Tensor>();
@@ -364,6 +409,8 @@ namespace DetectorModel
 
                             var totalLoss = focal.Add(smoothL1Loss).Add(lmkLoss);
                             Console.WriteLine($" Loss (tensor) = {totalLoss[0]:F6}");
+                            // accumulate epoch loss for scheduler
+                            try { epochLossSum += totalLoss[0]; epochLossCount++; } catch { }
 
                             // Backward through autograd
                             totalLoss.Backward();
@@ -531,9 +578,41 @@ namespace DetectorModel
                 if (!Directory.Exists(pesosDirRoot)) Directory.CreateDirectory(pesosDirRoot);
                 foreach (var f in Directory.GetFiles(pesosDirRoot)) File.Delete(f);
 
-                // Save checkpoint atomically: write to temp dir then swap
+                // Evaluate epoch loss and apply ReduceLROnPlateau if configured
                 try
                 {
+                    double epochAvgLoss = double.NaN;
+                    if (epochLossCount > 0) epochAvgLoss = epochLossSum / epochLossCount;
+                    if (!double.IsNaN(epochAvgLoss))
+                    {
+                        Console.WriteLine($"Epoch {epoch} average loss = {epochAvgLoss:F6}");
+                        if (epochAvgLoss < bestEpochLoss - 1e-12)
+                        {
+                            bestEpochLoss = epochAvgLoss;
+                            epochsSinceImprovement = 0;
+                        }
+                        else
+                        {
+                            epochsSinceImprovement++;
+                            if (epochsSinceImprovement >= lrPatience && optimizer != null)
+                            {
+                                var newLr = Math.Max(minLr, optimizer.Lr * lrFactor);
+                                if (newLr < optimizer.Lr)
+                                {
+                                    optimizer.Lr = newLr;
+                                    Console.WriteLine($"ReduceLROnPlateau: reducing lr to {optimizer.Lr:E6}");
+                                }
+                                epochsSinceImprovement = 0;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("Epoch average loss: no samples recorded.");
+                    }
+
+                    // Save checkpoint atomically: write to temp dir then swap
+                    
                     var tmpDir = pesosDirRoot + ".tmp_" + DateTime.UtcNow.Ticks;
                     if (Directory.Exists(tmpDir)) Directory.Delete(tmpDir, true);
                     Directory.CreateDirectory(tmpDir);
@@ -541,8 +620,8 @@ namespace DetectorModel
                     try { model.SaveWeights(tmpDir); } catch (Exception ex) { Console.WriteLine($"Error saving model weights to tmp: {ex.Message}"); }
                     // Save optimizer slots into temp dir
                     try { optimizer?.SaveState(tmpDir); } catch (Exception ex) { Console.WriteLine($"Error saving optimizer state to tmp: {ex.Message}"); }
-                    // Write meta.json with rngSeed and processedSamples
-                    var metaObj = new { epoch = epoch, lr = 1e-3, timestamp = DateTime.UtcNow, rngSeed = rngSeed, processedSamples = processedSamples };
+                    // Write meta.json with rngSeed and processedSamples (persist current lr)
+                    var metaObj = new { epoch = epoch, lr = (optimizer != null ? optimizer.Lr : 1e-3), timestamp = DateTime.UtcNow, rngSeed = rngSeed, processedSamples = processedSamples };
                     var metaJson = System.Text.Json.JsonSerializer.Serialize(metaObj);
                     File.WriteAllText(Path.Combine(tmpDir, "meta.json"), metaJson);
 
