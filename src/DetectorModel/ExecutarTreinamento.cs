@@ -231,7 +231,7 @@ namespace DetectorModel
             }
 
             Console.WriteLine("Criando modelo RetinaFace...");
-            var model = new RetinaFaceModel();
+            var model = new RetinaFaceModel(ctx);
 
             // resume support: if --resume flag or RESUME=1 env var, try to load last checkpoint
             var resume = args != null && args.Length > 0 && args.Contains("--resume") || Environment.GetEnvironmentVariable("RESUME") == "1";
