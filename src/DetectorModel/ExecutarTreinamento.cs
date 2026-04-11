@@ -373,6 +373,7 @@ namespace DetectorModel
 
                 // pass resume offset only on first epoch when resuming
                 int startSample = (resume && epoch == 0) ? resumeOffsetSamples : 0;
+                bool quickTestExit = false;
                 foreach (var batch in loader.GetBatchesTensors(BATCH_SIZE, ctx, startSample))
                 {
                     Console.WriteLine($" Batch {localBatch} com {batch.Count} amostras");
@@ -429,75 +430,30 @@ namespace DetectorModel
                             var allAnchors = new System.Collections.Generic.List<BoxF>();
                             allAnchors.AddRange(anchors3); allAnchors.AddRange(anchors4); allAnchors.AddRange(anchors5);
 
-                            // convert GT boxes to BoxF
-                            var gts = new System.Collections.Generic.List<BoxF>();
-                            foreach (var b in sample.Boxes) gts.Add(new BoxF(b.X, b.Y, b.Width, b.Height));
-
-                            // match anchors (also produce landmark targets if available)
-                            var landmarksForGt = new System.Collections.Generic.List<double[]>();
-                            if (sample.Landmarks != null && sample.Landmarks.Count > 0)
-                            {
-                                // assume ordering corresponds to boxes list where available
-                                foreach (var lm in sample.Landmarks) landmarksForGt.Add(lm);
-                            }
-                            UtilitarioAncoras.MatchAnchorsWithLandmarks(allAnchors, gts, landmarksForGt, posIou: POS_IOU, negIou: NEG_IOU, out int[] labels, out int[] matched, out double[][] bboxTargets, out double[][] landmarkTargets);
-
-                            // collect active indices (exclude ignore = -1)
-                            var activeIdx = new System.Collections.Generic.List<int>();
-                            var positiveIdx = new System.Collections.Generic.List<int>();
-                            for (int i = 0; i < labels.Length; i++)
-                            {
-                                if (labels[i] != -1) activeIdx.Add(i);
-                                if (labels[i] == 1) positiveIdx.Add(i);
-                            }
-
-                            // defensive checks: ensure tensor sizes match expected anchors count
-                            int A = allAnchors.Count;
-                            if (clsTensor.Size < A)
-                            {
-                                    // Detailed diagnostic to help find mismatch between model outputs and generated anchors
-                                    var anchors3Count = anchors3.Count;
-                                    var anchors4Count = anchors4.Count;
-                                    var anchors5Count = anchors5.Count;
-                                    Console.WriteLine($"Runner error: cls tensor size {clsTensor.Size} < anchors {A}. Skipping this sample.");
-                                    Console.WriteLine($" Diagnostic: inH={inH} inW={inW} -> anchors per scale: p3={anchors3Count}, p4={anchors4Count}, p5={anchors5Count} (sum={anchors3Count+anchors4Count+anchors5Count}).");
-                                    try
-                                    {
-                                        var lmkLocal = lmkOut as Bionix.ML.nucleo.tensor.Tensor;
-                                        Console.WriteLine($" Tensor sizes: cls={clsTensor.Size}, reg={regTensor.Size}, lmk={(lmkLocal!=null?lmkLocal.Size:-1)}");
-                                    }
-                                    catch { }
-                                continue; // skip this sample to avoid IndexOutOfRange
-                            }
-                            if (regTensor.Size < A * 4)
-                            {
-                                Console.WriteLine($"Runner error: reg tensor size {regTensor.Size} < anchors*4 {A * 4}. Skipping this sample.");
-                                continue;
-                            }
-
+                            // Anchor matching: create ground-truth lists and match anchors to GT (labels, bbox targets, landmark targets)
                             var fabrica = new Bionix.ML.nucleo.tensor.FabricaTensor(ctx);
-
-                            // create loss factories for this context
-                            var smoothL1Fn = Bionix.ML.nucleo.funcoesPerda.FabricaFuncoesPerda.CriarSmoothL1(ctx);
-
-                            // classification: logits for active indices and binary targets
-                            double[] clsLogitsArr = new double[activeIdx.Count];
-                            double[] clsTgtArr = new double[activeIdx.Count];
-                            for (int k = 0; k < activeIdx.Count; k++)
+                            var gts = new System.Collections.Generic.List<BoxF>();
+                            if (sample.Boxes != null)
                             {
-                                int ai = activeIdx[k];
-                                clsLogitsArr[k] = clsTensor[ai];
-                                clsTgtArr[k] = labels[ai] == 1 ? 1.0 : 0.0;
+                                foreach (var gb in sample.Boxes) gts.Add(new BoxF(gb.X, gb.Y, gb.Width, gb.Height));
                             }
-                            var clsPred = fabrica.FromArray(new int[]{clsLogitsArr.Length}, clsLogitsArr);
-                            var clsTgt = fabrica.FromArray(new int[]{clsTgtArr.Length}, clsTgtArr);
+                            var lmList = sample.Landmarks ?? new System.Collections.Generic.List<double[]>();
+                            UtilitarioAncoras.MatchAnchorsWithLandmarks(allAnchors, gts, lmList, POS_IOU, NEG_IOU, out var labels, out var matchedGt, out var bboxTargets, out var landmarkTargets);
 
-                            var focal = Focal.Loss(ctx, clsPred, clsTgt, alpha: 0.25, gamma: 2.0);
+                            // positive indices
+                            var positiveIdx = new System.Collections.Generic.List<int>();
+                            for (int i = 0; i < labels.Length; i++) if (labels[i] == 1) positiveIdx.Add(i);
 
-                            
+                            // classification (focal) loss
+                            var focalFn = Bionix.ML.nucleo.funcoesPerda.FabricaFuncoesPerda.CriarFocal(ctx);
+                            double[] clsTargets = new double[allAnchors.Count];
+                            for (int i = 0; i < labels.Length; i++) clsTargets[i] = labels[i] == 1 ? 1.0 : 0.0;
+                            var clsTargetTensor = fabrica.FromArray(new int[] { clsTargets.Length }, clsTargets);
+                            var focalLoss = focalFn(clsOut, clsTargetTensor);
 
-                            // regression: only positives
-                            Tensor smoothL1Loss;
+                            // regression (smooth-L1) loss for positive anchors only
+                            var smoothL1Fn = Bionix.ML.nucleo.funcoesPerda.FabricaFuncoesPerda.CriarSmoothL1(ctx);
+                            Bionix.ML.nucleo.tensor.Tensor smoothL1Loss;
                             if (positiveIdx.Count == 0)
                             {
                                 var zero = fabrica.Criar(1);
@@ -511,22 +467,22 @@ namespace DetectorModel
                                 for (int p = 0; p < positiveIdx.Count; p++)
                                 {
                                     int ai = positiveIdx[p];
-                                    for (int k = 0; k < 4; k++) regPredArr[p*4 + k] = regTensor[ai*4 + k];
+                                    for (int k = 0; k < 4; k++) regPredArr[p * 4 + k] = regTensor[ai * 4 + k];
                                     var tgt = bboxTargets[ai];
-                                    for (int k = 0; k < 4; k++) regTgtArr[p*4 + k] = tgt[k];
+                                    for (int k = 0; k < 4; k++) regTgtArr[p * 4 + k] = tgt[k];
                                 }
-                                var regPred = fabrica.FromArray(new int[]{regPredArr.Length}, regPredArr);
-                                var regTgt = fabrica.FromArray(new int[]{regTgtArr.Length}, regTgtArr);
+                                var regPred = fabrica.FromArray(new int[] { regPredArr.Length }, regPredArr);
+                                var regTgt = fabrica.FromArray(new int[] { regTgtArr.Length }, regTgtArr);
                                 smoothL1Loss = smoothL1Fn(regPred, regTgt);
                             }
 
                             // landmarks loss (only positives)
-                            Tensor lmkLoss;
-                                var lmkCpu = lmkOut as Bionix.ML.nucleo.tensor.Tensor ?? throw new Exception("Expected Tensor for lmkOut");
+                            Bionix.ML.nucleo.tensor.Tensor lmkLoss;
+                            var lmkCpu = lmkOut as Bionix.ML.nucleo.tensor.Tensor ?? throw new Exception("Expected Tensor for lmkOut");
                             // check landmark tensor size before indexing
                             if (lmkCpu.Size < allAnchors.Count * 10)
                             {
-                                Console.WriteLine($"Runner error: landmark tensor size {lmkCpu.Size} < anchors*10 {allAnchors.Count * 10}. Landmarks will be skipped for this sample.");
+                                Console.WriteLine($"Runner warning: landmark tensor size {lmkCpu.Size} < anchors*10 {allAnchors.Count * 10}. Landmarks will be skipped for this sample.");
                             }
                             if (positiveIdx.Count == 0)
                             {
@@ -541,16 +497,16 @@ namespace DetectorModel
                                 for (int p = 0; p < positiveIdx.Count; p++)
                                 {
                                     int ai = positiveIdx[p];
-                                    for (int k = 0; k < 10; k++) lmkPredArr[p*10 + k] = lmkCpu[ai*10 + k];
+                                    for (int k = 0; k < 10; k++) lmkPredArr[p * 10 + k] = lmkCpu[ai * 10 + k];
                                     var tgt = landmarkTargets[ai];
-                                    for (int k = 0; k < 10; k++) lmkTgtArr[p*10 + k] = tgt[k];
+                                    for (int k = 0; k < 10; k++) lmkTgtArr[p * 10 + k] = tgt[k];
                                 }
-                                var lmkPred = fabrica.FromArray(new int[]{lmkPredArr.Length}, lmkPredArr);
-                                var lmkTgt = fabrica.FromArray(new int[]{lmkTgtArr.Length}, lmkTgtArr);
+                                var lmkPred = fabrica.FromArray(new int[] { lmkPredArr.Length }, lmkPredArr);
+                                var lmkTgt = fabrica.FromArray(new int[] { lmkTgtArr.Length }, lmkTgtArr);
                                 lmkLoss = smoothL1Fn(lmkPred, lmkTgt);
                             }
 
-                            var totalLoss = focal.Add(smoothL1Loss).Add(lmkLoss);
+                            var totalLoss = focalLoss.Add(smoothL1Loss).Add(lmkLoss);
                             Console.WriteLine($" Loss (tensor) = {totalLoss[0]:F6}");
                             // accumulate epoch loss for scheduler
                             try { epochLossSum += totalLoss[0]; epochLossCount++; } catch { }
@@ -656,7 +612,8 @@ namespace DetectorModel
                                         Console.WriteLine("Quick test mode: annotated image saved, exiting.");
                                         Console.Out.Flush();
                                         testCounter++;
-                                        return;
+                                        quickTestExit = true;
+                                        break;
                                     }
                                     catch (Exception ex)
                                     {
@@ -688,7 +645,8 @@ namespace DetectorModel
                                         Console.WriteLine("Quick test mode: copied image, exiting.");
                                         Console.Out.Flush();
                                         testCounter++;
-                                        return;
+                                        quickTestExit = true;
+                                        break;
                                     }
                                 }
 
@@ -725,7 +683,8 @@ namespace DetectorModel
                                     Console.WriteLine("Quick test mode: annotated image saved, exiting.");
                                     Console.Out.Flush();
                                     testCounter++;
-                                    return;
+                                    quickTestExit = true;
+                                    break;
                                 }
                                 testCounter++;
                             }
@@ -744,6 +703,7 @@ namespace DetectorModel
                         }
                     }
                     localBatch++;
+                    if (quickTestExit) break;
                 }
 
                 // Save weights (only keep last epoch): clear previous files and write current state
