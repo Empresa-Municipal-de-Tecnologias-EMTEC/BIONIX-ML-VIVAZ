@@ -64,6 +64,25 @@ namespace DetectorModel.modelo
             return new double[]{tx,ty,tw,th};
         }
 
+        // Encode landmarks (10 values) relative to anchor center/size: returns [lx1,ly1,...]
+        public static double[] EncodeLandmarks(BoxF anchor, double[] landmarks)
+        {
+            // landmarks: lx1,ly1,...,lx5,ly5 (absolute image coords)
+            var outL = new double[10];
+            double ax = anchor.X + anchor.W/2.0;
+            double ay = anchor.Y + anchor.H/2.0;
+            double aw = anchor.W;
+            double ah = anchor.H;
+            for (int i = 0; i < 5; i++)
+            {
+                double lx = landmarks[i*2];
+                double ly = landmarks[i*2 + 1];
+                outL[i*2] = (lx - ax) / aw;
+                outL[i*2 + 1] = (ly - ay) / ah;
+            }
+            return outL;
+        }
+
         // Decode predicted deltas to box coordinates
         public static BoxF Decode(BoxF anchor, double[] delta)
         {
@@ -158,6 +177,24 @@ namespace DetectorModel.modelo
                     labels[bestA] = 1;
                     matchedGt[bestA] = j;
                     bboxTargets[bestA] = Encode(anchors[bestA], gts[j]);
+                }
+            }
+        }
+
+        // Extended matching that also returns landmark targets (10 floats) per anchor (zero for non-positives)
+        public static void MatchAnchorsWithLandmarks(List<BoxF> anchors, List<BoxF> gts, List<double[]> landmarks,
+                                                     double posIou, double negIou,
+                                                     out int[] labels, out int[] matchedGt, out double[][] bboxTargets, out double[][] landmarkTargets)
+        {
+            MatchAnchors(anchors, gts, posIou, negIou, out labels, out matchedGt, out bboxTargets);
+            int A = anchors.Count;
+            landmarkTargets = new double[A][];
+            for (int i = 0; i < A; i++) landmarkTargets[i] = new double[10];
+            for (int i = 0; i < A; i++)
+            {
+                if (labels[i] == 1 && matchedGt[i] >= 0 && matchedGt[i] < landmarks.Count)
+                {
+                    landmarkTargets[i] = EncodeLandmarks(anchors[i], landmarks[matchedGt[i]]);
                 }
             }
         }

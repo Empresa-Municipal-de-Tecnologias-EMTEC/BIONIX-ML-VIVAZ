@@ -1,6 +1,7 @@
 using Bionix.ML.nucleo.tensor;
 using Bionix.ML.nucleo.tensor;
 using Bionix.ML.computacao;
+using Bionix.ML.grafo.CPU;
 using Bionix.ML.dados;
 using Bionix.ML.camadas;
 
@@ -27,6 +28,7 @@ namespace DetectorModel.modelo
         public Tensor BackboneWeight => Stem?.Weight;
         public Tensor HeadClsWeight => HeadP3?.ClsConv?.Weight;
         public Tensor HeadRegWeight => HeadP3?.RegConv?.Weight;
+        public Tensor HeadLmkWeight => HeadP3?.LandmarksConv?.Weight;
         public ConvLayer HeadCls => HeadP3?.ClsConv;
         public ConvLayer HeadReg => HeadP3?.RegConv;
 
@@ -57,8 +59,8 @@ namespace DetectorModel.modelo
             HeadP5.Initialize(ctx);
         }
 
-        // Create a simple concatenated output: flatten per-scale cls and reg into single tensors
-        public (Tensor cls, Tensor reg) Forward(Tensor input, ComputacaoContexto ctx)
+        // Create a simple concatenated output: flatten per-scale cls, reg and landmarks into single tensors
+        public (Tensor cls, Tensor reg, Tensor lmk) Forward(Tensor input, ComputacaoContexto ctx)
         {
             // Stem
             var x = Stem.Forward(input, ctx);
@@ -73,14 +75,15 @@ namespace DetectorModel.modelo
 
             var (p3, p4, p5) = Pyramid.Forward(c3, c4, c5, ctx);
 
-            var (cls3, reg3) = HeadP3.Forward(p3, ctx);
-            var (cls4, reg4) = HeadP4.Forward(p4, ctx);
-            var (cls5, reg5) = HeadP5.Forward(p5, ctx);
+            var (cls3, reg3, lmk3) = HeadP3.Forward(p3, ctx);
+            var (cls4, reg4, lmk4) = HeadP4.Forward(p4, ctx);
+            var (cls5, reg5, lmk5) = HeadP5.Forward(p5, ctx);
 
             // flatten and concatenate along size axis to form unified tensors
             var clsConcat = ConcatFlatten(new Tensor[] { cls3, cls4, cls5 }, ctx);
             var regConcat = ConcatFlatten(new Tensor[] { reg3, reg4, reg5 }, ctx);
-            return (clsConcat, regConcat);
+            var lmkConcat = ConcatFlatten(new Tensor[] { lmk3, lmk4, lmk5 }, ctx);
+            return (clsConcat, regConcat, lmkConcat);
         }
 
         private Tensor DownsampleBy2(Tensor src, ComputacaoContexto ctx)
@@ -97,6 +100,7 @@ namespace DetectorModel.modelo
                 dst[(y * dst.Shape[1] + x) * c + ch] = src[(sy * w + sx) * c + ch];
             }
             dst.RequiresGrad = true;
+            dst.GradFn = new DownsampleFunction(src, dst);
             return dst;
         }
 
@@ -111,6 +115,7 @@ namespace DetectorModel.modelo
                 for (int i = 0; i < p.Size; i++) { outT[idx++] = p[i]; }
             }
             outT.RequiresGrad = true;
+            outT.GradFn = new ConcatFunction(parts, outT);
             return outT;
         }
 

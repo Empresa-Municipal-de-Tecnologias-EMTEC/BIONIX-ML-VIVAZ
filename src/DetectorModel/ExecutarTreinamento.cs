@@ -163,7 +163,7 @@ namespace DetectorModel
                         if (sample.Tensor != null)
                         {
                             // Run model forward (placeholder)
-                            var (clsOut, regOut) = model.Forward(sample.Tensor, ctx);
+                            var (clsOut, regOut, lmkOut) = model.Forward(sample.Tensor, ctx);
 
                             // Build detection losses via anchor matching + focal + smooth-L1
                             var clsCpu = clsOut as TensorCPU ?? throw new Exception("Expected TensorCPU for clsOut");
@@ -186,8 +186,14 @@ namespace DetectorModel
                             var gts = new System.Collections.Generic.List<BoxF>();
                             foreach (var b in sample.Boxes) gts.Add(new BoxF(b.X, b.Y, b.Width, b.Height));
 
-                            // match anchors
-                            UtilitarioAncoras.MatchAnchors(allAnchors, gts, posIou: 0.5, negIou: 0.4, out int[] labels, out int[] matched, out double[][] bboxTargets);
+                            // match anchors (also produce landmark targets if available)
+                            var landmarksForGt = new System.Collections.Generic.List<double[]>();
+                            if (sample.Landmarks != null && sample.Landmarks.Count > 0)
+                            {
+                                // assume ordering corresponds to boxes list where available
+                                foreach (var lm in sample.Landmarks) landmarksForGt.Add(lm);
+                            }
+                            UtilitarioAncoras.MatchAnchorsWithLandmarks(allAnchors, gts, landmarksForGt, posIou: 0.5, negIou: 0.4, out int[] labels, out int[] matched, out double[][] bboxTargets, out double[][] landmarkTargets);
 
                             // collect active indices (exclude ignore = -1)
                             var activeIdx = new System.Collections.Generic.List<int>();
@@ -238,7 +244,32 @@ namespace DetectorModel
                                 smoothL1Loss = SmoothL1.Loss(ctx, regPred, regTgt);
                             }
 
-                            var totalLoss = focal.Add(smoothL1Loss);
+                            // landmarks loss (only positives)
+                            Tensor lmkLoss;
+                            var lmkCpu = lmkOut as TensorCPU ?? throw new Exception("Expected TensorCPU for lmkOut");
+                            if (positiveIdx.Count == 0)
+                            {
+                                var zero = fabrica.Criar(1);
+                                zero[0] = 0.0;
+                                lmkLoss = zero;
+                            }
+                            else
+                            {
+                                double[] lmkPredArr = new double[positiveIdx.Count * 10];
+                                double[] lmkTgtArr = new double[positiveIdx.Count * 10];
+                                for (int p = 0; p < positiveIdx.Count; p++)
+                                {
+                                    int ai = positiveIdx[p];
+                                    for (int k = 0; k < 10; k++) lmkPredArr[p*10 + k] = lmkCpu[ai*10 + k];
+                                    var tgt = landmarkTargets[ai];
+                                    for (int k = 0; k < 10; k++) lmkTgtArr[p*10 + k] = tgt[k];
+                                }
+                                var lmkPred = fabrica.FromArray(new int[]{lmkPredArr.Length}, lmkPredArr);
+                                var lmkTgt = fabrica.FromArray(new int[]{lmkTgtArr.Length}, lmkTgtArr);
+                                lmkLoss = SmoothL1.Loss(ctx, lmkPred, lmkTgt);
+                            }
+
+                            var totalLoss = focal.Add(smoothL1Loss).Add(lmkLoss);
                             Console.WriteLine($" Loss (tensor) = {totalLoss[0]:F6}");
 
                             // Backward through autograd
@@ -250,6 +281,7 @@ namespace DetectorModel
                             if (model.BackboneWeight != null) parameters.Add(model.BackboneWeight);
                             if (model.HeadClsWeight != null) parameters.Add(model.HeadClsWeight);
                             if (model.HeadRegWeight != null) parameters.Add(model.HeadRegWeight);
+                            if (model.HeadLmkWeight != null) parameters.Add(model.HeadLmkWeight);
                             // conv layer weights
                             if (model.Stem != null && model.Stem.Weight != null) parameters.Add(model.Stem.Weight);
                             if (model.HeadCls != null && model.HeadCls.Weight != null) parameters.Add(model.HeadCls.Weight);
@@ -409,6 +441,15 @@ namespace DetectorModel
                     if (model.HeadRegWeight.Grad != null)
                     {
                         Bionix.ML.dados.serializacao.SerializadorTensor.SaveBinary(Path.Combine(pesosDirRoot, "head_reg.grad.bin"), model.HeadRegWeight.Shape, model.HeadRegWeight.Grad);
+                    }
+                }
+                if (model.HeadLmkWeight != null)
+                {
+                    var p4 = Path.Combine(pesosDirRoot, "head_lmk.bin");
+                    Bionix.ML.dados.serializacao.SerializadorTensor.SaveBinary(p4, model.HeadLmkWeight);
+                    if (model.HeadLmkWeight.Grad != null)
+                    {
+                        Bionix.ML.dados.serializacao.SerializadorTensor.SaveBinary(Path.Combine(pesosDirRoot, "head_lmk.grad.bin"), model.HeadLmkWeight.Shape, model.HeadLmkWeight.Grad);
                     }
                 }
 
