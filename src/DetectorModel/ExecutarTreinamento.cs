@@ -47,7 +47,7 @@ namespace DetectorModel
             // sensible default strides for p3,p4,p5 (can be overridden via env/args)
             hp.Strides = new int[] { 8, 16, 32 };
 
-            ComputacaoContexto ctx = new ComputacaoCPUContexto();
+            ComputacaoContexto ctx = new ComputacaoCPUSIMDContexto();
             
             try
             {
