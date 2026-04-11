@@ -73,23 +73,34 @@ Para produção, exporte os pesos para um formato portátil (por exemplo ONNX) s
 
 Retomar treino (checkpoints)
 -----------------------------
-O runner suporta retomar treino a partir dos checkpoints salvos em `PESOS/DETECTOR`.
+O runner salva checkpoints completos em `PESOS/DETECTOR` e suporta retomada exata do treino.
 
-- Para salvar checkpoints o runner já grava pesos (`backbone.bin`, `head_cls.bin`, `head_reg.bin`, `head_lmk.bin`), gradientes e um `meta.json` com o campo `epoch`.
-- Para retomar automaticamente, execute o runner com a flag `--resume` ou defina a variável de ambiente `RESUME=1`:
+Formato de checkpoint (arquivo):
+
+- `*.bin` — pesos (ex.: `head_p3_cls.bin`, `stage2_0_conv1.bin`)
+- `*.bias.bin` — biases correspondentes (ex.: `head_p3_cls.bias.bin`)
+- `*.grad.bin` — gradientes (quando presentes)
+- `opt_slot_*.bin` — arquivos de slots do otimizador (velocidades/momentums)
+- `opt_meta.json` — metadados do otimizador (slots, lr, momentum, timestamp)
+- `meta.json` — metadados do checkpoint contendo pelo menos: `epoch`, `lr`, `timestamp`, `rngSeed`, `processedSamples`
+
+Para retomar automaticamente, execute o runner com a flag `--resume` ou defina a variável de ambiente `RESUME=1`:
 
 ```
 dotnet run --project src/Bionix.ML.Vivaz.Runner -c Debug -- --resume
 ```
 
 O fluxo de retomada realiza:
-- leitura de `meta.json` (para recuperar o número da época);
-- leitura de arquivos de pesos em `PESOS/DETECTOR` e cópia para tensores do modelo (quando presentes);
-- carregamento dos slots do otimizador (`opt_slot_*.bin`) se existirem.
 
-Observações:
-- Se não houver checkpoints válidos, o runner inicializa os pesos aleatoriamente e começa do zero.
-- Para garantir retomada exata do otimizador, verifique que os arquivos `opt_slot_*.bin` estejam no diretório `PESOS/DETECTOR`.
+- leitura de `meta.json` para recuperar número da época, `rngSeed` e `processedSamples` (offset de amostras processadas);
+- leitura de todos os pesos salvos (`*.bin` / `*.bias.bin`) e cópia para os tensores do modelo quando as formas coincidirem;
+- carregamento dos slots do otimizador (`opt_slot_*.bin`) se existirem — o loader valida o `opt_meta.json` e ignora slots cuja forma não coincida com o modelo atual;
+
+Observações e boas práticas:
+
+- Para retomada exata, certifique-se de que `opt_slot_*.bin` e `opt_meta.json` estejam presentes e que o `meta.json` contenha os campos esperados (`rngSeed` e `processedSamples`).
+- Checkpoints são escritos de forma atômica (escrito em diretório temporário e substituído), reduzindo o risco de arquivos corrompidos.
+- O `meta.json.processedSamples` permite pular as N primeiras amostras ao reiniciar para continuar exatamente de onde parou.
 
 
 Conversão de imagens
