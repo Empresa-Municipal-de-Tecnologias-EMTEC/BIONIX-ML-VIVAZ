@@ -14,6 +14,10 @@ namespace DetectorModel
     {
         public static void Main(string[] args)
         {
+            treinar(args);
+        }
+
+        public static void treinar(string[] args){            
             // Resolve DATASET folder by walking up from current directory (so runner works from any CWD)
             string resolvedDatasetRoot = null;
             var initialCwd = Directory.GetCurrentDirectory();
