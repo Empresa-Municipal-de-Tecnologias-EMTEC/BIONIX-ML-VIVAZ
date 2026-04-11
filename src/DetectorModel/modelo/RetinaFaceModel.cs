@@ -64,9 +64,20 @@ namespace DetectorModel.modelo
             if (obj == null) return null;
             try
             {
-                var pi = obj.GetType().GetProperty(propName);
-                if (pi == null) return null;
-                return pi.GetValue(obj) as Tensor;
+                var t = obj.GetType();
+                var pi = t.GetProperty(propName);
+                if (pi != null) return pi.GetValue(obj) as Tensor;
+                // fallback: try common field names (private backing fields)
+                var fieldNames = new string[] { propName, "_" + propName.ToLower(), "_" + propName, propName.ToLower(), "m_" + propName.ToLower() };
+                foreach (var fn in fieldNames)
+                {
+                    var fi = t.GetField(fn, System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Public);
+                    if (fi != null)
+                    {
+                        return fi.GetValue(obj) as Tensor;
+                    }
+                }
+                return null;
             }
             catch { return null; }
         }
@@ -76,13 +87,33 @@ namespace DetectorModel.modelo
             if (obj == null) return null;
             try
             {
-                var pi = obj.GetType().GetProperty(childProp);
-                if (pi == null) return null;
-                var child = pi.GetValue(obj);
+                var t = obj.GetType();
+                // try property first
+                var pi = t.GetProperty(childProp);
+                object child = null;
+                if (pi != null) child = pi.GetValue(obj);
+                else
+                {
+                    // fallback to common field names for child
+                    var fieldNames = new string[] { childProp, "_" + childProp.ToLower(), "_" + childProp };
+                    foreach (var fn in fieldNames)
+                    {
+                        var fi = t.GetField(fn, System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Public);
+                        if (fi != null) { child = fi.GetValue(obj); break; }
+                    }
+                }
                 if (child == null) return null;
-                var pj = child.GetType().GetProperty(nestedProp);
-                if (pj == null) return null;
-                return pj.GetValue(child) as Tensor;
+                var ct = child.GetType();
+                var pj = ct.GetProperty(nestedProp);
+                if (pj != null) return pj.GetValue(child) as Tensor;
+                // fallback to field access on child
+                var childFieldNames = new string[] { nestedProp, "_" + nestedProp.ToLower(), "_" + nestedProp };
+                foreach (var fn in childFieldNames)
+                {
+                    var fi = ct.GetField(fn, System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Public);
+                    if (fi != null) return fi.GetValue(child) as Tensor;
+                }
+                return null;
             }
             catch { return null; }
         }
@@ -196,15 +227,25 @@ namespace DetectorModel.modelo
                 var t = kv.tensor;
                 try
                 {
-                    if (t == null) continue;
+                    if (t == null)
+                    {
+                        Console.WriteLine($"SaveWeights: parameter '{name}' is null, skipping.");
+                        continue;
+                    }
                     var p = Path.Combine(dir, name + ".bin");
                     Bionix.ML.dados.serializacao.SerializadorTensor.SaveBinary(p, t);
+                    Console.WriteLine($"SaveWeights: wrote {p}");
                     if (t.Grad != null)
                     {
-                        Bionix.ML.dados.serializacao.SerializadorTensor.SaveBinary(Path.Combine(dir, name + ".grad.bin"), t.Shape, t.Grad);
+                        var gradPath = Path.Combine(dir, name + ".grad.bin");
+                        Bionix.ML.dados.serializacao.SerializadorTensor.SaveBinary(gradPath, t.Shape, t.Grad);
+                        Console.WriteLine($"SaveWeights: wrote {gradPath}");
                     }
                 }
-                catch { }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"SaveWeights: failed to save '{name}': {ex.Message}");
+                }
             }
         }
 

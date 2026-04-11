@@ -750,9 +750,34 @@ namespace DetectorModel
                     if (Directory.Exists(tmpDir)) Directory.Delete(tmpDir, true);
                     Directory.CreateDirectory(tmpDir);
                     // Save model files into temp dir
-                    try { model.SaveWeights(tmpDir); } catch (Exception ex) { Console.WriteLine($"Error saving model weights to tmp: {ex.Message}"); }
+                    try
+                    {
+                        model.SaveWeights(tmpDir);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Error saving model weights to tmp: {ex.Message}");
+                    }
                     // Save optimizer slots into temp dir
-                    try { optimizer?.SaveState(tmpDir); } catch (Exception ex) { Console.WriteLine($"Error saving optimizer state to tmp: {ex.Message}"); }
+                    try
+                    {
+                        optimizer?.SaveState(tmpDir);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Error saving optimizer state to tmp: {ex.Message}");
+                    }
+                    // Log tmp dir contents for diagnostics
+                    try
+                    {
+                        var tmpFiles = Directory.Exists(tmpDir) ? Directory.GetFiles(tmpDir) : new string[0];
+                        File.AppendAllText(saidaLog, $"{DateTime.UtcNow:o} CHECKPOINT_TMP {tmpDir} Files={tmpFiles.Length}\n");
+                        foreach (var tf in tmpFiles) File.AppendAllText(saidaLog, $"{DateTime.UtcNow:o} CHECKPOINT_TMP_FILE {tf}\n");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Failed to log tmpDir contents: {ex.Message}");
+                    }
                     // Write meta.json with rngSeed and processedSamples (persist current lr)
                     var metaObj = new { epoch = epoch, lr = (optimizer != null ? optimizer.Lr : 1e-3), timestamp = DateTime.UtcNow, rngSeed = rngSeed, processedSamples = processedSamples };
                     var metaJson = System.Text.Json.JsonSerializer.Serialize(metaObj);
@@ -763,17 +788,29 @@ namespace DetectorModel
                     {
                         if (Directory.Exists(pesosDirRoot)) Directory.Delete(pesosDirRoot, true);
                         Directory.Move(tmpDir, pesosDirRoot);
+                        File.AppendAllText(saidaLog, $"{DateTime.UtcNow:o} CHECKPOINT_MOVE_SUCCESS {pesosDirRoot}\n");
                     }
                     catch (Exception ex)
                     {
                         Console.WriteLine($"Atomic swap failed, attempting fallback copy: {ex.Message}");
+                        File.AppendAllText(saidaLog, $"{DateTime.UtcNow:o} CHECKPOINT_MOVE_FAILED {ex.Message}\n");
                         try
                         {
                             if (!Directory.Exists(pesosDirRoot)) Directory.CreateDirectory(pesosDirRoot);
-                            foreach (var f in Directory.GetFiles(tmpDir)) File.Copy(f, Path.Combine(pesosDirRoot, Path.GetFileName(f)), overwrite: true);
+                            foreach (var f in Directory.GetFiles(tmpDir))
+                            {
+                                var dest = Path.Combine(pesosDirRoot, Path.GetFileName(f));
+                                File.Copy(f, dest, overwrite: true);
+                                File.AppendAllText(saidaLog, $"{DateTime.UtcNow:o} CHECKPOINT_COPY_FILE {dest}\n");
+                            }
                             Directory.Delete(tmpDir, true);
+                            File.AppendAllText(saidaLog, $"{DateTime.UtcNow:o} CHECKPOINT_FALLBACK_COMPLETE {pesosDirRoot}\n");
                         }
-                        catch (Exception ex2) { Console.WriteLine($"Fallback copy failed: {ex2.Message}"); }
+                        catch (Exception ex2)
+                        {
+                            Console.WriteLine($"Fallback copy failed: {ex2.Message}");
+                            File.AppendAllText(saidaLog, $"{DateTime.UtcNow:o} CHECKPOINT_FALLBACK_FAILED {ex2.Message}\n");
+                        }
                     }
                 }
                 catch (Exception ex)
