@@ -1,5 +1,4 @@
 using Bionix.ML.nucleo.tensor;
-using Bionix.ML.nucleo.tensor;
 using Bionix.ML.computacao;
 using Bionix.ML.dados;
 using Bionix.ML.camadas;
@@ -35,18 +34,17 @@ namespace DetectorModel.modelo
 
         public RetinaFaceModel(ComputacaoContexto ctx = null)
         {
-            var fabrica = new Bionix.ML.camadas.FabricaCamadas();
             Stem = FabricaCamadas.CriarConvLayer(inChannels: 3, outChannels: 32, kernelSize: 3, ctx: ctx);
             // small residual stages
-            Stage2 = new ResidualBlock[] { (FabricaCamadas.CriarResidualBlock(32, ctx) as ResidualBlock) , (FabricaCamadas.CriarResidualBlock(32, ctx) as ResidualBlock) };
-            Stage3 = new ResidualBlock[] { (FabricaCamadas.CriarResidualBlock(32, ctx) as ResidualBlock) , (FabricaCamadas.CriarResidualBlock(32, ctx) as ResidualBlock) };
-            Stage4 = new ResidualBlock[] { (FabricaCamadas.CriarResidualBlock(32, ctx) as ResidualBlock) };
+            Stage2 = new IResidualBlock[] { FabricaCamadas.CriarResidualBlock(32, ctx), FabricaCamadas.CriarResidualBlock(32, ctx) };
+            Stage3 = new IResidualBlock[] { FabricaCamadas.CriarResidualBlock(32, ctx), FabricaCamadas.CriarResidualBlock(32, ctx) };
+            Stage4 = new IResidualBlock[] { FabricaCamadas.CriarResidualBlock(32, ctx) };
 
-            Pyramid = FabricaCamadas.CriarFPN(inChannelsC5: 32, inChannelsC4: 32, inChannelsC3: 32, outChannels: 32, ctx: ctx) as FPN;
+            Pyramid = FabricaCamadas.CriarFPN(inChannelsC5: 32, inChannelsC4: 32, inChannelsC3: 32, outChannels: 32, ctx: ctx);
 
-            HeadP3 = FabricaCamadas.CriarDetectionHead(inChannels: 32, interChannels: 32, ctx: ctx) as DetectionHead;
-            HeadP4 = FabricaCamadas.CriarDetectionHead(inChannels: 32, interChannels: 32, ctx: ctx) as DetectionHead;
-            HeadP5 = FabricaCamadas.CriarDetectionHead(inChannels: 32, interChannels: 32, ctx: ctx) as DetectionHead;
+            HeadP3 = FabricaCamadas.CriarDetectionHead(inChannels: 32, interChannels: 32, ctx: ctx);
+            HeadP4 = FabricaCamadas.CriarDetectionHead(inChannels: 32, interChannels: 32, ctx: ctx);
+            HeadP5 = FabricaCamadas.CriarDetectionHead(inChannels: 32, interChannels: 32, ctx: ctx);
         }
 
         public void InitializeWeights(ComputacaoContexto ctx)
