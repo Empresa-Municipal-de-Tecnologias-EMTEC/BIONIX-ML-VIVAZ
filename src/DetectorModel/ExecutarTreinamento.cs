@@ -3,6 +3,7 @@ using System.IO;
 using DetectorModel.dados;
 using DetectorModel.modelo;
 using Bionix.ML.computacao;
+using Bionix.ML.nucleo.funcoesAtivacao;
 using Bionix.ML.nucleo.tensor;
 using DetectorModel.modelo;
 using Bionix.ML.nucleo.funcoesPerda.Focal;
@@ -570,6 +571,8 @@ namespace DetectorModel
 
                             // Decode model predictions -> boxes and apply NMS
                             var detections = new System.Collections.Generic.List<DetectorModel.dados.Box>();
+                            // use project's activation factory (context-aware, SIMD-capable)
+                            var sigmoid = FabricaFuncoesAtivacao.Criar(ctx);
                             try
                             {
                                 var boxesList = new System.Collections.Generic.List<DetectorModel.modelo.BoxF>();
@@ -579,7 +582,7 @@ namespace DetectorModel
                                 var scored = new System.Collections.Generic.List<(int idx, double score)>();
                                 for (int iA = 0; iA < anchorCount; iA++)
                                 {
-                                    double score = Sigmoid(clsTensor[iA]);
+                                    double score = sigmoid(clsTensor[iA]);
                                     if (score < DETECTION_SCORE_THRESHOLD) continue;
                                     scored.Add((iA, score));
                                 }
@@ -937,9 +940,6 @@ namespace DetectorModel
             }
         }
 
-        private static double Sigmoid(double x)
-        {
-            return 1.0 / (1.0 + Math.Exp(-x));
-        }
+        // Local Sigmoid removed in favor of `FabricaFuncoesAtivacao.Criar(ctx)`
     }
 }
