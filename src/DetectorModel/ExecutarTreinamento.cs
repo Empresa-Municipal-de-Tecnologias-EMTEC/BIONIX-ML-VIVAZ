@@ -357,7 +357,7 @@ namespace DetectorModel
                 double epochLossSum = 0.0;
                 int epochLossCount = 0;
                 // prepare optimizer once per epoch using model parameters (include all trainable tensors)
-                Bionix.ML.nucleo.otimizadores.StatefulSGD optimizer = null;
+                Bionix.ML.nucleo.otimizadores.IStatefulOptimizer optimizer = null;
                 var epochParameters = new System.Collections.Generic.List<Bionix.ML.nucleo.tensor.Tensor>();
                 // collect all named params from model
                 try
@@ -554,7 +554,7 @@ namespace DetectorModel
                             // initialize epoch optimizer lazily on first batch
                             if (optimizer == null)
                             {
-                                optimizer = new Bionix.ML.nucleo.otimizadores.StatefulSGD(epochParameters, lr: 1e-3, momentum: 0.9);
+                                optimizer = Bionix.ML.nucleo.otimizadores.FabricaOtimizadores.CriarStatefulSGD(epochParameters, ctx, lr: 1e-3, momentum: 0.9);
                                 try { optimizer.LoadState(pesosDirRoot); } catch { }
                             }
                             optimizer.Step();
