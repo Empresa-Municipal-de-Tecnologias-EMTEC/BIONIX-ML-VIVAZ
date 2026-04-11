@@ -723,13 +723,14 @@ namespace DetectorModel
             }
         }
 
-        // Draw a small filled marker indicating box source near provided box (or top-left fallback)
+        // Draw a small filled marker indicating box source near provided box (tries top-right, then above, then below)
         private static void DrawBoxSourceMarker(SixLabors.ImageSharp.Image<SixLabors.ImageSharp.PixelFormats.Rgba32> img, string source, DetectorModel.dados.Box? nearBox = null)
         {
             int w = img.Width;
             int h = img.Height;
-            int mw = Math.Min(80, Math.Max(20, w / 8));
-            int mh = Math.Min(18, Math.Max(10, h / 40));
+            // make marker smaller so it is less likely to overlap important facial regions
+            int mw = Math.Min(48, Math.Max(16, w / 12));
+            int mh = Math.Min(14, Math.Max(8, h / 60));
             SixLabors.ImageSharp.PixelFormats.Rgba32 px;
             if (string.Equals(source, "landmarks", StringComparison.OrdinalIgnoreCase)) px = new SixLabors.ImageSharp.PixelFormats.Rgba32(0, 200, 0, 255);
             else if (string.Equals(source, "bbox", StringComparison.OrdinalIgnoreCase)) px = new SixLabors.ImageSharp.PixelFormats.Rgba32(200, 0, 0, 255);
@@ -739,9 +740,24 @@ namespace DetectorModel
             if (nearBox.HasValue)
             {
                 var nb = nearBox.Value;
-                startX = Math.Max(0, nb.X);
-                startY = Math.Max(0, nb.Y - mh - 2);
-                if (startY < 0) startY = Math.Max(0, nb.Y);
+                // Preferred: top-right corner of the box (outside the box)
+                startX = nb.X + nb.Width - mw; // align right
+                startY = nb.Y - mh - 2; // above the box
+
+                // ensure within image bounds
+                if (startX + mw >= w) startX = Math.Max(0, w - mw - 1);
+                if (startX < 0) startX = Math.Max(0, nb.X);
+
+                // If above the image, try placing below the box
+                if (startY < 0)
+                {
+                    startY = nb.Y + nb.Height + 2;
+                    if (startY + mh >= h) // if still out of bounds, fallback to inside top-left of box
+                    {
+                        startY = Math.Max(0, nb.Y);
+                        startX = Math.Max(0, nb.X);
+                    }
+                }
             }
 
             for (int yy = 0; yy < mh; yy++)
