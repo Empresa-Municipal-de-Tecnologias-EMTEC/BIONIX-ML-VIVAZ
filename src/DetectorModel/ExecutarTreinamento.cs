@@ -12,12 +12,133 @@ namespace DetectorModel
 {
     public class ExecutarTreinamento
     {
+        // Internal container for hyperparameters and runtime settings
+        public class HyperParameters
+        {
+            public int NumEpochs { get; set; } = 100;
+            public int BatchSize { get; set; } = 4;
+            public int DefaultAnchorBase { get; set; } = 32;
+            public double[] AnchorRatios { get; set; } = new double[] { 1.0 };
+            public double[] AnchorScales { get; set; } = new double[] { 1.0 };
+            public double PosIou { get; set; } = 0.5;
+            public double NegIou { get; set; } = 0.4;
+            public double DetectionScoreThreshold { get; set; } = 0.6;
+            public int MaxDetections { get; set; } = 100;
+            public bool DrawOnlyModelOutputs { get; set; } = false;
+
+            public static HyperParameters FromArgs(string[] args)
+            {
+                var hp = new HyperParameters();
+                string s;
+                s = Environment.GetEnvironmentVariable("NUM_EPOCHS"); if (!string.IsNullOrEmpty(s) && int.TryParse(s, out var ne)) hp.NumEpochs = ne;
+                s = Environment.GetEnvironmentVariable("BATCH_SIZE"); if (!string.IsNullOrEmpty(s) && int.TryParse(s, out var bs)) hp.BatchSize = bs;
+                s = Environment.GetEnvironmentVariable("DEFAULT_ANCHOR_BASE"); if (!string.IsNullOrEmpty(s) && int.TryParse(s, out var dab)) hp.DefaultAnchorBase = dab;
+                s = Environment.GetEnvironmentVariable("DETECTION_SCORE_THRESHOLD"); if (!string.IsNullOrEmpty(s) && double.TryParse(s, out var dst)) hp.DetectionScoreThreshold = dst;
+                s = Environment.GetEnvironmentVariable("MAX_DETECTIONS"); if (!string.IsNullOrEmpty(s) && int.TryParse(s, out var md)) hp.MaxDetections = md;
+                s = Environment.GetEnvironmentVariable("DRAW_ONLY_MODEL_OUTPUTS"); if (!string.IsNullOrEmpty(s) && s == "1") hp.DrawOnlyModelOutputs = true;
+                s = Environment.GetEnvironmentVariable("POS_IOU"); if (!string.IsNullOrEmpty(s) && double.TryParse(s, out var pio)) hp.PosIou = pio;
+                s = Environment.GetEnvironmentVariable("NEG_IOU"); if (!string.IsNullOrEmpty(s) && double.TryParse(s, out var nio)) hp.NegIou = nio;
+                s = Environment.GetEnvironmentVariable("ANCHOR_RATIOS"); if (!string.IsNullOrEmpty(s)) hp.AnchorRatios = s.Split(',').Select(x => double.Parse(x.Trim())).ToArray();
+                s = Environment.GetEnvironmentVariable("ANCHOR_SCALES"); if (!string.IsNullOrEmpty(s)) hp.AnchorScales = s.Split(',').Select(x => double.Parse(x.Trim())).ToArray();
+                // Parse command-line args to override env/defaults. Support --key=value and --key value
+                if (args != null && args.Length > 0)
+                {
+                    for (int i = 0; i < args.Length; i++)
+                    {
+                        var a = args[i];
+                        if (!a.StartsWith("--")) continue;
+                        var kv = a.Substring(2);
+                        string key, val = null;
+                        if (kv.Contains("=")) { var parts = kv.Split('=', 2); key = parts[0]; val = parts[1]; }
+                        else
+                        {
+                            key = kv;
+                            // next arg may be the value
+                            if (i + 1 < args.Length && !args[i + 1].StartsWith("--")) { val = args[i + 1]; i++; }
+                        }
+                        if (string.IsNullOrEmpty(key)) continue;
+                        key = key.Trim().ToLowerInvariant();
+                        if (val != null) val = val.Trim();
+
+                        try
+                        {
+                            switch (key)
+                            {
+                                case "num_epochs":
+                                case "num-epochs":
+                                case "epochs":
+                                case "n":
+                                    if (int.TryParse(val, out var vne)) hp.NumEpochs = vne; break;
+                                case "batch_size":
+                                case "batch-size":
+                                case "batch":
+                                case "b":
+                                    if (int.TryParse(val, out var vbs)) hp.BatchSize = vbs; break;
+                                case "default_anchor_base":
+                                case "default-anchor-base":
+                                case "anchor_base":
+                                case "anchor-base":
+                                    if (int.TryParse(val, out var vab)) hp.DefaultAnchorBase = vab; break;
+                                case "detection_score_threshold":
+                                case "detection-score-threshold":
+                                case "score_threshold":
+                                case "score-threshold":
+                                    if (double.TryParse(val, out var vst)) hp.DetectionScoreThreshold = vst; break;
+                                case "max_detections":
+                                case "max-detections":
+                                case "maxdet":
+                                    if (int.TryParse(val, out var vmd)) hp.MaxDetections = vmd; break;
+                                case "draw_only_model_outputs":
+                                case "draw-only-model-outputs":
+                                case "draw_only":
+                                case "draw-only":
+                                    if (string.IsNullOrEmpty(val)) hp.DrawOnlyModelOutputs = true;
+                                    else if (val == "1" || val.Equals("true", StringComparison.OrdinalIgnoreCase)) hp.DrawOnlyModelOutputs = true;
+                                    else hp.DrawOnlyModelOutputs = false;
+                                    break;
+                                case "pos_iou":
+                                case "pos-iou":
+                                    if (double.TryParse(val, out var vpio)) hp.PosIou = vpio; break;
+                                case "neg_iou":
+                                case "neg-iou":
+                                    if (double.TryParse(val, out var vnio)) hp.NegIou = vnio; break;
+                                case "anchor_ratios":
+                                case "anchor-ratios":
+                                    if (!string.IsNullOrEmpty(val)) hp.AnchorRatios = val.Split(',').Select(x => double.Parse(x.Trim())).ToArray(); break;
+                                case "anchor_scales":
+                                case "anchor-scales":
+                                    if (!string.IsNullOrEmpty(val)) hp.AnchorScales = val.Split(',').Select(x => double.Parse(x.Trim())).ToArray(); break;
+                                default:
+                                    // unknown arg: ignore
+                                    break;
+                            }
+                        }
+                        catch { }
+                    }
+                }
+
+                return hp;
+            }
+        }
         public static void Main(string[] args)
         {
-            treinar(args);
+            var hp = new HyperParameters();
+            // Parameters are set in code as requested
+            hp.NumEpochs = 100;
+            hp.BatchSize = 4;
+            hp.DefaultAnchorBase = 32;
+            hp.AnchorRatios = new double[] { 0.5, 1.0, 1.5 };
+            hp.AnchorScales = new double[] { 4.0, 8.0, 12.0 };
+            hp.PosIou = 0.5;
+            hp.NegIou = 0.4;
+            hp.DetectionScoreThreshold = 0.6;
+            hp.MaxDetections = 4;
+            hp.DrawOnlyModelOutputs = false;
+
+            treinar(hp, args);
         }
 
-        public static void treinar(string[] args){            
+        public static void treinar(HyperParameters hp, string[] args){
             // Resolve DATASET folder by walking up from current directory (so runner works from any CWD)
             string resolvedDatasetRoot = null;
             var initialCwd = Directory.GetCurrentDirectory();
@@ -240,18 +361,18 @@ namespace DetectorModel
                 }
             }
 
-            // Configuration (uppercase variables for easy tuning)
-            int NUM_EPOCHS = 100;
-            int BATCH_SIZE = 4;
-            int DEFAULT_ANCHOR_BASE = 32; // base anchor size multiplier (will be scaled by feature stride)
-            double[] ANCHOR_RATIOS = new double[]{ 1.0 };
-            double[] ANCHOR_SCALES = new double[]{ 1.0 };
-            double POS_IOU = 0.5;
-            double NEG_IOU = 0.4;
+            // Configuration (from HyperParameters)
+            int NUM_EPOCHS = hp.NumEpochs;
+            int BATCH_SIZE = hp.BatchSize;
+            int DEFAULT_ANCHOR_BASE = hp.DefaultAnchorBase; // base anchor size multiplier (will be scaled by feature stride)
+            double[] ANCHOR_RATIOS = hp.AnchorRatios;
+            double[] ANCHOR_SCALES = hp.AnchorScales;
+            double POS_IOU = hp.PosIou;
+            double NEG_IOU = hp.NegIou;
             // Detection display / decoding config
-            double DETECTION_SCORE_THRESHOLD = 0.6; // only consider anchors with score >= this for decoding
-            int MAX_DETECTIONS = 100; // limit anchors considered per image before NMS
-            bool DRAW_ONLY_MODEL_OUTPUTS = Environment.GetEnvironmentVariable("DRAW_ONLY_MODEL_OUTPUTS") == "1";
+            double DETECTION_SCORE_THRESHOLD = hp.DetectionScoreThreshold; // only consider anchors with score >= this for decoding
+            int MAX_DETECTIONS = hp.MaxDetections; // limit anchors considered per image before NMS
+            bool DRAW_ONLY_MODEL_OUTPUTS = hp.DrawOnlyModelOutputs;
             Console.WriteLine($"Iterando batches (tamanho={BATCH_SIZE})...");
 
             var ctx = new Bionix.ML.computacao.ComputacaoCPUContexto();
