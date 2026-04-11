@@ -47,7 +47,8 @@ namespace DetectorModel
             // sensible default strides for p3,p4,p5 (can be overridden via env/args)
             hp.Strides = new int[] { 8, 16, 32 };
 
-            ComputacaoContexto ctx = new ComputacaoCPUSIMDContexto();
+            var computeEnv = Environment.GetEnvironmentVariable("COMPUTE") ?? "SIMD";
+            ComputacaoContexto ctx = computeEnv.Equals("CPU", StringComparison.OrdinalIgnoreCase) ? (ComputacaoContexto)new ComputacaoCPUContexto() : new ComputacaoCPUSIMDContexto();
             
             try
             {
@@ -378,6 +379,8 @@ namespace DetectorModel
                     {
                         Console.WriteLine(sample.ImagePath + $" | BoxSource={sample.BoxSource} | Boxes={sample.Boxes?.Count ?? 0}");
                             if (sample.Tensor != null)
+                            {
+                            try
                             {
                             // Run model forward (placeholder)
                             var (clsOut, regOut, lmkOut, clsHeadShapes) = model.Forward(sample.Tensor, ctx);
@@ -724,6 +727,13 @@ namespace DetectorModel
                             {
                                 Console.WriteLine($"Erro ao salvar imagem anotada: {ex.Message}");
                                 Console.WriteLine(ex.StackTrace);
+                            }
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine($"Sample runtime error: {ex}");
+                                Console.WriteLine(ex.StackTrace);
+                                continue;
                             }
                         }
                     }
