@@ -25,101 +25,10 @@ namespace DetectorModel
             public double DetectionScoreThreshold { get; set; } = 0.6;
             public int MaxDetections { get; set; } = 100;
             public bool DrawOnlyModelOutputs { get; set; } = false;
-
-            public static HyperParameters FromArgs(string[] args)
-            {
-                var hp = new HyperParameters();
-                string s;
-                s = Environment.GetEnvironmentVariable("NUM_EPOCHS"); if (!string.IsNullOrEmpty(s) && int.TryParse(s, out var ne)) hp.NumEpochs = ne;
-                s = Environment.GetEnvironmentVariable("BATCH_SIZE"); if (!string.IsNullOrEmpty(s) && int.TryParse(s, out var bs)) hp.BatchSize = bs;
-                s = Environment.GetEnvironmentVariable("DEFAULT_ANCHOR_BASE"); if (!string.IsNullOrEmpty(s) && int.TryParse(s, out var dab)) hp.DefaultAnchorBase = dab;
-                s = Environment.GetEnvironmentVariable("DETECTION_SCORE_THRESHOLD"); if (!string.IsNullOrEmpty(s) && double.TryParse(s, out var dst)) hp.DetectionScoreThreshold = dst;
-                s = Environment.GetEnvironmentVariable("MAX_DETECTIONS"); if (!string.IsNullOrEmpty(s) && int.TryParse(s, out var md)) hp.MaxDetections = md;
-                s = Environment.GetEnvironmentVariable("DRAW_ONLY_MODEL_OUTPUTS"); if (!string.IsNullOrEmpty(s) && s == "1") hp.DrawOnlyModelOutputs = true;
-                s = Environment.GetEnvironmentVariable("POS_IOU"); if (!string.IsNullOrEmpty(s) && double.TryParse(s, out var pio)) hp.PosIou = pio;
-                s = Environment.GetEnvironmentVariable("NEG_IOU"); if (!string.IsNullOrEmpty(s) && double.TryParse(s, out var nio)) hp.NegIou = nio;
-                s = Environment.GetEnvironmentVariable("ANCHOR_RATIOS"); if (!string.IsNullOrEmpty(s)) hp.AnchorRatios = s.Split(',').Select(x => double.Parse(x.Trim())).ToArray();
-                s = Environment.GetEnvironmentVariable("ANCHOR_SCALES"); if (!string.IsNullOrEmpty(s)) hp.AnchorScales = s.Split(',').Select(x => double.Parse(x.Trim())).ToArray();
-                // Parse command-line args to override env/defaults. Support --key=value and --key value
-                if (args != null && args.Length > 0)
-                {
-                    for (int i = 0; i < args.Length; i++)
-                    {
-                        var a = args[i];
-                        if (!a.StartsWith("--")) continue;
-                        var kv = a.Substring(2);
-                        string key, val = null;
-                        if (kv.Contains("=")) { var parts = kv.Split('=', 2); key = parts[0]; val = parts[1]; }
-                        else
-                        {
-                            key = kv;
-                            // next arg may be the value
-                            if (i + 1 < args.Length && !args[i + 1].StartsWith("--")) { val = args[i + 1]; i++; }
-                        }
-                        if (string.IsNullOrEmpty(key)) continue;
-                        key = key.Trim().ToLowerInvariant();
-                        if (val != null) val = val.Trim();
-
-                        try
-                        {
-                            switch (key)
-                            {
-                                case "num_epochs":
-                                case "num-epochs":
-                                case "epochs":
-                                case "n":
-                                    if (int.TryParse(val, out var vne)) hp.NumEpochs = vne; break;
-                                case "batch_size":
-                                case "batch-size":
-                                case "batch":
-                                case "b":
-                                    if (int.TryParse(val, out var vbs)) hp.BatchSize = vbs; break;
-                                case "default_anchor_base":
-                                case "default-anchor-base":
-                                case "anchor_base":
-                                case "anchor-base":
-                                    if (int.TryParse(val, out var vab)) hp.DefaultAnchorBase = vab; break;
-                                case "detection_score_threshold":
-                                case "detection-score-threshold":
-                                case "score_threshold":
-                                case "score-threshold":
-                                    if (double.TryParse(val, out var vst)) hp.DetectionScoreThreshold = vst; break;
-                                case "max_detections":
-                                case "max-detections":
-                                case "maxdet":
-                                    if (int.TryParse(val, out var vmd)) hp.MaxDetections = vmd; break;
-                                case "draw_only_model_outputs":
-                                case "draw-only-model-outputs":
-                                case "draw_only":
-                                case "draw-only":
-                                    if (string.IsNullOrEmpty(val)) hp.DrawOnlyModelOutputs = true;
-                                    else if (val == "1" || val.Equals("true", StringComparison.OrdinalIgnoreCase)) hp.DrawOnlyModelOutputs = true;
-                                    else hp.DrawOnlyModelOutputs = false;
-                                    break;
-                                case "pos_iou":
-                                case "pos-iou":
-                                    if (double.TryParse(val, out var vpio)) hp.PosIou = vpio; break;
-                                case "neg_iou":
-                                case "neg-iou":
-                                    if (double.TryParse(val, out var vnio)) hp.NegIou = vnio; break;
-                                case "anchor_ratios":
-                                case "anchor-ratios":
-                                    if (!string.IsNullOrEmpty(val)) hp.AnchorRatios = val.Split(',').Select(x => double.Parse(x.Trim())).ToArray(); break;
-                                case "anchor_scales":
-                                case "anchor-scales":
-                                    if (!string.IsNullOrEmpty(val)) hp.AnchorScales = val.Split(',').Select(x => double.Parse(x.Trim())).ToArray(); break;
-                                default:
-                                    // unknown arg: ignore
-                                    break;
-                            }
-                        }
-                        catch { }
-                    }
-                }
-
-                return hp;
-            }
+            // Optional explicit strides per feature level (p3,p4,p5). If null, strides will be derived from model head shapes.
+            public int[] Strides { get; set; } = null;
         }
+
         public static void Main(string[] args)
         {
             var hp = new HyperParameters();
@@ -127,13 +36,15 @@ namespace DetectorModel
             hp.NumEpochs = 100;
             hp.BatchSize = 4;
             hp.DefaultAnchorBase = 32;
-            hp.AnchorRatios = new double[] { 0.5, 1.0, 1.5 };
+            hp.AnchorRatios = new double[] { 0.8, 1.0, 1.2 };
             hp.AnchorScales = new double[] { 4.0, 8.0, 12.0 };
-            hp.PosIou = 0.5;
+            hp.PosIou = 0.7;
             hp.NegIou = 0.4;
             hp.DetectionScoreThreshold = 0.6;
             hp.MaxDetections = 4;
             hp.DrawOnlyModelOutputs = false;
+            // sensible default strides for p3,p4,p5 (can be overridden via env/args)
+            hp.Strides = new int[] { 8, 16, 32 };
 
             treinar(hp, args);
         }
@@ -477,10 +388,21 @@ namespace DetectorModel
                             // derive input shape to estimate strides
                             var inShape = sample.Tensor.Shape; int inH = inShape[0]; int inW = inShape[1];
 
-                            // compute stride per scale as average downsample factor
-                            int stride3 = Math.Max(1, (int)Math.Round(((double)inH / fh3 + (double)inW / fw3) / 2.0));
-                            int stride4 = Math.Max(1, (int)Math.Round(((double)inH / fh4 + (double)inW / fw4) / 2.0));
-                            int stride5 = Math.Max(1, (int)Math.Round(((double)inH / fh5 + (double)inW / fw5) / 2.0));
+                            int stride3, stride4, stride5;
+                            // prefer explicit strides from hyperparameters when provided
+                            if (hp.Strides != null && hp.Strides.Length >= 3)
+                            {
+                                stride3 = Math.Max(1, hp.Strides[0]);
+                                stride4 = Math.Max(1, hp.Strides[1]);
+                                stride5 = Math.Max(1, hp.Strides[2]);
+                            }
+                            else
+                            {
+                                // compute stride per scale as average downsample factor
+                                stride3 = Math.Max(1, (int)Math.Round(((double)inH / fh3 + (double)inW / fw3) / 2.0));
+                                stride4 = Math.Max(1, (int)Math.Round(((double)inH / fh4 + (double)inW / fw4) / 2.0));
+                                stride5 = Math.Max(1, (int)Math.Round(((double)inH / fh5 + (double)inW / fw5) / 2.0));
+                            }
 
                             // compute base sizes scaled by stride so anchors adapt to model receptive field
                             int base3 = Math.Max(1, DEFAULT_ANCHOR_BASE * stride3);
