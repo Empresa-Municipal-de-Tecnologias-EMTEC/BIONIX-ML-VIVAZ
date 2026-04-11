@@ -71,6 +71,27 @@ O `DataLoader` em `src/DetectorModel/dados/DataLoader.cs` detecta automaticament
 
 Para produção, exporte os pesos para um formato portátil (por exemplo ONNX) se for necessário interoperar com outros runtimes.
 
+Retomar treino (checkpoints)
+-----------------------------
+O runner suporta retomar treino a partir dos checkpoints salvos em `PESOS/DETECTOR`.
+
+- Para salvar checkpoints o runner já grava pesos (`backbone.bin`, `head_cls.bin`, `head_reg.bin`, `head_lmk.bin`), gradientes e um `meta.json` com o campo `epoch`.
+- Para retomar automaticamente, execute o runner com a flag `--resume` ou defina a variável de ambiente `RESUME=1`:
+
+```
+dotnet run --project src/Bionix.ML.Vivaz.Runner -c Debug -- --resume
+```
+
+O fluxo de retomada realiza:
+- leitura de `meta.json` (para recuperar o número da época);
+- leitura de arquivos de pesos em `PESOS/DETECTOR` e cópia para tensores do modelo (quando presentes);
+- carregamento dos slots do otimizador (`opt_slot_*.bin`) se existirem.
+
+Observações:
+- Se não houver checkpoints válidos, o runner inicializa os pesos aleatoriamente e começa do zero.
+- Para garantir retomada exata do otimizador, verifique que os arquivos `opt_slot_*.bin` estejam no diretório `PESOS/DETECTOR`.
+
+
 Conversão de imagens
 
 Existe um utilitário Python para conversão/normalização de imagens (se aplicável). Instale `Pillow` se for usar scripts de conversão.

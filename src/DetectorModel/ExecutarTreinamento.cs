@@ -128,6 +128,58 @@ namespace DetectorModel
             Console.WriteLine("Criando modelo RetinaFace (esqueleto)...");
             var model = new RetinaFaceModel();
 
+            // resume support: if --resume flag or RESUME=1 env var, try to load last checkpoint
+            var resume = args != null && args.Length > 0 && args.Contains("--resume") || Environment.GetEnvironmentVariable("RESUME") == "1";
+            int resumeFromEpoch = -1;
+            if (resume)
+            {
+                try
+                {
+                    Console.WriteLine("Resume requested: attempting to load checkpoint from PESOS/DETECTOR...");
+                    // load meta.json
+                    var metaPath = Path.Combine(Directory.GetCurrentDirectory(), "PESOS", "DETECTOR", "meta.json");
+                    if (File.Exists(metaPath))
+                    {
+                        var meta = System.Text.Json.JsonSerializer.Deserialize<System.Collections.Generic.Dictionary<string, object>>(File.ReadAllText(metaPath));
+                        if (meta != null && meta.ContainsKey("epoch"))
+                        {
+                            try { resumeFromEpoch = Convert.ToInt32(meta["epoch"]); } catch { resumeFromEpoch = -1; }
+                            Console.WriteLine($"Loaded meta.json: epoch={resumeFromEpoch}");
+                        }
+                    }
+
+                    // helper to load tensor into existing target
+                    void TryLoadInto(string name, Bionix.ML.nucleo.tensor.Tensor target)
+                    {
+                        try
+                        {
+                            var p = Path.Combine(Directory.GetCurrentDirectory(), "PESOS", "DETECTOR", name);
+                            if (File.Exists(p) && target != null)
+                            {
+                                var t = Bionix.ML.dados.serializacao.SerializadorTensor.LoadBinary(p);
+                                if (t != null && t.Size == target.Size)
+                                {
+                                    var arr = t.ToArray();
+                                    for (int i = 0; i < target.Size; i++) target[i] = arr[i];
+                                }
+                            }
+                        }
+                        catch { }
+                    }
+
+                    // try load known weights
+                    TryLoadInto("backbone.bin", model.BackboneWeight);
+                    TryLoadInto("head_cls.bin", model.HeadClsWeight);
+                    TryLoadInto("head_reg.bin", model.HeadRegWeight);
+                    TryLoadInto("head_lmk.bin", model.HeadLmkWeight);
+                    Console.WriteLine("Checkpoint weights loaded (where available).");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Resume load failed: {ex.Message}");
+                }
+            }
+
             int batchSize = 4;
             Console.WriteLine($"Iterando batches (tamanho={batchSize})...");
 
@@ -154,6 +206,17 @@ namespace DetectorModel
                 Console.WriteLine($"Época {epoch}");
                 int testCounter = 0;
                 int localBatch = 0;
+                // prepare optimizer once per epoch using model parameters
+                Bionix.ML.nucleo.otimizadores.StatefulSGD optimizer = null;
+                var epochParameters = new System.Collections.Generic.List<Bionix.ML.nucleo.tensor.Tensor>();
+                if (model.BackboneWeight != null) epochParameters.Add(model.BackboneWeight);
+                if (model.HeadClsWeight != null) epochParameters.Add(model.HeadClsWeight);
+                if (model.HeadRegWeight != null) epochParameters.Add(model.HeadRegWeight);
+                if (model.HeadLmkWeight != null) epochParameters.Add(model.HeadLmkWeight);
+                if (model.Stem != null && model.Stem.Weight != null) epochParameters.Add(model.Stem.Weight);
+                if (model.HeadCls != null && model.HeadCls.Weight != null) epochParameters.Add(model.HeadCls.Weight);
+                if (model.HeadReg != null && model.HeadReg.Weight != null) epochParameters.Add(model.HeadReg.Weight);
+
                 foreach (var batch in loader.GetBatchesTensors(batchSize, ctx))
                 {
                     Console.WriteLine($" Batch {localBatch} com {batch.Count} amostras");
@@ -275,19 +338,13 @@ namespace DetectorModel
                             // Backward through autograd
                             totalLoss.Backward();
 
-                            // Collect parameters and do SGD step
-                            var parameters = new System.Collections.Generic.List<Bionix.ML.nucleo.tensor.Tensor>();
-                            // model-level weights
-                            if (model.BackboneWeight != null) parameters.Add(model.BackboneWeight);
-                            if (model.HeadClsWeight != null) parameters.Add(model.HeadClsWeight);
-                            if (model.HeadRegWeight != null) parameters.Add(model.HeadRegWeight);
-                            if (model.HeadLmkWeight != null) parameters.Add(model.HeadLmkWeight);
-                            // conv layer weights
-                            if (model.Stem != null && model.Stem.Weight != null) parameters.Add(model.Stem.Weight);
-                            if (model.HeadCls != null && model.HeadCls.Weight != null) parameters.Add(model.HeadCls.Weight);
-                            if (model.HeadReg != null && model.HeadReg.Weight != null) parameters.Add(model.HeadReg.Weight);
-
-                            Bionix.ML.nucleo.otimizadores.SGD.Step(parameters, lr: 1e-3);
+                            // initialize epoch optimizer lazily on first batch
+                            if (optimizer == null)
+                            {
+                                optimizer = new Bionix.ML.nucleo.otimizadores.StatefulSGD(epochParameters, lr: 1e-3, momentum: 0.9);
+                                try { optimizer.LoadState(pesosDirRoot); } catch { }
+                            }
+                            optimizer.Step();
 
                             // Decode model predictions -> boxes and apply NMS
                             var detections = new System.Collections.Generic.List<DetectorModel.dados.Box>();
@@ -485,6 +542,8 @@ namespace DetectorModel
                 {
                     var meta = System.Text.Json.JsonSerializer.Serialize(new { epoch = epoch, lr = 1e-3, timestamp = DateTime.UtcNow });
                     File.WriteAllText(Path.Combine(pesosDirRoot, "meta.json"), meta);
+                    // Save optimizer slots if optimizer exists
+                    try { optimizer?.SaveState(pesosDirRoot); } catch { }
                 }
                 catch { }
 
