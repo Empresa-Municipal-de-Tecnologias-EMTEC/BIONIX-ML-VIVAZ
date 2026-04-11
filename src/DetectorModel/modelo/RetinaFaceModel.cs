@@ -60,7 +60,7 @@ namespace DetectorModel.modelo
         }
 
         // Create a simple concatenated output: flatten per-scale cls, reg and landmarks into single tensors
-        public (Tensor cls, Tensor reg, Tensor lmk) Forward(Tensor input, ComputacaoContexto ctx)
+        public (Tensor cls, Tensor reg, Tensor lmk, int[][] clsHeadShapes) Forward(Tensor input, ComputacaoContexto ctx)
         {
             // Stem
             var x = Stem.Forward(input, ctx);
@@ -79,11 +79,37 @@ namespace DetectorModel.modelo
             var (cls4, reg4, lmk4) = HeadP4.Forward(p4, ctx);
             var (cls5, reg5, lmk5) = HeadP5.Forward(p5, ctx);
 
+            // Optional debug: print per-scale tensor shapes and sizes when requested
+            try
+            {
+                if (string.Equals(Environment.GetEnvironmentVariable("DEBUG_PER_SCALE_SHAPES"), "1", StringComparison.OrdinalIgnoreCase))
+                {
+                    string fmt(int[] s) => s == null ? "null" : "[" + string.Join(',', s) + "]";
+                    System.Console.WriteLine("DEBUG_MODEL_SCALES: p3=" + fmt(p3.Shape) + " size=" + p3.Size +
+                                             ", p4=" + fmt(p4.Shape) + " size=" + p4.Size +
+                                             ", p5=" + fmt(p5.Shape) + " size=" + p5.Size);
+
+                    System.Console.WriteLine("DEBUG_HEAD_CLS: cls3=" + fmt(cls3.Shape) + " size=" + cls3.Size +
+                                             ", cls4=" + fmt(cls4.Shape) + " size=" + cls4.Size +
+                                             ", cls5=" + fmt(cls5.Shape) + " size=" + cls5.Size);
+
+                    System.Console.WriteLine("DEBUG_HEAD_REG: reg3=" + fmt(reg3.Shape) + " size=" + reg3.Size +
+                                             ", reg4=" + fmt(reg4.Shape) + " size=" + reg4.Size +
+                                             ", reg5=" + fmt(reg5.Shape) + " size=" + reg5.Size);
+
+                    System.Console.WriteLine("DEBUG_HEAD_LMK: lmk3=" + fmt(lmk3.Shape) + " size=" + lmk3.Size +
+                                             ", lmk4=" + fmt(lmk4.Shape) + " size=" + lmk4.Size +
+                                             ", lmk5=" + fmt(lmk5.Shape) + " size=" + lmk5.Size);
+                }
+            }
+            catch { }
+
             // flatten and concatenate along size axis to form unified tensors
             var clsConcat = ConcatFlatten(new Tensor[] { cls3, cls4, cls5 }, ctx);
             var regConcat = ConcatFlatten(new Tensor[] { reg3, reg4, reg5 }, ctx);
             var lmkConcat = ConcatFlatten(new Tensor[] { lmk3, lmk4, lmk5 }, ctx);
-            return (clsConcat, regConcat, lmkConcat);
+            int[][] shapes = new int[][] { cls3.Shape, cls4.Shape, cls5.Shape };
+            return (clsConcat, regConcat, lmkConcat, shapes);
         }
 
         private Tensor DownsampleBy2(Tensor src, ComputacaoContexto ctx)

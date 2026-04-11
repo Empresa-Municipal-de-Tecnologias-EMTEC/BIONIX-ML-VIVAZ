@@ -236,8 +236,19 @@ namespace DetectorModel
                 }
             }
 
-            int batchSize = 4;
-            Console.WriteLine($"Iterando batches (tamanho={batchSize})...");
+            // Configuration (uppercase variables for easy tuning)
+            int NUM_EPOCHS = 100;
+            int BATCH_SIZE = 4;
+            int DEFAULT_ANCHOR_BASE = 32; // base anchor size multiplier (will be scaled by feature stride)
+            double[] ANCHOR_RATIOS = new double[]{ 1.0 };
+            double[] ANCHOR_SCALES = new double[]{ 1.0 };
+            double POS_IOU = 0.5;
+            double NEG_IOU = 0.4;
+            // Detection display / decoding config
+            double DETECTION_SCORE_THRESHOLD = 0.6; // only consider anchors with score >= this for decoding
+            int MAX_DETECTIONS = 100; // limit anchors considered per image before NMS
+            bool DRAW_ONLY_MODEL_OUTPUTS = Environment.GetEnvironmentVariable("DRAW_ONLY_MODEL_OUTPUTS") == "1";
+            Console.WriteLine($"Iterando batches (tamanho={BATCH_SIZE})...");
 
             var ctx = new Bionix.ML.computacao.ComputacaoCPUContexto();
             // RNG seed: use SEED env var if provided, otherwise generate and persist
@@ -249,8 +260,7 @@ namespace DetectorModel
 
             // initialize model weights
             model.InitializeWeights(ctx);
-
-            int epochs = 100;
+            int epochs = NUM_EPOCHS;
             // QUICK_TEST_SAVE: if set to "1", run only one epoch and exit after first annotated image is written
             var quickTest = Environment.GetEnvironmentVariable("QUICK_TEST_SAVE") == "1";
             if (quickTest) epochs = 1;
@@ -316,31 +326,46 @@ namespace DetectorModel
 
                 // pass resume offset only on first epoch when resuming
                 int startSample = (resume && epoch == 0) ? resumeOffsetSamples : 0;
-                foreach (var batch in loader.GetBatchesTensors(batchSize, ctx, startSample))
+                foreach (var batch in loader.GetBatchesTensors(BATCH_SIZE, ctx, startSample))
                 {
                     Console.WriteLine($" Batch {localBatch} com {batch.Count} amostras");
                     foreach (var sample in batch)
                     {
                         Console.WriteLine(sample.ImagePath + $" | BoxSource={sample.BoxSource} | Boxes={sample.Boxes?.Count ?? 0}");
-                        if (sample.Tensor != null)
-                        {
+                            if (sample.Tensor != null)
+                            {
                             // Run model forward (placeholder)
-                            var (clsOut, regOut, lmkOut) = model.Forward(sample.Tensor, ctx);
+                            var (clsOut, regOut, lmkOut, clsHeadShapes) = model.Forward(sample.Tensor, ctx);
 
                             // Build detection losses via anchor matching + focal + smooth-L1
                             var clsCpu = clsOut as TensorCPU ?? throw new Exception("Expected TensorCPU for clsOut");
                             var regCpu = regOut as TensorCPU ?? throw new Exception("Expected TensorCPU for regOut");
 
-                            // derive feature map sizes from input tensor
-                            var inShape = sample.Tensor.Shape; int inH = inShape[0]; int inW = inShape[1];
-                            int fh3 = inH, fw3 = inW;
-                            int fh4 = Math.Max(1, fh3 / 2), fw4 = Math.Max(1, fw3 / 2);
-                            int fh5 = Math.Max(1, fh4 / 2), fw5 = Math.Max(1, fw4 / 2);
+                            // derive feature map sizes from model head shapes (ensures anchors match model outputs)
+                            int fh3 = Math.Max(1, clsHeadShapes[0][0]);
+                            int fw3 = Math.Max(1, clsHeadShapes[0][1]);
+                            int fh4 = Math.Max(1, clsHeadShapes[1][0]);
+                            int fw4 = Math.Max(1, clsHeadShapes[1][1]);
+                            int fh5 = Math.Max(1, clsHeadShapes[2][0]);
+                            int fw5 = Math.Max(1, clsHeadShapes[2][1]);
 
-                            // generate anchors per scale (one anchor per location: ratios=[1], scales=[1])
-                            var anchors3 = UtilitarioAncoras.GenerateAnchors(fh3, fw3, baseSize: 32, ratios: new double[]{1.0}, scales: new double[]{1.0}, stride: 1);
-                            var anchors4 = UtilitarioAncoras.GenerateAnchors(fh4, fw4, baseSize: 64, ratios: new double[]{1.0}, scales: new double[]{1.0}, stride: 2);
-                            var anchors5 = UtilitarioAncoras.GenerateAnchors(fh5, fw5, baseSize: 128, ratios: new double[]{1.0}, scales: new double[]{1.0}, stride: 4);
+                            // derive input shape to estimate strides
+                            var inShape = sample.Tensor.Shape; int inH = inShape[0]; int inW = inShape[1];
+
+                            // compute stride per scale as average downsample factor
+                            int stride3 = Math.Max(1, (int)Math.Round(((double)inH / fh3 + (double)inW / fw3) / 2.0));
+                            int stride4 = Math.Max(1, (int)Math.Round(((double)inH / fh4 + (double)inW / fw4) / 2.0));
+                            int stride5 = Math.Max(1, (int)Math.Round(((double)inH / fh5 + (double)inW / fw5) / 2.0));
+
+                            // compute base sizes scaled by stride so anchors adapt to model receptive field
+                            int base3 = Math.Max(1, DEFAULT_ANCHOR_BASE * stride3);
+                            int base4 = Math.Max(1, DEFAULT_ANCHOR_BASE * stride4);
+                            int base5 = Math.Max(1, DEFAULT_ANCHOR_BASE * stride5);
+
+                            // generate anchors per scale using computed base and stride
+                            var anchors3 = UtilitarioAncoras.GenerateAnchors(fh3, fw3, baseSize: base3, ratios: ANCHOR_RATIOS, scales: ANCHOR_SCALES, stride: stride3);
+                            var anchors4 = UtilitarioAncoras.GenerateAnchors(fh4, fw4, baseSize: base4, ratios: ANCHOR_RATIOS, scales: ANCHOR_SCALES, stride: stride4);
+                            var anchors5 = UtilitarioAncoras.GenerateAnchors(fh5, fw5, baseSize: base5, ratios: ANCHOR_RATIOS, scales: ANCHOR_SCALES, stride: stride5);
                             var allAnchors = new System.Collections.Generic.List<BoxF>();
                             allAnchors.AddRange(anchors3); allAnchors.AddRange(anchors4); allAnchors.AddRange(anchors5);
 
@@ -355,7 +380,7 @@ namespace DetectorModel
                                 // assume ordering corresponds to boxes list where available
                                 foreach (var lm in sample.Landmarks) landmarksForGt.Add(lm);
                             }
-                            UtilitarioAncoras.MatchAnchorsWithLandmarks(allAnchors, gts, landmarksForGt, posIou: 0.5, negIou: 0.4, out int[] labels, out int[] matched, out double[][] bboxTargets, out double[][] landmarkTargets);
+                            UtilitarioAncoras.MatchAnchorsWithLandmarks(allAnchors, gts, landmarksForGt, posIou: POS_IOU, negIou: NEG_IOU, out int[] labels, out int[] matched, out double[][] bboxTargets, out double[][] landmarkTargets);
 
                             // collect active indices (exclude ignore = -1)
                             var activeIdx = new System.Collections.Generic.List<int>();
@@ -364,6 +389,30 @@ namespace DetectorModel
                             {
                                 if (labels[i] != -1) activeIdx.Add(i);
                                 if (labels[i] == 1) positiveIdx.Add(i);
+                            }
+
+                            // defensive checks: ensure tensor sizes match expected anchors count
+                            int A = allAnchors.Count;
+                            if (clsCpu.Size < A)
+                            {
+                                    // Detailed diagnostic to help find mismatch between model outputs and generated anchors
+                                    var anchors3Count = anchors3.Count;
+                                    var anchors4Count = anchors4.Count;
+                                    var anchors5Count = anchors5.Count;
+                                    Console.WriteLine($"Runner error: cls tensor size {clsCpu.Size} < anchors {A}. Skipping this sample.");
+                                    Console.WriteLine($" Diagnostic: inH={inH} inW={inW} -> anchors per scale: p3={anchors3Count}, p4={anchors4Count}, p5={anchors5Count} (sum={anchors3Count+anchors4Count+anchors5Count}).");
+                                    try
+                                    {
+                                        var lmkCpuLocal = lmkOut as TensorCPU;
+                                        Console.WriteLine($" Tensor sizes: cls={clsCpu.Size}, reg={regCpu.Size}, lmk={(lmkCpuLocal!=null?lmkCpuLocal.Size:-1)}");
+                                    }
+                                    catch { }
+                                continue; // skip this sample to avoid IndexOutOfRange
+                            }
+                            if (regCpu.Size < A * 4)
+                            {
+                                Console.WriteLine($"Runner error: reg tensor size {regCpu.Size} < anchors*4 {A * 4}. Skipping this sample.");
+                                continue;
                             }
 
                             var fabrica = new Bionix.ML.nucleo.tensor.FabricaTensor(ctx);
@@ -381,6 +430,8 @@ namespace DetectorModel
                             var clsTgt = fabrica.FromArray(new int[]{clsTgtArr.Length}, clsTgtArr);
 
                             var focal = Focal.Loss(ctx, clsPred, clsTgt, alpha: 0.25, gamma: 2.0);
+
+                            
 
                             // regression: only positives
                             Tensor smoothL1Loss;
@@ -409,6 +460,11 @@ namespace DetectorModel
                             // landmarks loss (only positives)
                             Tensor lmkLoss;
                             var lmkCpu = lmkOut as TensorCPU ?? throw new Exception("Expected TensorCPU for lmkOut");
+                            // check landmark tensor size before indexing
+                            if (lmkCpu.Size < allAnchors.Count * 10)
+                            {
+                                Console.WriteLine($"Runner error: landmark tensor size {lmkCpu.Size} < anchors*10 {allAnchors.Count * 10}. Landmarks will be skipped for this sample.");
+                            }
                             if (positiveIdx.Count == 0)
                             {
                                 var zero = fabrica.Criar(1);
@@ -456,13 +512,22 @@ namespace DetectorModel
                             {
                                 var boxesList = new System.Collections.Generic.List<DetectorModel.modelo.BoxF>();
                                 var scores = new System.Collections.Generic.List<double>();
-                                int A = allAnchors.Count;
-                                for (int iA = 0; iA < A; iA++)
+                                int anchorCount = allAnchors.Count;
+                                // collect scored anchors above threshold
+                                var scored = new System.Collections.Generic.List<(int idx, double score)>();
+                                for (int iA = 0; iA < anchorCount; iA++)
                                 {
                                     double score = Sigmoid(clsCpu[iA]);
-                                    // threshold detections
-                                    if (score < 0.5) continue;
-                                    // decode box
+                                    if (score < DETECTION_SCORE_THRESHOLD) continue;
+                                    scored.Add((iA, score));
+                                }
+                                // sort by score desc and limit to MAX_DETECTIONS
+                                scored.Sort((a,b)=> b.score.CompareTo(a.score));
+                                if (scored.Count > MAX_DETECTIONS) scored = scored.GetRange(0, MAX_DETECTIONS);
+                                // decode only the selected anchors
+                                foreach (var s in scored)
+                                {
+                                    int iA = s.idx; double score = s.score;
                                     var delta = new double[4];
                                     for (int k = 0; k < 4; k++) delta[k] = regCpu[iA*4 + k];
                                     var decoded = UtilitarioAncoras.Decode(allAnchors[iA], delta);
@@ -502,9 +567,12 @@ namespace DetectorModel
                                             using var img2 = SixLabors.ImageSharp.Image.Load<SixLabors.ImageSharp.PixelFormats.Rgba32>(sample.ImagePath);
                                             var greenPx = new SixLabors.ImageSharp.PixelFormats.Rgba32(0, 255, 0, 255);
                                             var bluePx = new SixLabors.ImageSharp.PixelFormats.Rgba32(0, 0, 255, 255);
-                                            DrawBoxes(img2, sample.Boxes, greenPx, thickness:3);
-                                            DrawLandmarks(img2, sample.Landmarks);
-                                            DrawBoxSourceMarker(img2, sample.BoxSource, sample.Boxes != null && sample.Boxes.Count > 0 ? sample.Boxes[0] : (DetectorModel.dados.Box?)null);
+                                            if (!DRAW_ONLY_MODEL_OUTPUTS)
+                                            {
+                                                DrawBoxes(img2, sample.Boxes, greenPx, thickness:3);
+                                                DrawLandmarks(img2, sample.Landmarks);
+                                                DrawBoxSourceMarker(img2, sample.BoxSource, sample.Boxes != null && sample.Boxes.Count > 0 ? sample.Boxes[0] : (DetectorModel.dados.Box?)null);
+                                            }
                                             DrawBoxes(img2, detections, bluePx, thickness:3);
                                         using var fs2 = File.OpenWrite(outPathAnnot);
                                         img2.Save(fs2, new SixLabors.ImageSharp.Formats.Png.PngEncoder());
@@ -562,9 +630,12 @@ namespace DetectorModel
                                 using var img = SixLabors.ImageSharp.Image.Load<SixLabors.ImageSharp.PixelFormats.Rgba32>(sample.ImagePath);
                                 var greenPx2 = new SixLabors.ImageSharp.PixelFormats.Rgba32(0, 255, 0, 255);
                                 var bluePx2 = new SixLabors.ImageSharp.PixelFormats.Rgba32(0, 0, 255, 255);
-                                            DrawBoxes(img, sample.Boxes, greenPx2);
-                                            DrawLandmarks(img, sample.Landmarks);
-                                            DrawBoxSourceMarker(img, sample.BoxSource, sample.Boxes != null && sample.Boxes.Count > 0 ? sample.Boxes[0] : (DetectorModel.dados.Box?)null);
+                                            if (!DRAW_ONLY_MODEL_OUTPUTS)
+                                            {
+                                                DrawBoxes(img, sample.Boxes, greenPx2);
+                                                DrawLandmarks(img, sample.Landmarks);
+                                                DrawBoxSourceMarker(img, sample.BoxSource, sample.Boxes != null && sample.Boxes.Count > 0 ? sample.Boxes[0] : (DetectorModel.dados.Box?)null);
+                                            }
                                 DrawBoxes(img, detections, bluePx2);
                                 var outBase = Path.Combine(saidaDir, $"epoca_{epoch:00}_{testCounter:0000}");
                                 var outPath = Path.ChangeExtension(outBase, ".png");
