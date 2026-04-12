@@ -49,6 +49,7 @@ namespace DetectorLeveModel.Runner
             double weightDecay = 0.0;
             bool detectTest = false;
             int detectSamples = 20;
+            double detectCutoff = 0.7; // default 70%
             // allow overriding via env or args
             var epochsEnv = Environment.GetEnvironmentVariable("EPOCHS");
             if (!string.IsNullOrEmpty(epochsEnv) && int.TryParse(epochsEnv, NumberStyles.Integer, CultureInfo.InvariantCulture, out var e)) hp.NumEpochs = Math.Max(1, e);
@@ -76,6 +77,7 @@ namespace DetectorLeveModel.Runner
                 else if (a == "--optimizer" && ai + 1 < args.Length) { optimizerName = args[ai+1].ToLowerInvariant(); ai++; }
                 else if (a == "--detect-test") { detectTest = true; }
                 else if (a == "--detect-samples" && ai + 1 < args.Length && int.TryParse(args[ai+1], out var dsv)) { detectSamples = Math.Max(1, dsv); ai++; }
+                else if (a == "--detect-cutoff" && ai + 1 < args.Length && double.TryParse(args[ai+1], NumberStyles.Float|NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out var dcv)) { detectCutoff = Math.Max(0.0, Math.Min(1.0, dcv)); ai++; }
                 else if (a == "--loss-threshold" || a == "-t") { if (ai + 1 < args.Length) { var s = args[ai+1]; if (!double.TryParse(s, NumberStyles.Float|NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out var tv) && !double.TryParse(s, out tv)) tv = 0.0; hp.LossThreshold = Math.Max(0.0, tv); ai++; } }
                 else if (a == "--no-outputs" || a == "--suppress-outputs") { hp.SuppressOutputs = true; }
                 else if (a == "--accuracy-threshold" || a == "-a") { if (ai + 1 < args.Length) { var s = args[ai+1]; if (!double.TryParse(s, NumberStyles.Float|NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out var av) && !double.TryParse(s, out av)) av = 0.0; hp.AccuracyThreshold = Math.Max(0.0, Math.Min(1.0, av)); ai++; } }
@@ -109,6 +111,10 @@ namespace DetectorLeveModel.Runner
             // (accEnv handled above)
             // default MaxSamplesPerEpoch to BatchSize if unset (0)
             if (hp.MaxSamplesPerEpoch <= 0) hp.MaxSamplesPerEpoch = hp.BatchSize;
+
+            // detect cutoff from env
+            var detectCutoffEnv = Environment.GetEnvironmentVariable("DETECT_CUTOFF");
+            if (!string.IsNullOrEmpty(detectCutoffEnv) && (double.TryParse(detectCutoffEnv, NumberStyles.Float|NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out var dce) || double.TryParse(detectCutoffEnv, out dce))) detectCutoff = Math.Max(0.0, Math.Min(1.0, dce));
 
             // Enforce minimum required accuracy of 90% per user request unless disabled explicitly.
             if (enforceMinAccuracy)
@@ -282,46 +288,9 @@ namespace DetectorLeveModel.Runner
                             int h = Math.Max(1, y1 - y0);
                             var crop = ManipuladorDeImagem.cortar(bmpFull, x0, y0, w, h);
 
-                            // perform multi-scale sliding-window detection on the crop using the model
-                            int[] scales = new int[] { 32, 48, 64 };
-                            int[] stepsArr = new int[] { 4, 6, 8 };
-                            double bestScore = double.NegativeInfinity;
-                            int bestX = 0, bestY = 0, bestW = 0, bestH = 0;
-                            for (int si = 0; si < scales.Length; si++)
-                            {
-                                int work = scales[si]; int step = stepsArr[si];
-                                int minSideCrop = Math.Min(crop.Width, crop.Height);
-                                double scaleFactor = (double)work / (double)minSideCrop;
-                                int newW = Math.Max(1, (int)Math.Round(crop.Width * scaleFactor));
-                                int newH = Math.Max(1, (int)Math.Round(crop.Height * scaleFactor));
-                                var resized = ManipuladorDeImagem.redimensionar(crop, newW, newH);
-                                for (int y2 = 0; y2 + work <= newH; y2 += step)
-                                {
-                                    for (int x2 = 0; x2 + work <= newW; x2 += step)
-                                    {
-                                        var win = ManipuladorDeImagem.cortar(resized, x2, y2, work, work);
-                                        var t = ManipuladorDeImagem.TransformarCropParaTensorGrayscale(win, 20, ctx);
-                                        var outt = model.Forward(t, ctx);
-                                        double score = outt[0];
-                                        if (score > bestScore)
-                                        {
-                                            bestScore = score;
-                                                double cxRes = x2 + work / 2.0;
-                                                double cyRes = y2 + work / 2.0;
-                                                double origCx = cxRes / scaleFactor;
-                                                double origCy = cyRes / scaleFactor;
-                                            double boxSize = work / scaleFactor;
-                                            int bw = Math.Max(1, (int)Math.Round(boxSize));
-                                            int bh = bw;
-                                            int bx = (int)Math.Round(origCx - bw / 2.0);
-                                            int by = (int)Math.Round(origCy - bh / 2.0);
-                                            bx = Math.Max(0, Math.Min(crop.Width - bw, bx));
-                                            by = Math.Max(0, Math.Min(crop.Height - bh, by));
-                                            bestX = bx; bestY = by; bestW = bw; bestH = bh;
-                                        }
-                                    }
-                                }
-                            }
+                            // perform detection using model's DetectBest helper
+                            var detRes = detModel.DetectBest(crop, ctx, detectCutoff);
+                            double bestScore = detRes.score; int bestX = detRes.x, bestY = detRes.y, bestW = detRes.w, bestH = detRes.h;
 
                             // convert crop to image and draw detection rectangle (in crop coords)
                             var img = ToImage(crop);
