@@ -3,6 +3,10 @@ using System.IO;
 using Bionix.ML.computacao;
 using Bionix.ML.nucleo.tensor;
 using Bionix.ML.dados.serializacao;
+using Bionix.ML.dados.imagem;
+using Bionix.ML.dados.imagem.bmp;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace DetectorLeveModel
 {
@@ -149,6 +153,56 @@ namespace DetectorLeveModel
                 }
             }
             return _instance;
+        }
+
+        // Perform multi-scale sliding-window detection on an input crop image.
+        // crop: BMP image to search (arbitrary size)
+        // ctx: computation context for tensor creation
+        // detectCutoff: score threshold [0..1] to consider a window a detection
+        // scales: working window sizes in pixels (e.g., 32,48,64)
+        // steps: step sizes corresponding to scales
+        public (double score, int x, int y, int w, int h) DetectBest(BMP crop, ComputacaoContexto ctx, double detectCutoff = 0.7, int[] scales = null, int[] steps = null)
+        {
+            if (crop == null) throw new ArgumentNullException(nameof(crop));
+            if (scales == null) scales = new int[] { 32, 48, 64 };
+            if (steps == null) steps = new int[] { 4, 6, 8 };
+            var detections = new List<(double score, int x, int y, int w, int h, int work)>();
+            for (int si = 0; si < scales.Length; si++)
+            {
+                int work = scales[si]; int step = steps[si];
+                int minSideCrop = Math.Min(crop.Width, crop.Height);
+                if (minSideCrop <= 0) continue;
+                double scaleFactor = (double)work / (double)minSideCrop;
+                int newW = Math.Max(1, (int)Math.Round(crop.Width * scaleFactor));
+                int newH = Math.Max(1, (int)Math.Round(crop.Height * scaleFactor));
+                var resized = ManipuladorDeImagem.redimensionar(crop, newW, newH);
+                for (int y2 = 0; y2 + work <= newH; y2 += step)
+                {
+                    for (int x2 = 0; x2 + work <= newW; x2 += step)
+                    {
+                        var win = ManipuladorDeImagem.cortar(resized, x2, y2, work, work);
+                        var t = ManipuladorDeImagem.TransformarCropParaTensorGrayscale(win, 20, ctx);
+                        var outt = this.Forward(t, ctx);
+                        double score = outt[0];
+                        if (score < detectCutoff) continue;
+                        double cxRes = x2 + work / 2.0;
+                        double cyRes = y2 + work / 2.0;
+                        double origCx = cxRes / scaleFactor;
+                        double origCy = cyRes / scaleFactor;
+                        double boxSize = work / scaleFactor;
+                        int bw = Math.Max(1, (int)Math.Round(boxSize));
+                        int bh = bw;
+                        int bx = (int)Math.Round(origCx - bw / 2.0);
+                        int by = (int)Math.Round(origCy - bh / 2.0);
+                        bx = Math.Max(0, Math.Min(crop.Width - bw, bx));
+                        by = Math.Max(0, Math.Min(crop.Height - bh, by));
+                        detections.Add((score, bx, by, bw, bh, work));
+                    }
+                }
+            }
+            if (detections.Count == 0) return (double.NegativeInfinity, 0, 0, 0, 0);
+            var best = detections.OrderByDescending(d => d.score).ThenByDescending(d => d.work).First();
+            return (best.score, best.x, best.y, best.w, best.h);
         }
 
         
