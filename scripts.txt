@@ -16,7 +16,7 @@ Forçar semente RNG e retomar (exemplo)
 $env:SEED=12345; $env:RESUME='1'; dotnet run --project BIONIX-ML-VIVAZ/src/DetectorModel.Runner/DetectorModel.Runner.csproj -- --mode train --resume
 
 ---
-Treino do Identificador (ArcFace)
+Treino do Identificador
 
 dotnet run --project BIONIX-ML-VIVAZ/src/IdentificadorModel.Runner/IdentificadorModel.Runner.csproj -- --mode train
 
