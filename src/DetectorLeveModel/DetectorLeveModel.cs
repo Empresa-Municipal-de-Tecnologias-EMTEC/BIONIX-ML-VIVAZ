@@ -127,5 +127,30 @@ namespace DetectorLeveModel
             yield return ("w2", W2);
             yield return ("b2", b2);
         }
+
+        // Singleton helper to reuse model instance across calls
+        private static DetectorLeve _instance;
+        private static readonly object _instLock = new object();
+
+        public static DetectorLeve GetInstance(ComputacaoContexto ctx = null, string pesosDir = null)
+        {
+            if (_instance != null) return _instance;
+            lock (_instLock)
+            {
+                if (_instance == null)
+                {
+                    var m = new DetectorLeve();
+                    m.InitializeWeights(ctx ?? new ComputacaoCPUContexto());
+                    if (!string.IsNullOrEmpty(pesosDir))
+                    {
+                        try { m.LoadWeights(pesosDir); } catch { }
+                    }
+                    _instance = m;
+                }
+            }
+            return _instance;
+        }
+
+        
     }
 }

@@ -47,6 +47,8 @@ namespace DetectorLeveModel.Runner
             string optimizerName = "sgd";
             double gradClip = 0.0;
             double weightDecay = 0.0;
+            bool detectTest = false;
+            int detectSamples = 20;
             // allow overriding via env or args
             var epochsEnv = Environment.GetEnvironmentVariable("EPOCHS");
             if (!string.IsNullOrEmpty(epochsEnv) && int.TryParse(epochsEnv, NumberStyles.Integer, CultureInfo.InvariantCulture, out var e)) hp.NumEpochs = Math.Max(1, e);
@@ -72,6 +74,8 @@ namespace DetectorLeveModel.Runner
                 else if (a == "--quick") { hp.MaxSamplesPerEpoch = 1; }
                 else if (a == "--resume") { resume = true; }
                 else if (a == "--optimizer" && ai + 1 < args.Length) { optimizerName = args[ai+1].ToLowerInvariant(); ai++; }
+                else if (a == "--detect-test") { detectTest = true; }
+                else if (a == "--detect-samples" && ai + 1 < args.Length && int.TryParse(args[ai+1], out var dsv)) { detectSamples = Math.Max(1, dsv); ai++; }
                 else if (a == "--loss-threshold" || a == "-t") { if (ai + 1 < args.Length) { var s = args[ai+1]; if (!double.TryParse(s, NumberStyles.Float|NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out var tv) && !double.TryParse(s, out tv)) tv = 0.0; hp.LossThreshold = Math.Max(0.0, tv); ai++; } }
                 else if (a == "--no-outputs" || a == "--suppress-outputs") { hp.SuppressOutputs = true; }
                 else if (a == "--accuracy-threshold" || a == "-a") { if (ai + 1 < args.Length) { var s = args[ai+1]; if (!double.TryParse(s, NumberStyles.Float|NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out var av) && !double.TryParse(s, out av)) av = 0.0; hp.AccuracyThreshold = Math.Max(0.0, Math.Min(1.0, av)); ai++; } }
@@ -245,6 +249,114 @@ namespace DetectorLeveModel.Runner
 
                 var anns = loader.ReadAnnotations().ToList();
                 if (anns.Count == 0) { Console.WriteLine("No annotations found."); return; }
+
+                // If detect-test mode requested, run detection tests and exit
+                if (detectTest)
+                {
+                    Console.WriteLine($"Running detect-test on {detectSamples} samples...");
+                    var detModel = DetectorLeveModel.DetectorLeve.GetInstance(ctx, pesosDirRoot);
+                    var sampleList = anns.Where(a => a.Boxes != null && a.Boxes.Count > 0).OrderBy(x => rnd.Next()).Take(detectSamples).ToList();
+                    int idx = 0;
+                    foreach (var ann in sampleList)
+                    {
+                        try
+                        {
+                            var bmpFull = ManipuladorDeImagem.carregarBmpDeJPEG(ann.ImagePath);
+                            var gb = ann.Boxes[0];
+                            double p = rnd.NextDouble() * (0.6 - 0.25) + 0.25; // fraction annotated occupies
+                            double annotatedArea = gb.Width * gb.Height;
+                            double cropArea = annotatedArea / p;
+                            int side = (int)Math.Ceiling(Math.Sqrt(cropArea));
+                            side = Math.Max(side, Math.Max(gb.Width, gb.Height));
+                            // center on annotated box center
+                            int cx = gb.X + gb.Width/2;
+                            int cy = gb.Y + gb.Height/2;
+                            int tx = cx - side/2;
+                            int ty = cy - side/2;
+                            // clamp within full image
+                            tx = Math.Max(0, Math.Min(bmpFull.Width - side, tx));
+                            ty = Math.Max(0, Math.Min(bmpFull.Height - side, ty));
+                            var crop = ManipuladorDeImagem.cortar(bmpFull, tx, ty, Math.Min(side, bmpFull.Width), Math.Min(side, bmpFull.Height));
+
+                            // perform multi-scale sliding-window detection on the crop using the model
+                            int[] scales = new int[] { 32, 48, 64 };
+                            int[] stepsArr = new int[] { 4, 6, 8 };
+                            double bestScore = double.NegativeInfinity;
+                            int bestX = 0, bestY = 0, bestW = 0, bestH = 0;
+                            for (int si = 0; si < scales.Length; si++)
+                            {
+                                int work = scales[si]; int step = stepsArr[si];
+                                int minSideCrop = Math.Min(crop.Width, crop.Height);
+                                double scaleFactor = (double)work / (double)minSideCrop;
+                                int newW = Math.Max(1, (int)Math.Round(crop.Width * scaleFactor));
+                                int newH = Math.Max(1, (int)Math.Round(crop.Height * scaleFactor));
+                                var resized = ManipuladorDeImagem.redimensionar(crop, newW, newH);
+                                for (int y2 = 0; y2 + work <= newH; y2 += step)
+                                {
+                                    for (int x2 = 0; x2 + work <= newW; x2 += step)
+                                    {
+                                        var win = ManipuladorDeImagem.cortar(resized, x2, y2, work, work);
+                                        var t = ManipuladorDeImagem.TransformarCropParaTensorGrayscale(win, 20, ctx);
+                                        var outt = model.Forward(t, ctx);
+                                        double score = outt[0];
+                                        if (score > bestScore)
+                                        {
+                                            bestScore = score;
+                                                double cxRes = x2 + work / 2.0;
+                                                double cyRes = y2 + work / 2.0;
+                                                double origCx = cxRes / scaleFactor;
+                                                double origCy = cyRes / scaleFactor;
+                                            double boxSize = work / scaleFactor;
+                                            int w0 = Math.Max(1, (int)Math.Round(boxSize));
+                                            int h0 = w0;
+                                            int x0 = (int)Math.Round(origCx - w0 / 2.0);
+                                            int y0 = (int)Math.Round(origCy - h0 / 2.0);
+                                            x0 = Math.Max(0, Math.Min(crop.Width - w0, x0));
+                                            y0 = Math.Max(0, Math.Min(crop.Height - h0, y0));
+                                            bestX = x0; bestY = y0; bestW = w0; bestH = h0;
+                                        }
+                                    }
+                                }
+                            }
+
+                            // convert crop to image and draw detection rectangle (in crop coords)
+                            var img = ToImage(crop);
+                            if (!double.IsNegativeInfinity(bestScore))
+                            {
+                                int dx = Math.Max(0, Math.Min(bestX, crop.Width - 1));
+                                int dy = Math.Max(0, Math.Min(bestY, crop.Height - 1));
+                                int dw = Math.Min(bestW, crop.Width - dx);
+                                int dh = Math.Min(bestH, crop.Height - dy);
+                                var color = new SixLabors.ImageSharp.PixelFormats.Rgba32(255, 0, 0, 255);
+                                img.ProcessPixelRows(accessor =>
+                                {
+                                    for (int y = dy; y < dy + dh; y++)
+                                    {
+                                        if (y < 0 || y >= img.Height) continue;
+                                        for (int x = dx; x < dx + dw; x++)
+                                        {
+                                            if (x < 0 || x >= img.Width) continue;
+                                            bool border = (x - dx < 2) || (dx + dw - 1 - x < 2) || (y - dy < 2) || (dy + dh - 1 - y < 2);
+                                            if (border) accessor.GetRowSpan(y)[x] = color;
+                                        }
+                                    }
+                                });
+                            }
+
+                            var outPath = Path.Combine(saidaDir, $"detect_{idx:000}_ann_{Path.GetFileName(ann.ImagePath)}");
+                            using (var fs = File.Create(outPath + ".png")) img.Save(fs, new SixLabors.ImageSharp.Formats.Png.PngEncoder());
+                            var info = $"ann_box={gb.X},{gb.Y},{gb.Width},{gb.Height}\ndetection={bestX},{bestY},{bestW},{bestH}\nscore={bestScore:F6}\n";
+                            File.WriteAllText(outPath + ".txt", info);
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"detect-test sample error: {ex.Message}");
+                        }
+                        idx++;
+                    }
+                    Console.WriteLine($"detect-test completed. Outputs in {saidaDir}");
+                    return;
+                }
 
                 for (int epoch = 0; epoch < hp.NumEpochs; epoch++)
                 {
