@@ -36,7 +36,7 @@ namespace DetectorModel
             var hp = new HyperParameters();
             // Parameters are set in code as requested
             hp.NumEpochs = 100;
-            hp.BatchSize = 4;
+            hp.BatchSize = 16;
             hp.DefaultAnchorBase = 32;
             hp.AnchorRatios = new double[] { 0.8, 1.0, 1.2 };
             hp.AnchorScales = new double[] { 4.0, 8.0, 12.0 };
