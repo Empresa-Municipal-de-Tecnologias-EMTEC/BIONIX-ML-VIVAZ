@@ -37,6 +37,7 @@ namespace DetectorLeveModel.Runner
         public static void Main(string[] args)
         {
             var hp = new HyperParameters();
+                bool resume = false;
             // allow overriding via env or args
             var epochsEnv = Environment.GetEnvironmentVariable("EPOCHS");
             if (!string.IsNullOrEmpty(epochsEnv) && int.TryParse(epochsEnv, NumberStyles.Integer, CultureInfo.InvariantCulture, out var e)) hp.NumEpochs = Math.Max(1, e);
@@ -60,6 +61,7 @@ namespace DetectorLeveModel.Runner
                 else if ((a == "--batch-size" || a == "-b") && ai + 1 < args.Length && int.TryParse(args[ai + 1], out var bv)) { hp.BatchSize = Math.Max(1, bv); ai++; }
                 else if ((a == "--max-samples" || a == "-m") && ai + 1 < args.Length && int.TryParse(args[ai + 1], out var mv)) { hp.MaxSamplesPerEpoch = Math.Max(0, mv); ai++; }
                 else if (a == "--quick") { hp.MaxSamplesPerEpoch = 1; }
+                else if (a == "--resume") { resume = true; }
                 else if (a == "--loss-threshold" || a == "-t") { if (ai + 1 < args.Length) { var s = args[ai+1]; if (!double.TryParse(s, NumberStyles.Float|NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out var tv) && !double.TryParse(s, out tv)) tv = 0.0; hp.LossThreshold = Math.Max(0.0, tv); ai++; } }
                 else if (a == "--no-outputs" || a == "--suppress-outputs") { hp.SuppressOutputs = true; }
                 else if (a == "--accuracy-threshold" || a == "-a") { if (ai + 1 < args.Length) { var s = args[ai+1]; if (!double.TryParse(s, NumberStyles.Float|NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out var av) && !double.TryParse(s, out av)) av = 0.0; hp.AccuracyThreshold = Math.Max(0.0, Math.Min(1.0, av)); ai++; } }
@@ -126,9 +128,34 @@ namespace DetectorLeveModel.Runner
                 foreach (var kv in model.GetNamedParameters()) if (kv.tensor != null) paramList.Add(kv.tensor);
                 var optimizer = FabricaOtimizadores.CriarStatefulSGD(paramList, ctx, lr: hp.InitialLearningRate, momentum: 0.9);
 
+                
+                
+
                 var rnd = new Random(123);
                 var saidaDir = Path.Combine(Directory.GetCurrentDirectory(), "SAIDA"); Directory.CreateDirectory(saidaDir);
                 var pesosDirRoot = Path.Combine(Directory.GetCurrentDirectory(), "PESOS", "CLASSIFICADOR_DETECTOR_LEVE"); Directory.CreateDirectory(pesosDirRoot);
+
+                // If requested, attempt to resume from existing checkpoint (load weights and optimizer state)
+                if (resume)
+                {
+                    try
+                    {
+                        if (Directory.Exists(pesosDirRoot))
+                        {
+                            model.LoadWeights(pesosDirRoot);
+                            optimizer?.LoadState(pesosDirRoot);
+                            Console.WriteLine($"Resumed model and optimizer state from {pesosDirRoot}");
+                        }
+                        else
+                        {
+                            Console.WriteLine($"Resume requested but checkpoint not found at {pesosDirRoot}");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Resume failed: {ex.Message}");
+                    }
+                }
 
                 var anns = loader.ReadAnnotations().ToList();
                 if (anns.Count == 0) { Console.WriteLine("No annotations found."); return; }
