@@ -23,6 +23,11 @@ namespace DetectorLeveModel
             b1 = fabrica.Criar(1, 64);
             W2 = fabrica.Criar(64, 1);
             b2 = fabrica.Criar(1, 1);
+            // mark parameters as requiring gradients so autograd accumulates grads
+            W1.RequiresGrad = true;
+            b1.RequiresGrad = true;
+            W2.RequiresGrad = true;
+            b2.RequiresGrad = true;
             var rnd = new Random(1234);
             for (int i = 0; i < W1.Size; i++) W1[i] = (rnd.NextDouble() - 0.5) * 0.01;
             for (int i = 0; i < b1.Size; i++) b1[i] = 0.0;
@@ -41,14 +46,14 @@ namespace DetectorLeveModel
 
             // hidden = sigmoid(x * W1 + b1)
             var hidden = x.MatMul(W1); // [1,64]
-            // add bias
-            for (int i = 0; i < 64; i++) hidden[i] += b1[i];
+            // add bias via tensor Add to preserve autograd graph
+            hidden = hidden.Add(b1);
             // apply sigmoid elementwise (use CPU helper implementation via creating tensor)
             hidden = SigmoidTensor(hidden, ctx);
 
             // out = sigmoid(hidden * W2 + b2)
             var outt = hidden.MatMul(W2); // [1,1]
-            outt[0] += b2[0];
+            outt = outt.Add(b2);
             outt = SigmoidTensor(outt, ctx);
             return outt;
         }
