@@ -1,12 +1,30 @@
-Treino do Zero
+Treino do Detector (do zero)
 
-dotnet run --project BIONIX-ML-VIVAZ/src/Bionix.ML.Vivaz.Runner/Bionix.ML.Vivaz.Runner.csproj -- --mode train
+dotnet run --project BIONIX-ML-VIVAZ/src/DetectorModel.Runner/DetectorModel.Runner.csproj -- --mode train
 
-Retomar o treino
+Retomar treino do Detector (usar checkpoint em PESOS/DETECTOR)
 
-$env:QUICK_TEST_SAVE='0'
-dotnet run --project BIONIX-ML-VIVAZ/src/Bionix.ML.Vivaz.Runner/Bionix.ML.Vivaz.Runner.csproj -- --mode train
+# Preferir passar a flag --resume; alternadamente use a variável de ambiente RESUME=1
+$env:RESUME='1'; dotnet run --project BIONIX-ML-VIVAZ/src/DetectorModel.Runner/DetectorModel.Runner.csproj -- --mode train --resume
 
-Forçar semente RNG e retomar
+Teste rápido (salva apenas 1 imagem e sai)
 
-$env:SEED=12345; dotnet run --project BIONIX-ML-VIVAZ/src/Bionix.ML.Vivaz.Runner/Bionix.ML.Vivaz.Runner.csproj -- --resume
+$env:QUICK_TEST_SAVE='1'; dotnet run --project BIONIX-ML-VIVAZ/src/DetectorModel.Runner/DetectorModel.Runner.csproj -- --mode train
+
+Forçar semente RNG e retomar (exemplo)
+
+$env:SEED=12345; $env:RESUME='1'; dotnet run --project BIONIX-ML-VIVAZ/src/DetectorModel.Runner/DetectorModel.Runner.csproj -- --mode train --resume
+
+---
+Treino do Identificador (ArcFace)
+
+dotnet run --project BIONIX-ML-VIVAZ/src/IdentificadorModel.Runner/IdentificadorModel.Runner.csproj -- --mode train
+
+Retomar treino do Identificador (usar checkpoint em PESOS/IDENTIFICADOR)
+
+$env:RESUME='1'; dotnet run --project BIONIX-ML-VIVAZ/src/IdentificadorModel.Runner/IdentificadorModel.Runner.csproj -- --mode train --resume
+
+Observações:
+- Use a flag `--resume` ou `RESUME=1` — o runner detecta ambas. Não passe parâmetros que sobrescrevam diretorios de `PESOS` ou `SAIDA` via linha de comando sem alterar o código que os consome.
+- Para limitar amostras por época (modo rápido), defina `MaxSamplesPerEpoch` no código ou exponha via variável/args; por enquanto o default é igual a `BatchSize`.
+- Exemplos acima são para PowerShell; em CMD/WSL ajuste a sintaxe das variáveis de ambiente.
