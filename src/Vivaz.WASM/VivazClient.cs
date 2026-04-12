@@ -1,7 +1,7 @@
 using System;
 using Bionix.ML;
 
-namespace Bionix.ML.Vivaz
+namespace Vivaz.WASM
 {
     public class VivazClient
     {
