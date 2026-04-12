@@ -9,6 +9,7 @@ using Bionix.ML.nucleo.tensor;
 using Bionix.ML.nucleo.otimizadores;
 using Bionix.ML.nucleo.funcoesPerda;
 using Bionix.ML.dados.serializacao;
+using System.Globalization;
 using DetectorLeveModel;
 using DetectorModel.dados;
 
@@ -17,11 +18,17 @@ namespace DetectorLeveModel.Runner
     // Local project-specific hyperparameters (kept per-project by design)
     public class HyperParameters
     {
-        public int NumEpochs { get; set; } = 5;
+        public int NumEpochs { get; set; } = 50;
         public int BatchSize { get; set; } = 16;
         public double InitialLearningRate { get; set; } = 1e-3;
         // if >0, limits samples processed per epoch
         public int MaxSamplesPerEpoch { get; set; } = 0;
+        // if >0, training will stop early when avg epoch loss <= this threshold
+        public double LossThreshold { get; set; } = 0.0;
+        // if true, suppress saving per-sample outputs (.png/.txt)
+        public bool SuppressOutputs { get; set; } = false;
+        // if >0, training will stop early when avg epoch accuracy >= this threshold (0..1)
+        public double AccuracyThreshold { get; set; } = 0.0;
     }
 
     public static class Program
@@ -30,8 +37,56 @@ namespace DetectorLeveModel.Runner
         public static void Main(string[] args)
         {
             var hp = new HyperParameters();
-            // quick defaults
-            hp.NumEpochs = 5; hp.BatchSize = 16; hp.InitialLearningRate = 1e-3; hp.MaxSamplesPerEpoch = hp.BatchSize;
+            // allow overriding via env or args
+            var epochsEnv = Environment.GetEnvironmentVariable("EPOCHS");
+            if (!string.IsNullOrEmpty(epochsEnv) && int.TryParse(epochsEnv, NumberStyles.Integer, CultureInfo.InvariantCulture, out var e)) hp.NumEpochs = Math.Max(1, e);
+            var lossEnv = Environment.GetEnvironmentVariable("LOSS_THRESHOLD");
+            if (!string.IsNullOrEmpty(lossEnv))
+            {
+                if (!double.TryParse(lossEnv, NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out var lt) && !double.TryParse(lossEnv, out lt)) lt = 0.0;
+                hp.LossThreshold = Math.Max(0.0, lt);
+            }
+            var accEnv = Environment.GetEnvironmentVariable("ACCURACY_THRESHOLD");
+            if (!string.IsNullOrEmpty(accEnv))
+            {
+                if (!double.TryParse(accEnv, NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out var at) && !double.TryParse(accEnv, out at)) at = 0.0;
+                hp.AccuracyThreshold = Math.Max(0.0, Math.Min(1.0, at));
+            }
+            // parse simple args: --epochs N, --batch-size N, --max-samples N, --quick, --loss-threshold T, --no-outputs
+            for (int ai = 0; ai < args.Length; ai++)
+            {
+                var a = args[ai];
+                if ((a == "--epochs" || a == "-e") && ai + 1 < args.Length && int.TryParse(args[ai + 1], out var ev)) { hp.NumEpochs = Math.Max(1, ev); ai++; }
+                else if ((a == "--batch-size" || a == "-b") && ai + 1 < args.Length && int.TryParse(args[ai + 1], out var bv)) { hp.BatchSize = Math.Max(1, bv); ai++; }
+                else if ((a == "--max-samples" || a == "-m") && ai + 1 < args.Length && int.TryParse(args[ai + 1], out var mv)) { hp.MaxSamplesPerEpoch = Math.Max(0, mv); ai++; }
+                else if (a == "--quick") { hp.MaxSamplesPerEpoch = 1; }
+                else if (a == "--loss-threshold" || a == "-t") { if (ai + 1 < args.Length) { var s = args[ai+1]; if (!double.TryParse(s, NumberStyles.Float|NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out var tv) && !double.TryParse(s, out tv)) tv = 0.0; hp.LossThreshold = Math.Max(0.0, tv); ai++; } }
+                else if (a == "--no-outputs" || a == "--suppress-outputs") { hp.SuppressOutputs = true; }
+                else if (a == "--accuracy-threshold" || a == "-a") { if (ai + 1 < args.Length) { var s = args[ai+1]; if (!double.TryParse(s, NumberStyles.Float|NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out var av) && !double.TryParse(s, out av)) av = 0.0; hp.AccuracyThreshold = Math.Max(0.0, Math.Min(1.0, av)); ai++; } }
+            }
+            // QUICK_TEST_SAVE env for quick one-sample test (backwards compat)
+            var quick = Environment.GetEnvironmentVariable("QUICK_TEST_SAVE");
+            if (!string.IsNullOrEmpty(quick) && (quick == "1" || quick.Equals("true", StringComparison.OrdinalIgnoreCase))) hp.MaxSamplesPerEpoch = 1;
+            var supOut = Environment.GetEnvironmentVariable("SUPPRESS_OUTPUTS");
+            if (!string.IsNullOrEmpty(supOut) && (supOut == "1" || supOut.Equals("true", StringComparison.OrdinalIgnoreCase))) hp.SuppressOutputs = true;
+            // also support ACCURACY_THRESHOLD env parsed with invariant or current culture
+            // (accEnv handled above)
+            // default MaxSamplesPerEpoch to BatchSize if unset (0)
+            if (hp.MaxSamplesPerEpoch <= 0) hp.MaxSamplesPerEpoch = hp.BatchSize;
+
+            // Enforce minimum required accuracy of 90% per user request.
+            // If the configured accuracy threshold is below 0.9, raise it to 0.9 and inform the user.
+            if (hp.AccuracyThreshold > 0.0 && hp.AccuracyThreshold < 0.9)
+            {
+                Console.WriteLine($"AccuracyThreshold too low ({hp.AccuracyThreshold:P2}), enforcing minimum 90%.");
+                hp.AccuracyThreshold = 0.9;
+            }
+            else if (hp.AccuracyThreshold <= 0.0)
+            {
+                // If user didn't set an accuracy threshold, require at least 90% by default.
+                Console.WriteLine("No accuracy threshold provided — enforcing minimum required accuracy = 90%.");
+                hp.AccuracyThreshold = 0.9;
+            }
 
             var computeEnv = Environment.GetEnvironmentVariable("COMPUTE") ?? "SIMD";
             ComputacaoContexto ctx = computeEnv.Equals("CPU", StringComparison.OrdinalIgnoreCase) ? (ComputacaoContexto)new ComputacaoCPUContexto() : new ComputacaoCPUSIMDContexto();
@@ -84,6 +139,7 @@ namespace DetectorLeveModel.Runner
                     int take = hp.MaxSamplesPerEpoch > 0 ? Math.Min(hp.MaxSamplesPerEpoch, anns.Count) : anns.Count;
                     int processed = 0;
                     double epochLoss = 0.0; int lossCount = 0;
+                    int correctPos = 0, correctNeg = 0; int totalPredictions = 0;
                     for (int i = 0; i < take; i++)
                     {
                         var ann = anns[i];
@@ -131,27 +187,35 @@ namespace DetectorLeveModel.Runner
                             var lossNeg = bceFn(outNeg, tNeg);
                             var total = lossPos.Add(lossNeg);
                             epochLoss += total[0]; lossCount++;
+                            // accuracy counters
+                            var pOutVal = outPos[0]; var nOutVal = outNeg[0];
+                            if (pOutVal > 0.5) correctPos++;
+                            if (nOutVal <= 0.5) correctNeg++;
+                            totalPredictions += 2;
 
                             total.Backward();
                             optimizer.Step();
 
-                            // save outputs: resized crops to SAIDA with probs
+                            // save outputs: resized crops to SAIDA with probs (skippable)
                             try
                             {
                                 var pOut = outPos[0]; var nOut = outNeg[0];
-                                var baseP = Path.Combine(saidaDir, $"ep{epoch:00}_idx{i:0000}_pos_{pOut:F4}.png");
-                                var baseN = Path.Combine(saidaDir, $"ep{epoch:00}_idx{i:0000}_neg_{nOut:F4}.png");
-                                // save using ImageSharp: create image from resized BMP
-                                var imgP = ToImage(ManipuladorDeImagem.redimensionar(crop, 20, 20));
-                                using (var fsP = File.Create(baseP)) imgP.Save(fsP, new SixLabors.ImageSharp.Formats.Png.PngEncoder());
-                                var infoPpath = Path.ChangeExtension(baseP, ".txt");
-                                var predP = pOut > 0.5 ? "positive" : "negative";
-                                File.WriteAllText(infoPpath, $"label: positive\npred: {predP}\nprob: {pOut:F6}");
-                                var imgN = ToImage(ManipuladorDeImagem.redimensionar(negCrop, 20, 20));
-                                using (var fsN = File.Create(baseN)) imgN.Save(fsN, new SixLabors.ImageSharp.Formats.Png.PngEncoder());
-                                var infoNpath = Path.ChangeExtension(baseN, ".txt");
-                                var predN = nOut > 0.5 ? "positive" : "negative";
-                                File.WriteAllText(infoNpath, $"label: negative\npred: {predN}\nprob: {nOut:F6}");
+                                if (!hp.SuppressOutputs)
+                                {
+                                    var baseP = Path.Combine(saidaDir, $"ep{epoch:00}_idx{i:0000}_pos_{pOut:F4}.png");
+                                    var baseN = Path.Combine(saidaDir, $"ep{epoch:00}_idx{i:0000}_neg_{nOut:F4}.png");
+                                    // save using ImageSharp: create image from resized BMP
+                                    var imgP = ToImage(ManipuladorDeImagem.redimensionar(crop, 20, 20));
+                                    using (var fsP = File.Create(baseP)) imgP.Save(fsP, new SixLabors.ImageSharp.Formats.Png.PngEncoder());
+                                    var infoPpath = Path.ChangeExtension(baseP, ".txt");
+                                    var predP = pOut > 0.5 ? "positive" : "negative";
+                                    File.WriteAllText(infoPpath, $"label: positive\npred: {predP}\nprob: {pOut:F6}");
+                                    var imgN = ToImage(ManipuladorDeImagem.redimensionar(negCrop, 20, 20));
+                                    using (var fsN = File.Create(baseN)) imgN.Save(fsN, new SixLabors.ImageSharp.Formats.Png.PngEncoder());
+                                    var infoNpath = Path.ChangeExtension(baseN, ".txt");
+                                    var predN = nOut > 0.5 ? "positive" : "negative";
+                                    File.WriteAllText(infoNpath, $"label: negative\npred: {predN}\nprob: {nOut:F6}");
+                                }
                             }
                             catch { }
 
@@ -163,7 +227,9 @@ namespace DetectorLeveModel.Runner
                         }
                     }
 
-                    Console.WriteLine($"Epoch {epoch} processed {processed} samples, avg loss = {(lossCount>0?epochLoss/lossCount:double.NaN):F6}");
+                    var avgLoss = (lossCount>0?epochLoss/lossCount:double.NaN);
+                    var accuracy = totalPredictions > 0 ? (double)(correctPos + correctNeg) / totalPredictions : double.NaN;
+                    Console.WriteLine($"Epoch {epoch} processed {processed} samples, avg loss = {avgLoss:F6}, accuracy = {accuracy:P2}");
 
                     // checkpoint save
                     try
@@ -183,6 +249,25 @@ namespace DetectorLeveModel.Runner
                     catch (Exception ex)
                     {
                         Console.WriteLine($"Checkpoint failed: {ex.Message}");
+                    }
+                    // early stopping by loss threshold
+                    if (hp.LossThreshold > 0.0 && lossCount > 0)
+                    {
+                        if (avgLoss <= hp.LossThreshold)
+                        {
+                            Console.WriteLine($"Early stopping: avg loss {avgLoss:F6} <= threshold {hp.LossThreshold:F6}");
+                            break;
+                        }
+                    }
+                    // early stopping by accuracy threshold
+                    if (hp.AccuracyThreshold > 0.0 && totalPredictions > 0)
+                    {
+                        var accVal = (double)(correctPos + correctNeg) / totalPredictions;
+                        if (accVal >= hp.AccuracyThreshold)
+                        {
+                            Console.WriteLine($"Early stopping: accuracy {accVal:P2} >= threshold {hp.AccuracyThreshold:P2}");
+                            break;
+                        }
                     }
                 }
             }

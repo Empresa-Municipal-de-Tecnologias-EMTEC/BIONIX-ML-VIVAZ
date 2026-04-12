@@ -28,3 +28,35 @@ Observações:
 - Use a flag `--resume` ou `RESUME=1` — o runner detecta ambas. Não passe parâmetros que sobrescrevam diretorios de `PESOS` ou `SAIDA` via linha de comando sem alterar o código que os consome.
 - Para limitar amostras por época (modo rápido), defina `MaxSamplesPerEpoch` no código ou exponha via variável/args; por enquanto o default é igual a `BatchSize`.
 - Exemplos acima são para PowerShell; em CMD/WSL ajuste a sintaxe das variáveis de ambiente.
+
+---
+Treino do DetectorLeve (leve, 20x20 grayscale MLP)
+
+dotnet run --project BIONIX-ML-VIVAZ/src/DetectorLeveModel.Runner/DetectorLeveModel.Runner.csproj -- -c Debug
+
+Retomar treino do DetectorLeve (usar checkpoint em PESOS/CLASSIFICADOR_DETECTOR_LEVE)
+
+# Preferir passar a flag --resume; alternadamente use a variável de ambiente RESUME=1
+$env:RESUME='1'; dotnet run --project BIONIX-ML-VIVAZ/src/DetectorLeveModel.Runner/DetectorLeveModel.Runner.csproj -- -c Debug -- --mode train --resume
+
+Teste rápido do DetectorLeve (salva apenas 1 imagem e sai)
+
+$env:QUICK_TEST_SAVE='1'; dotnet run --project BIONIX-ML-VIVAZ/src/DetectorLeveModel.Runner/DetectorLeveModel.Runner.csproj -- -c Debug -- --mode train
+
+Forçar semente RNG e retomar (exemplo)
+
+$env:SEED=12345; $env:RESUME='1'; dotnet run --project BIONIX-ML-VIVAZ/src/DetectorLeveModel.Runner/DetectorLeveModel.Runner.csproj -- -c Debug -- --mode train --resume
+
+Exemplos adicionais para `DetectorLeve`:
+
+# Rodar 50 épocas explicitamente
+$env:EPOCHS='50'; dotnet run --project BIONIX-ML-VIVAZ/src/DetectorLeveModel.Runner/DetectorLeveModel.Runner.csproj -- -c Debug -- --mode train --resume
+
+# Parar automaticamente quando a perda média da época ficar <= 0.5
+$env:LOSS_THRESHOLD='0.5'; dotnet run --project BIONIX-ML-VIVAZ/src/DetectorLeveModel.Runner/DetectorLeveModel.Runner.csproj -- -c Debug -- --mode train --resume
+
+# Suprimir gravação de imagens/txs de `SAIDA`
+$env:SUPPRESS_OUTPUTS='1'; dotnet run --project BIONIX-ML-VIVAZ/src/DetectorLeveModel.Runner/DetectorLeveModel.Runner.csproj -- -c Debug -- --mode train --resume
+
+# Combinação: rodar 100 épocas, parar quando perda <=0.2 e suprimir outputs
+$env:EPOCHS='100'; $env:LOSS_THRESHOLD='0.2'; $env:SUPPRESS_OUTPUTS='1'; dotnet run --project BIONIX-ML-VIVAZ/src/DetectorLeveModel.Runner/DetectorLeveModel.Runner.csproj -- -c Debug -- --mode train --resume
