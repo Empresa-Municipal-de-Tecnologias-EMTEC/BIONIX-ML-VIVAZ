@@ -263,20 +263,24 @@ namespace DetectorLeveModel.Runner
                         {
                             var bmpFull = ManipuladorDeImagem.carregarBmpDeJPEG(ann.ImagePath);
                             var gb = ann.Boxes[0];
-                            double p = rnd.NextDouble() * (0.6 - 0.25) + 0.25; // fraction annotated occupies
-                            double annotatedArea = gb.Width * gb.Height;
-                            double cropArea = annotatedArea / p;
-                            int side = (int)Math.Ceiling(Math.Sqrt(cropArea));
-                            side = Math.Max(side, Math.Max(gb.Width, gb.Height));
-                            // center on annotated box center
-                            int cx = gb.X + gb.Width/2;
-                            int cy = gb.Y + gb.Height/2;
-                            int tx = cx - side/2;
-                            int ty = cy - side/2;
-                            // clamp within full image
-                            tx = Math.Max(0, Math.Min(bmpFull.Width - side, tx));
-                            ty = Math.Max(0, Math.Min(bmpFull.Height - side, ty));
-                            var crop = ManipuladorDeImagem.cortar(bmpFull, tx, ty, Math.Min(side, bmpFull.Width), Math.Min(side, bmpFull.Height));
+                            // pick random fraction p in [0.25, 0.6]
+                            double p = rnd.NextDouble() * (0.6 - 0.25) + 0.25;
+                            // diagonal of the annotated box
+                            double diag = Math.Sqrt((double)gb.Width * gb.Width + (double)gb.Height * gb.Height);
+                            // expand by delta = p * diag on both corners (grow along diagonal)
+                            double delta = p * diag;
+                            double x0d = gb.X - delta;
+                            double y0d = gb.Y - delta;
+                            double x1d = gb.X + gb.Width + delta;
+                            double y1d = gb.Y + gb.Height + delta;
+                            // clamp negatives to zero and max to image bounds
+                            int x0 = (int)Math.Max(0, Math.Floor(x0d));
+                            int y0 = (int)Math.Max(0, Math.Floor(y0d));
+                            int x1 = (int)Math.Min(bmpFull.Width, Math.Ceiling(x1d));
+                            int y1 = (int)Math.Min(bmpFull.Height, Math.Ceiling(y1d));
+                            int w = Math.Max(1, x1 - x0);
+                            int h = Math.Max(1, y1 - y0);
+                            var crop = ManipuladorDeImagem.cortar(bmpFull, x0, y0, w, h);
 
                             // perform multi-scale sliding-window detection on the crop using the model
                             int[] scales = new int[] { 32, 48, 64 };
@@ -307,13 +311,13 @@ namespace DetectorLeveModel.Runner
                                                 double origCx = cxRes / scaleFactor;
                                                 double origCy = cyRes / scaleFactor;
                                             double boxSize = work / scaleFactor;
-                                            int w0 = Math.Max(1, (int)Math.Round(boxSize));
-                                            int h0 = w0;
-                                            int x0 = (int)Math.Round(origCx - w0 / 2.0);
-                                            int y0 = (int)Math.Round(origCy - h0 / 2.0);
-                                            x0 = Math.Max(0, Math.Min(crop.Width - w0, x0));
-                                            y0 = Math.Max(0, Math.Min(crop.Height - h0, y0));
-                                            bestX = x0; bestY = y0; bestW = w0; bestH = h0;
+                                            int bw = Math.Max(1, (int)Math.Round(boxSize));
+                                            int bh = bw;
+                                            int bx = (int)Math.Round(origCx - bw / 2.0);
+                                            int by = (int)Math.Round(origCy - bh / 2.0);
+                                            bx = Math.Max(0, Math.Min(crop.Width - bw, bx));
+                                            by = Math.Max(0, Math.Min(crop.Height - bh, by));
+                                            bestX = bx; bestY = by; bestW = bw; bestH = bh;
                                         }
                                     }
                                 }

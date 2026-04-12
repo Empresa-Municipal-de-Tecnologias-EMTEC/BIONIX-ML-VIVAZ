@@ -60,3 +60,11 @@ $env:SUPPRESS_OUTPUTS='1'; dotnet run --project BIONIX-ML-VIVAZ/src/DetectorLeve
 
 # Combinação: rodar 100 épocas, parar quando perda <=0.2 e suprimir outputs
 $env:EPOCHS='100'; $env:LOSS_THRESHOLD='0.2'; $env:SUPPRESS_OUTPUTS='1'; dotnet run --project BIONIX-ML-VIVAZ/src/DetectorLeveModel.Runner/DetectorLeveModel.Runner.csproj -- -c Debug -- --mode train --resume
+
+---
+# Teste de detecção (gera crops com a anotação ocupando ~25–60% e salva PNG/.TXT em SAIDA)
+# Exemplo: rodar 6 amostras (PowerShell)
+$env:RESUME='1'; dotnet run --project BIONIX-ML-VIVAZ/src/DetectorLeveModel.Runner/DetectorLeveModel.Runner.csproj -c Debug -- --detect-test --detect-samples 6 --resume
+
+# Exemplo: rodar 100 amostras
+$env:RESUME='1'; dotnet run --project BIONIX-ML-VIVAZ/src/DetectorLeveModel.Runner/DetectorLeveModel.Runner.csproj -c Debug -- --detect-test --detect-samples 100 --resume
