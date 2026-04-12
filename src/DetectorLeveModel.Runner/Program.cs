@@ -69,6 +69,8 @@ namespace DetectorLeveModel.Runner
             if (!string.IsNullOrEmpty(quick) && (quick == "1" || quick.Equals("true", StringComparison.OrdinalIgnoreCase))) hp.MaxSamplesPerEpoch = 1;
             var supOut = Environment.GetEnvironmentVariable("SUPPRESS_OUTPUTS");
             if (!string.IsNullOrEmpty(supOut) && (supOut == "1" || supOut.Equals("true", StringComparison.OrdinalIgnoreCase))) hp.SuppressOutputs = true;
+            var lrEnv = Environment.GetEnvironmentVariable("INITIAL_LR") ?? Environment.GetEnvironmentVariable("LR");
+            if (!string.IsNullOrEmpty(lrEnv)) { if (!double.TryParse(lrEnv, NumberStyles.Float|NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out var lrv) && !double.TryParse(lrEnv, out lrv)) lrv = hp.InitialLearningRate; hp.InitialLearningRate = Math.Max(1e-12, lrv); }
             // also support ACCURACY_THRESHOLD env parsed with invariant or current culture
             // (accEnv handled above)
             // default MaxSamplesPerEpoch to BatchSize if unset (0)
@@ -194,6 +196,21 @@ namespace DetectorLeveModel.Runner
                             totalPredictions += 2;
 
                             total.Backward();
+                            // debug: optionally emit gradient magnitude before optimizer step
+                            var dbg = Environment.GetEnvironmentVariable("DEBUG_GRADS");
+                            if (!string.IsNullOrEmpty(dbg) && (dbg == "1" || dbg.Equals("true", StringComparison.OrdinalIgnoreCase)))
+                            {
+                                double gradSum = 0.0;
+                                foreach (var pp in paramList)
+                                {
+                                    if (pp?.Grad != null)
+                                    {
+                                        var garr = pp.Grad;
+                                        for (int gi = 0; gi < garr.Length; gi++) gradSum += Math.Abs(garr[gi]);
+                                    }
+                                }
+                                Console.WriteLine($"GradSum before step: {gradSum:E6}");
+                            }
                             optimizer.Step();
 
                             // save outputs: resized crops to SAIDA with probs (skippable)
