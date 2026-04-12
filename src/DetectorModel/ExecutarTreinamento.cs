@@ -29,6 +29,9 @@ namespace DetectorModel
             public bool DrawOnlyModelOutputs { get; set; } = false;
             // Optional explicit strides per feature level (p3,p4,p5). If null, strides will be derived from model head shapes.
             public int[] Strides { get; set; } = null;
+            // Learning rate control
+            public double InitialLearningRate { get; set; } = 1e-3;
+            public double FinalLearningRate { get; set; } = 1e-3;
         }
 
         public static void Main(string[] args)
@@ -45,7 +48,8 @@ namespace DetectorModel
             hp.DetectionScoreThreshold = 0.6;
             hp.MaxDetections = 4;
             hp.DrawOnlyModelOutputs = false;
-            // sensible default strides for p3,p4,p5 (can be overridden via env/args)
+            hp.InitialLearningRate = 0.001;
+            hp.FinalLearningRate = 0.00001;
             hp.Strides = new int[] { 8, 16, 32 };
 
             var computeEnv = Environment.GetEnvironmentVariable("COMPUTE") ?? "SIMD";
@@ -517,7 +521,7 @@ namespace DetectorModel
                             // initialize epoch optimizer lazily on first batch
                             if (optimizer == null)
                             {
-                                optimizer = Bionix.ML.nucleo.otimizadores.FabricaOtimizadores.CriarStatefulSGD(epochParameters, ctx, lr: 1e-3, momentum: 0.9);
+                                optimizer = Bionix.ML.nucleo.otimizadores.FabricaOtimizadores.CriarStatefulSGD(epochParameters, ctx, lr: hp.InitialLearningRate, momentum: 0.9);
                                 try { optimizer.LoadState(pesosDirRoot); } catch { }
                             }
                             optimizer.Step();
@@ -779,7 +783,10 @@ namespace DetectorModel
                         Console.WriteLine($"Failed to log tmpDir contents: {ex.Message}");
                     }
                     // Write meta.json with rngSeed and processedSamples (persist current lr)
-                    var metaObj = new { epoch = epoch, lr = (optimizer != null ? optimizer.Lr : 1e-3), timestamp = DateTime.UtcNow, rngSeed = rngSeed, processedSamples = processedSamples };
+                    var currentLr = (optimizer != null ? optimizer.Lr : hp.InitialLearningRate);
+                    // update hyperparams final lr
+                    hp.FinalLearningRate = currentLr;
+                    var metaObj = new { epoch = epoch, lr = currentLr, timestamp = DateTime.UtcNow, rngSeed = rngSeed, processedSamples = processedSamples };
                     var metaJson = System.Text.Json.JsonSerializer.Serialize(metaObj);
                     File.WriteAllText(Path.Combine(tmpDir, "meta.json"), metaJson);
 
