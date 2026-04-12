@@ -73,23 +73,33 @@ namespace DetectorLeveModel.Runner
             if (!string.IsNullOrEmpty(supOut) && (supOut == "1" || supOut.Equals("true", StringComparison.OrdinalIgnoreCase))) hp.SuppressOutputs = true;
             var lrEnv = Environment.GetEnvironmentVariable("INITIAL_LR") ?? Environment.GetEnvironmentVariable("LR");
             if (!string.IsNullOrEmpty(lrEnv)) { if (!double.TryParse(lrEnv, NumberStyles.Float|NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out var lrv) && !double.TryParse(lrEnv, out lrv)) lrv = hp.InitialLearningRate; hp.InitialLearningRate = Math.Max(1e-12, lrv); }
+            // allow disabling the enforced minimum accuracy (set to "0" or "false" to disable)
+            var enforceAccEnv = Environment.GetEnvironmentVariable("ENFORCE_MIN_ACCURACY");
+            bool enforceMinAccuracy = true;
+            if (!string.IsNullOrEmpty(enforceAccEnv) && (enforceAccEnv == "0" || enforceAccEnv.Equals("false", StringComparison.OrdinalIgnoreCase))) enforceMinAccuracy = false;
             // also support ACCURACY_THRESHOLD env parsed with invariant or current culture
             // (accEnv handled above)
             // default MaxSamplesPerEpoch to BatchSize if unset (0)
             if (hp.MaxSamplesPerEpoch <= 0) hp.MaxSamplesPerEpoch = hp.BatchSize;
 
-            // Enforce minimum required accuracy of 90% per user request.
-            // If the configured accuracy threshold is below 0.9, raise it to 0.9 and inform the user.
-            if (hp.AccuracyThreshold > 0.0 && hp.AccuracyThreshold < 0.9)
+            // Enforce minimum required accuracy of 90% per user request unless disabled explicitly.
+            if (enforceMinAccuracy)
             {
-                Console.WriteLine($"AccuracyThreshold too low ({hp.AccuracyThreshold:P2}), enforcing minimum 90%.");
-                hp.AccuracyThreshold = 0.9;
+                if (hp.AccuracyThreshold > 0.0 && hp.AccuracyThreshold < 0.9)
+                {
+                    Console.WriteLine($"AccuracyThreshold too low ({hp.AccuracyThreshold:P2}), enforcing minimum 90%.");
+                    hp.AccuracyThreshold = 0.9;
+                }
+                else if (hp.AccuracyThreshold <= 0.0)
+                {
+                    // If user didn't set an accuracy threshold, require at least 90% by default.
+                    Console.WriteLine("No accuracy threshold provided — enforcing minimum required accuracy = 90%.");
+                    hp.AccuracyThreshold = 0.9;
+                }
             }
-            else if (hp.AccuracyThreshold <= 0.0)
+            else
             {
-                // If user didn't set an accuracy threshold, require at least 90% by default.
-                Console.WriteLine("No accuracy threshold provided — enforcing minimum required accuracy = 90%.");
-                hp.AccuracyThreshold = 0.9;
+                Console.WriteLine("ENFORCE_MIN_ACCURACY=0 detected — skipping enforced 90% accuracy requirement.");
             }
 
             var computeEnv = Environment.GetEnvironmentVariable("COMPUTE") ?? "SIMD";
@@ -145,6 +155,22 @@ namespace DetectorLeveModel.Runner
                             model.LoadWeights(pesosDirRoot);
                             optimizer?.LoadState(pesosDirRoot);
                             Console.WriteLine($"Resumed model and optimizer state from {pesosDirRoot}");
+                            // print simple diagnostics: L2 norm of each parameter
+                            try
+                            {
+                                int pi = 0;
+                                foreach (var p in paramList)
+                                {
+                                    if (p == null) continue;
+                                    double sumsq = 0.0;
+                                    for (int ii = 0; ii < p.Size; ii++) { var v = p[ii]; sumsq += v * v; }
+                                    double l2 = Math.Sqrt(sumsq);
+                                    var shapeStr = p.Shape != null ? $"[{string.Join(',', p.Shape)}]" : "[]";
+                                    Console.WriteLine($"Param[{pi}] shape={shapeStr} L2={l2:E6}");
+                                    pi++;
+                                }
+                            }
+                            catch { }
                         }
                         else
                         {
