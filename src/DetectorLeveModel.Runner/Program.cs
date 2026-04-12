@@ -18,9 +18,15 @@ namespace DetectorLeveModel.Runner
     // Local project-specific hyperparameters (kept per-project by design)
     public class HyperParameters
     {
-        public int NumEpochs { get; set; } = 50;
+        public int NumEpochs { get; set; } = 1000;
         public int BatchSize { get; set; } = 16;
         public double InitialLearningRate { get; set; } = 1e-3;
+        // minimum learning rate (for schedulers)
+        public double MinLearningRate { get; set; } = 1e-6;
+        // reduce-on-plateau schedule
+        public bool ReduceOnPlateau { get; set; } = true;
+        public int ReduceOnPlateauPatience { get; set; } = 8;
+        public double ReduceOnPlateauFactor { get; set; } = 0.5;
         // if >0, limits samples processed per epoch
         public int MaxSamplesPerEpoch { get; set; } = 0;
         // if >0, training will stop early when avg epoch loss <= this threshold
@@ -38,6 +44,9 @@ namespace DetectorLeveModel.Runner
         {
             var hp = new HyperParameters();
                 bool resume = false;
+            string optimizerName = "sgd";
+            double gradClip = 0.0;
+            double weightDecay = 0.0;
             // allow overriding via env or args
             var epochsEnv = Environment.GetEnvironmentVariable("EPOCHS");
             if (!string.IsNullOrEmpty(epochsEnv) && int.TryParse(epochsEnv, NumberStyles.Integer, CultureInfo.InvariantCulture, out var e)) hp.NumEpochs = Math.Max(1, e);
@@ -62,6 +71,7 @@ namespace DetectorLeveModel.Runner
                 else if ((a == "--max-samples" || a == "-m") && ai + 1 < args.Length && int.TryParse(args[ai + 1], out var mv)) { hp.MaxSamplesPerEpoch = Math.Max(0, mv); ai++; }
                 else if (a == "--quick") { hp.MaxSamplesPerEpoch = 1; }
                 else if (a == "--resume") { resume = true; }
+                else if (a == "--optimizer" && ai + 1 < args.Length) { optimizerName = args[ai+1].ToLowerInvariant(); ai++; }
                 else if (a == "--loss-threshold" || a == "-t") { if (ai + 1 < args.Length) { var s = args[ai+1]; if (!double.TryParse(s, NumberStyles.Float|NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out var tv) && !double.TryParse(s, out tv)) tv = 0.0; hp.LossThreshold = Math.Max(0.0, tv); ai++; } }
                 else if (a == "--no-outputs" || a == "--suppress-outputs") { hp.SuppressOutputs = true; }
                 else if (a == "--accuracy-threshold" || a == "-a") { if (ai + 1 < args.Length) { var s = args[ai+1]; if (!double.TryParse(s, NumberStyles.Float|NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out var av) && !double.TryParse(s, out av)) av = 0.0; hp.AccuracyThreshold = Math.Max(0.0, Math.Min(1.0, av)); ai++; } }
@@ -73,6 +83,20 @@ namespace DetectorLeveModel.Runner
             if (!string.IsNullOrEmpty(supOut) && (supOut == "1" || supOut.Equals("true", StringComparison.OrdinalIgnoreCase))) hp.SuppressOutputs = true;
             var lrEnv = Environment.GetEnvironmentVariable("INITIAL_LR") ?? Environment.GetEnvironmentVariable("LR");
             if (!string.IsNullOrEmpty(lrEnv)) { if (!double.TryParse(lrEnv, NumberStyles.Float|NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out var lrv) && !double.TryParse(lrEnv, out lrv)) lrv = hp.InitialLearningRate; hp.InitialLearningRate = Math.Max(1e-12, lrv); }
+            var minLrEnv = Environment.GetEnvironmentVariable("MIN_LR");
+            if (!string.IsNullOrEmpty(minLrEnv) && (double.TryParse(minLrEnv, NumberStyles.Float|NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out var mlr) || double.TryParse(minLrEnv, out mlr))) hp.MinLearningRate = Math.Max(1e-12, mlr);
+            var ropEnv = Environment.GetEnvironmentVariable("REDUCE_ON_PLATEAU");
+            if (!string.IsNullOrEmpty(ropEnv) && (ropEnv == "0" || ropEnv.Equals("false", StringComparison.OrdinalIgnoreCase))) hp.ReduceOnPlateau = false;
+            var patEnv = Environment.GetEnvironmentVariable("ROP_PATIENCE");
+            if (!string.IsNullOrEmpty(patEnv) && int.TryParse(patEnv, out var patv)) hp.ReduceOnPlateauPatience = Math.Max(1, patv);
+            var facEnv = Environment.GetEnvironmentVariable("ROP_FACTOR");
+            if (!string.IsNullOrEmpty(facEnv) && (double.TryParse(facEnv, NumberStyles.Float|NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out var facv) || double.TryParse(facEnv, out facv))) hp.ReduceOnPlateauFactor = Math.Max(0.0, Math.Min(1.0, facv));
+            var optEnv = Environment.GetEnvironmentVariable("OPTIMIZER");
+            if (!string.IsNullOrEmpty(optEnv)) optimizerName = optEnv.ToLowerInvariant();
+            var gcEnv = Environment.GetEnvironmentVariable("GRAD_CLIP");
+            if (!string.IsNullOrEmpty(gcEnv) && double.TryParse(gcEnv, NumberStyles.Float|NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out var gcv)) gradClip = Math.Max(0.0, gcv);
+            var wdEnv = Environment.GetEnvironmentVariable("WEIGHT_DECAY");
+            if (!string.IsNullOrEmpty(wdEnv) && double.TryParse(wdEnv, NumberStyles.Float|NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out var wdv)) weightDecay = Math.Max(0.0, wdv);
             // allow disabling the enforced minimum accuracy (set to "0" or "false" to disable)
             var enforceAccEnv = Environment.GetEnvironmentVariable("ENFORCE_MIN_ACCURACY");
             bool enforceMinAccuracy = true;
@@ -104,6 +128,9 @@ namespace DetectorLeveModel.Runner
 
             var computeEnv = Environment.GetEnvironmentVariable("COMPUTE") ?? "SIMD";
             ComputacaoContexto ctx = computeEnv.Equals("CPU", StringComparison.OrdinalIgnoreCase) ? (ComputacaoContexto)new ComputacaoCPUContexto() : new ComputacaoCPUSIMDContexto();
+            
+            // simple Reduce-on-Plateau scheduler (kept local to runner)
+            ReduceOnPlateauScheduler scheduler = null;
             try
             {
                 Console.WriteLine("DetectorLeveModel Runner: initializing context");
@@ -136,14 +163,24 @@ namespace DetectorLeveModel.Runner
                 // collect model params
                 var paramList = new List<Tensor>();
                 foreach (var kv in model.GetNamedParameters()) if (kv.tensor != null) paramList.Add(kv.tensor);
+                if (optimizerName == "adam" || optimizerName == "adamw")
+                {
+                    Console.WriteLine($"Optimizer requested: {optimizerName} — Adam not available in this runtime, falling back to SGD with momentum.");
+                }
                 var optimizer = FabricaOtimizadores.CriarStatefulSGD(paramList, ctx, lr: hp.InitialLearningRate, momentum: 0.9);
-
+                // initialize scheduler
+                if (hp.ReduceOnPlateau)
+                {
+                    scheduler = new ReduceOnPlateauScheduler(hp.InitialLearningRate, hp.MinLearningRate, hp.ReduceOnPlateauFactor, hp.ReduceOnPlateauPatience);
+                }
                 
                 
 
                 var rnd = new Random(123);
                 var saidaDir = Path.Combine(Directory.GetCurrentDirectory(), "SAIDA"); Directory.CreateDirectory(saidaDir);
                 var pesosDirRoot = Path.Combine(Directory.GetCurrentDirectory(), "PESOS", "CLASSIFICADOR_DETECTOR_LEVE"); Directory.CreateDirectory(pesosDirRoot);
+                var csvPath = Path.Combine(pesosDirRoot, "training_log.csv");
+                if (!File.Exists(csvPath)) File.WriteAllText(csvPath, "epoch,avgLoss,accuracy,lr\n");
 
                 // If requested, attempt to resume from existing checkpoint (load weights and optimizer state)
                 if (resume)
@@ -154,6 +191,29 @@ namespace DetectorLeveModel.Runner
                         {
                             model.LoadWeights(pesosDirRoot);
                             optimizer?.LoadState(pesosDirRoot);
+                            // try to load meta.json and restore scheduler state and lr
+                            var metaPath = Path.Combine(pesosDirRoot, "meta.json");
+                            if (File.Exists(metaPath))
+                            {
+                                try
+                                {
+                                    using var doc = System.Text.Json.JsonDocument.Parse(File.ReadAllText(metaPath));
+                                    var root = doc.RootElement;
+                                    if (root.TryGetProperty("lr", out var lrEl) && lrEl.ValueKind == System.Text.Json.JsonValueKind.Number)
+                                    {
+                                        var savedLr = lrEl.GetDouble();
+                                        if (optimizer != null) optimizer.Lr = savedLr;
+                                        if (scheduler != null) scheduler.CurrentLr = savedLr;
+                                    }
+                                    if (root.TryGetProperty("scheduler", out var schedEl) && schedEl.ValueKind == System.Text.Json.JsonValueKind.Object && scheduler != null)
+                                    {
+                                        if (schedEl.TryGetProperty("bestLoss", out var bEl) && bEl.ValueKind == System.Text.Json.JsonValueKind.Number) scheduler.BestLoss = bEl.GetDouble();
+                                        if (schedEl.TryGetProperty("epochsSinceImprovement", out var eEl) && eEl.ValueKind == System.Text.Json.JsonValueKind.Number) scheduler.EpochsSinceImprovement = eEl.GetInt32();
+                                        if (schedEl.TryGetProperty("currentLr", out var cEl) && cEl.ValueKind == System.Text.Json.JsonValueKind.Number) scheduler.CurrentLr = cEl.GetDouble();
+                                    }
+                                }
+                                catch { }
+                            }
                             Console.WriteLine($"Resumed model and optimizer state from {pesosDirRoot}");
                             // print simple diagnostics: L2 norm of each parameter
                             try
@@ -264,6 +324,38 @@ namespace DetectorLeveModel.Runner
                                 }
                                 Console.WriteLine($"GradSum before step: {gradSum:E6}");
                             }
+                            // apply weight decay to gradients if requested (L2)
+                            if (weightDecay > 0.0)
+                            {
+                                foreach (var pp in paramList)
+                                {
+                                    if (pp?.Grad == null) continue;
+                                    var g = pp.Grad;
+                                    for (int gi = 0; gi < g.Length; gi++) g[gi] += weightDecay * pp[gi];
+                                }
+                            }
+                            // global grad clipping
+                            if (gradClip > 0.0)
+                            {
+                                double sumsq = 0.0;
+                                foreach (var pp in paramList)
+                                {
+                                    if (pp?.Grad == null) continue;
+                                    var g = pp.Grad;
+                                    for (int gi = 0; gi < g.Length; gi++) sumsq += g[gi] * g[gi];
+                                }
+                                var norm = Math.Sqrt(sumsq);
+                                if (norm > 0 && norm > gradClip)
+                                {
+                                    var scale = gradClip / (norm + 1e-12);
+                                    foreach (var pp in paramList)
+                                    {
+                                        if (pp?.Grad == null) continue;
+                                        var g = pp.Grad;
+                                        for (int gi = 0; gi < g.Length; gi++) g[gi] *= scale;
+                                    }
+                                }
+                            }
                             optimizer.Step();
 
                             // save outputs: resized crops to SAIDA with probs (skippable)
@@ -301,6 +393,17 @@ namespace DetectorLeveModel.Runner
                     var accuracy = totalPredictions > 0 ? (double)(correctPos + correctNeg) / totalPredictions : double.NaN;
                     Console.WriteLine($"Epoch {epoch} processed {processed} samples, avg loss = {avgLoss:F6}, accuracy = {accuracy:P2}");
 
+                    // Scheduler step: reduce LR on plateau
+                    if (scheduler != null && !double.IsNaN(avgLoss))
+                    {
+                        var reduced = scheduler.Step(avgLoss);
+                        if (reduced && optimizer != null)
+                        {
+                            optimizer.Lr = scheduler.CurrentLr;
+                            Console.WriteLine($"ReduceOnPlateau: reduced LR to {scheduler.CurrentLr:E6}");
+                        }
+                    }
+
                     // checkpoint save
                     try
                     {
@@ -310,7 +413,18 @@ namespace DetectorLeveModel.Runner
                         Directory.CreateDirectory(tmp);
                         model.SaveWeights(tmp);
                         optimizer?.SaveState(tmp);
-                        var metaObj = new { epoch = epoch, lr = optimizer?.Lr ?? hp.InitialLearningRate, timestamp = DateTime.UtcNow };
+                        var metaObj = new System.Collections.Generic.Dictionary<string, object>();
+                        metaObj["epoch"] = epoch;
+                        metaObj["lr"] = optimizer?.Lr ?? hp.InitialLearningRate;
+                        metaObj["timestamp"] = DateTime.UtcNow;
+                        if (scheduler != null)
+                        {
+                            var sched = new System.Collections.Generic.Dictionary<string, object>();
+                            sched["bestLoss"] = scheduler.BestLoss;
+                            sched["epochsSinceImprovement"] = scheduler.EpochsSinceImprovement;
+                            sched["currentLr"] = scheduler.CurrentLr;
+                            metaObj["scheduler"] = sched;
+                        }
                         File.WriteAllText(Path.Combine(tmp, "meta.json"), System.Text.Json.JsonSerializer.Serialize(metaObj));
                         if (Directory.Exists(pesosDirRoot)) Directory.Delete(pesosDirRoot, true);
                         Directory.Move(tmp, pesosDirRoot);
@@ -342,6 +456,51 @@ namespace DetectorLeveModel.Runner
                 }
             }
             finally { if (ctx is IDisposable d) d.Dispose(); }
+        }
+
+        // Simple Reduce-on-Plateau scheduler used by the runner.
+        private class ReduceOnPlateauScheduler
+        {
+            public double BestLoss { get; set; } = double.PositiveInfinity;
+            public int EpochsSinceImprovement { get; set; } = 0;
+            public double CurrentLr { get; set; }
+            public double MinLr { get; }
+            public double Factor { get; }
+            public int Patience { get; }
+
+            public ReduceOnPlateauScheduler(double initialLr, double minLr, double factor, int patience)
+            {
+                CurrentLr = initialLr;
+                MinLr = minLr;
+                Factor = factor;
+                Patience = Math.Max(1, patience);
+            }
+
+            // returns true if LR was reduced
+            public bool Step(double loss)
+            {
+                if (double.IsNaN(loss)) return false;
+                // consider improvement only if strictly less
+                if (loss < BestLoss - 1e-12)
+                {
+                    BestLoss = loss;
+                    EpochsSinceImprovement = 0;
+                    return false;
+                }
+                EpochsSinceImprovement++;
+                if (EpochsSinceImprovement >= Patience)
+                {
+                    var newLr = Math.Max(MinLr, CurrentLr * Factor);
+                    if (newLr < CurrentLr - 1e-20)
+                    {
+                        CurrentLr = newLr;
+                        EpochsSinceImprovement = 0;
+                        return true;
+                    }
+                    EpochsSinceImprovement = 0;
+                }
+                return false;
+            }
         }
 
         // helper IoU for axis-aligned squares
