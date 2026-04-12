@@ -27,6 +27,8 @@ namespace DetectorModel
             public double DetectionScoreThreshold { get; set; } = 0.6;
             public int MaxDetections { get; set; } = 100;
             public bool DrawOnlyModelOutputs { get; set; } = false;
+            // If >0, limit number of samples processed each epoch to this many (randomly sampled)
+            public int MaxSamplesPerEpoch { get; set; } = 0;
             // Optional explicit strides per feature level (p3,p4,p5). If null, strides will be derived from model head shapes.
             public int[] Strides { get; set; } = null;
             // Learning rate control
@@ -51,6 +53,8 @@ namespace DetectorModel
             hp.InitialLearningRate = 0.001;
             hp.FinalLearningRate = 0.00001;
             hp.Strides = new int[] { 8, 16, 32 };
+            // By default, process only one batch worth of samples per epoch for faster iteration during tests
+            hp.MaxSamplesPerEpoch = hp.BatchSize;
 
             var computeEnv = Environment.GetEnvironmentVariable("COMPUTE") ?? "SIMD";
             ComputacaoContexto ctx = computeEnv.Equals("CPU", StringComparison.OrdinalIgnoreCase) ? (ComputacaoContexto)new ComputacaoCPUContexto() : new ComputacaoCPUSIMDContexto();
@@ -378,7 +382,42 @@ namespace DetectorModel
                 // pass resume offset only on first epoch when resuming
                 int startSample = (resume && epoch == 0) ? resumeOffsetSamples : 0;
                 bool quickTestExit = false;
-                foreach (var batch in loader.GetBatchesTensors(BATCH_SIZE, ctx, startSample))
+                // If MaxSamplesPerEpoch>0 use random sampling of annotations to build a limited set of batches
+                System.Collections.Generic.IEnumerable<System.Collections.Generic.List<DataLoader.Sample>> batchEnumerable;
+                if (hp.MaxSamplesPerEpoch > 0)
+                {
+                    var allAnns = loader.ReadAnnotations().ToList();
+                    int take = Math.Min(hp.MaxSamplesPerEpoch, allAnns.Count);
+                    // Shuffle indices using the epoch RNG
+                    var idxs = Enumerable.Range(0, allAnns.Count).ToList();
+                    for (int i = idxs.Count - 1; i > 0; i--)
+                    {
+                        int j = rnd.Next(i + 1);
+                        var tmp = idxs[i]; idxs[i] = idxs[j]; idxs[j] = tmp;
+                    }
+                    var selectedAnns = new System.Collections.Generic.List<DetectorModel.dados.Annotation>();
+                    for (int i = 0; i < take; i++) selectedAnns.Add(allAnns[idxs[i]]);
+                    // Convert selected annotations to samples (may drop missing images)
+                    var samples = new System.Collections.Generic.List<DataLoader.Sample>();
+                    foreach (var ann in selectedAnns)
+                    {
+                        try { var s = loader.AnnotationToSample(ann, ctx); if (s != null) samples.Add(s); } catch { }
+                    }
+                    // Chunk into batches of BATCH_SIZE
+                    var chunked = new System.Collections.Generic.List<System.Collections.Generic.List<DataLoader.Sample>>();
+                    for (int i = 0; i < samples.Count; i += BATCH_SIZE)
+                    {
+                        int cnt = Math.Min(BATCH_SIZE, samples.Count - i);
+                        chunked.Add(samples.GetRange(i, cnt));
+                    }
+                    batchEnumerable = chunked;
+                }
+                else
+                {
+                    batchEnumerable = loader.GetBatchesTensors(BATCH_SIZE, ctx, startSample);
+                }
+
+                foreach (var batch in batchEnumerable)
                 {
                     Console.WriteLine($" Batch {localBatch} com {batch.Count} amostras");
                     foreach (var sample in batch)
