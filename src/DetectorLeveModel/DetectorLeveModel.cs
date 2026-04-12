@@ -167,41 +167,43 @@ namespace DetectorLeveModel
             if (scales == null) scales = new int[] { 32, 48, 64 };
             if (steps == null) steps = new int[] { 4, 6, 8 };
             var detections = new List<(double score, int x, int y, int w, int h, int work)>();
+
+            int cropW = crop.Width;
+            int cropH = crop.Height;
+            if (cropW <= 0 || cropH <= 0) return (double.NegativeInfinity, 0, 0, 0, 0);
+
+            // Slide windows directly over the original crop coordinates to avoid
+            // unstable scaling math. For each scale (work) we take square windows
+            // of size `work` in crop-space, resize each window to 20x20 and
+            // evaluate the model.
             for (int si = 0; si < scales.Length; si++)
             {
                 int work = scales[si]; int step = steps[si];
-                int minSideCrop = Math.Min(crop.Width, crop.Height);
-                if (minSideCrop <= 0) continue;
-                double scaleFactor = (double)work / (double)minSideCrop;
-                int newW = Math.Max(1, (int)Math.Round(crop.Width * scaleFactor));
-                int newH = Math.Max(1, (int)Math.Round(crop.Height * scaleFactor));
-                var resized = ManipuladorDeImagem.redimensionar(crop, newW, newH);
-                for (int y2 = 0; y2 + work <= newH; y2 += step)
+                // skip scales larger than the crop
+                if (work > cropW || work > cropH) continue;
+
+                for (int y0 = 0; y0 + work <= cropH; y0 += step)
                 {
-                    for (int x2 = 0; x2 + work <= newW; x2 += step)
+                    for (int x0 = 0; x0 + work <= cropW; x0 += step)
                     {
-                        var win = ManipuladorDeImagem.cortar(resized, x2, y2, work, work);
+                        var win = ManipuladorDeImagem.cortar(crop, x0, y0, work, work);
                         var t = ManipuladorDeImagem.TransformarCropParaTensorGrayscale(win, 20, ctx);
                         var outt = this.Forward(t, ctx);
                         double score = outt[0];
                         if (score < detectCutoff) continue;
-                        double cxRes = x2 + work / 2.0;
-                        double cyRes = y2 + work / 2.0;
-                        double origCx = cxRes / scaleFactor;
-                        double origCy = cyRes / scaleFactor;
-                        double boxSize = work / scaleFactor;
-                        int bw = Math.Max(1, (int)Math.Round(boxSize));
-                        int bh = bw;
-                        int bx = (int)Math.Round(origCx - bw / 2.0);
-                        int by = (int)Math.Round(origCy - bh / 2.0);
-                        bx = Math.Max(0, Math.Min(crop.Width - bw, bx));
-                        by = Math.Max(0, Math.Min(crop.Height - bh, by));
-                        detections.Add((score, bx, by, bw, bh, work));
+
+                        // skip degenerate detections that cover essentially the whole crop
+                        if (work >= Math.Max(0.99 * cropW, cropW) && work >= Math.Max(0.99 * cropH, cropH)) continue;
+
+                        detections.Add((score, x0, y0, work, work, work));
                     }
                 }
             }
+
             if (detections.Count == 0) return (double.NegativeInfinity, 0, 0, 0, 0);
-            var best = detections.OrderByDescending(d => d.score).ThenByDescending(d => d.work).First();
+
+            // Prefer higher score, but break ties by smaller area (prefer tighter boxes).
+            var best = detections.OrderByDescending(d => d.score).ThenBy(d => d.w * d.h).First();
             return (best.score, best.x, best.y, best.w, best.h);
         }
 
