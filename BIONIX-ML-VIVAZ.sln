@@ -14,7 +14,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vivaz.Api", "src\Vivaz.Api\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DatasetAnnotator", "src\AnotadorDeDataSet\DatasetAnnotator.csproj", "{40D119C4-7BE3-4795-BDC0-92CAFCC9C446}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bionix.ML.Vivaz.Runner", "src\Bionix.ML.Vivaz.Runner\Bionix.ML.Vivaz.Runner.csproj", "{7BC7CE7E-2DCA-48AD-80B6-875685F5B23C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DetectorModel.Runner", "src\DetectorModel.Runner\DetectorModel.Runner.csproj", "{7BC7CE7E-2DCA-48AD-80B6-875685F5B23C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
