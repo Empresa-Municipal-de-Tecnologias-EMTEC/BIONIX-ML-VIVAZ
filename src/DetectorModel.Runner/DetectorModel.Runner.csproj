@@ -8,6 +8,6 @@
     <RootNamespace>DetectorModel.Runner</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Bionix.ML.Vivaz\Bionix.ML.Vivaz.csproj" />
+    <ProjectReference Include="..\DetectorModel\DetectorModel.csproj" />
   </ItemGroup>
 </Project>
