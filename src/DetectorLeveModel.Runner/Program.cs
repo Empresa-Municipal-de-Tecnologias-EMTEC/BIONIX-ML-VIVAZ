@@ -288,29 +288,41 @@ namespace DetectorLeveModel.Runner
                             int h = Math.Max(1, y1 - y0);
                             var crop = ManipuladorDeImagem.cortar(bmpFull, x0, y0, w, h);
 
-                            // perform detection using model's DetectBest helper
-                            var detRes = detModel.DetectBest(crop, ctx, detectCutoff);
-                            double bestScore = detRes.score; int bestX = detRes.x, bestY = detRes.y, bestW = detRes.w, bestH = detRes.h;
+                            // perform detection returning top-K per scale
+                            var allDet = detModel.DetectTopPerScale(crop, ctx, detectCutoff, null, null, 5);
 
-                            // convert crop to image and draw detection rectangle (in crop coords)
                             var img = ToImage(crop);
-                            if (!double.IsNegativeInfinity(bestScore))
+                            // color map per work (window size)
+                            var colorMap = new System.Collections.Generic.Dictionary<int, SixLabors.ImageSharp.PixelFormats.Rgba32>() {
+                                { 32, new SixLabors.ImageSharp.PixelFormats.Rgba32(255,0,0,255) },
+                                { 48, new SixLabors.ImageSharp.PixelFormats.Rgba32(0,255,0,255) },
+                                { 64, new SixLabors.ImageSharp.PixelFormats.Rgba32(0,0,255,255) }
+                            };
+
+                            // group by work and draw up to 5 per scale
+                            var groups = allDet.GroupBy(d => d.work);
+                            foreach (var g in groups)
                             {
-                                int dx = Math.Max(0, Math.Min(bestX, crop.Width - 1));
-                                int dy = Math.Max(0, Math.Min(bestY, crop.Height - 1));
-                                int dw = Math.Min(bestW, crop.Width - dx);
-                                int dh = Math.Min(bestH, crop.Height - dy);
-                                var color = new SixLabors.ImageSharp.PixelFormats.Rgba32(255, 0, 0, 255);
+                                var work = g.Key;
+                                var list = g.OrderByDescending(x => x.score).Take(5).ToList();
+                                var color = colorMap.ContainsKey(work) ? colorMap[work] : new SixLabors.ImageSharp.PixelFormats.Rgba32(255,255,0,255);
                                 img.ProcessPixelRows(accessor =>
                                 {
-                                    for (int y = dy; y < dy + dh; y++)
+                                    foreach (var d in list)
                                     {
-                                        if (y < 0 || y >= img.Height) continue;
-                                        for (int x = dx; x < dx + dw; x++)
+                                        int dx = Math.Max(0, Math.Min(d.x, img.Width - 1));
+                                        int dy = Math.Max(0, Math.Min(d.y, img.Height - 1));
+                                        int dw = Math.Min(d.w, img.Width - dx);
+                                        int dh = Math.Min(d.h, img.Height - dy);
+                                        for (int y = dy; y < dy + dh; y++)
                                         {
-                                            if (x < 0 || x >= img.Width) continue;
-                                            bool border = (x - dx < 2) || (dx + dw - 1 - x < 2) || (y - dy < 2) || (dy + dh - 1 - y < 2);
-                                            if (border) accessor.GetRowSpan(y)[x] = color;
+                                            if (y < 0 || y >= img.Height) continue;
+                                            for (int x = dx; x < dx + dw; x++)
+                                            {
+                                                if (x < 0 || x >= img.Width) continue;
+                                                bool border = (x - dx < 2) || (dx + dw - 1 - x < 2) || (y - dy < 2) || (dy + dh - 1 - y < 2);
+                                                if (border) accessor.GetRowSpan(y)[x] = color;
+                                            }
                                         }
                                     }
                                 });
@@ -318,8 +330,11 @@ namespace DetectorLeveModel.Runner
 
                             var outPath = Path.Combine(saidaDir, $"detect_{idx:000}_ann_{Path.GetFileName(ann.ImagePath)}");
                             using (var fs = File.Create(outPath + ".png")) img.Save(fs, new SixLabors.ImageSharp.Formats.Png.PngEncoder());
-                            var info = $"ann_box={gb.X},{gb.Y},{gb.Width},{gb.Height}\ndetection={bestX},{bestY},{bestW},{bestH}\nscore={bestScore:F6}\n";
-                            File.WriteAllText(outPath + ".txt", info);
+                            // write detection info: list all detected boxes with work and score
+                            var sb = new System.Text.StringBuilder();
+                            sb.AppendLine($"ann_box={gb.X},{gb.Y},{gb.Width},{gb.Height}");
+                            foreach (var d in allDet.OrderByDescending(d=>d.score)) sb.AppendLine($"det={d.work}:{d.x},{d.y},{d.w},{d.h},score={d.score:F6}");
+                            File.WriteAllText(outPath + ".txt", sb.ToString());
                         }
                         catch (Exception ex)
                         {
