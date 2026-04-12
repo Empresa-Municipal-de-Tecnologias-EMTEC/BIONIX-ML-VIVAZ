@@ -263,8 +263,8 @@ namespace DetectorLeveModel.Runner
                         {
                             var bmpFull = ManipuladorDeImagem.carregarBmpDeJPEG(ann.ImagePath);
                             var gb = ann.Boxes[0];
-                            // pick random fraction p in [0.25, 0.6]
-                            double p = rnd.NextDouble() * (0.6 - 0.25) + 0.25;
+                            // pick random expansion factor p in [0.5, 1.5]
+                            double p = rnd.NextDouble() * (1.5 - 0.5) + 0.5;
                             // diagonal of the annotated box
                             double diag = Math.Sqrt((double)gb.Width * gb.Width + (double)gb.Height * gb.Height);
                             // expand by delta = p * diag on both corners (grow along diagonal)
