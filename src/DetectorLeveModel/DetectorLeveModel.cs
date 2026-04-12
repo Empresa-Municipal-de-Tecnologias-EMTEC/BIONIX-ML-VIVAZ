@@ -202,9 +202,96 @@ namespace DetectorLeveModel
 
             if (detections.Count == 0) return (double.NegativeInfinity, 0, 0, 0, 0);
 
-            // Prefer higher score, but break ties by smaller area (prefer tighter boxes).
-            var best = detections.OrderByDescending(d => d.score).ThenBy(d => d.w * d.h).First();
-            return (best.score, best.x, best.y, best.w, best.h);
+            // Compute IoU helper for detections
+            double IoU((double score, int x, int y, int w, int h, int work) a, (double score, int x, int y, int w, int h, int work) b)
+            {
+                int xa = Math.Max(a.x, b.x);
+                int ya = Math.Max(a.y, b.y);
+                int xb = Math.Min(a.x + a.w, b.x + b.w);
+                int yb = Math.Min(a.y + a.h, b.y + b.h);
+                int interW = xb - xa; int interH = yb - ya;
+                if (interW <= 0 || interH <= 0) return 0.0;
+                double inter = interW * interH;
+                double union = a.w * a.h + b.w * b.h - inter;
+                return inter / Math.Max(1.0, union);
+            }
+
+            // Simplified selection: prefer highest score; if scores are very close,
+            // prefer detections found at smaller work (lower resolution windows),
+            // then prefer smaller area.
+            var detArray = detections.ToArray();
+            int idx = 0;
+            double bestScore = detArray[0].score;
+            int bestWork = detArray[0].work;
+            int bestArea = detArray[0].w * detArray[0].h;
+            for (int i = 1; i < detArray.Length; i++)
+            {
+                var d = detArray[i];
+                if (d.score > bestScore + 1e-12)
+                {
+                    idx = i; bestScore = d.score; bestWork = d.work; bestArea = d.w * d.h;
+                }
+                else if (Math.Abs(d.score - bestScore) <= 1e-12)
+                {
+                    // tie-break: prefer smaller work (i.e., detected at smaller resolution)
+                    if (d.work < bestWork)
+                    {
+                        idx = i; bestWork = d.work; bestArea = d.w * d.h;
+                    }
+                    else if (d.work == bestWork)
+                    {
+                        // final tie-break: smaller area
+                        var area = d.w * d.h;
+                        if (area < bestArea)
+                        {
+                            idx = i; bestArea = area;
+                        }
+                    }
+                }
+            }
+
+            var sel = detArray[idx];
+            return (sel.score, sel.x, sel.y, sel.w, sel.h);
+        }
+
+        // Return top-K detections per scale (work). Output tuple includes work so
+        // caller can color by scale. Returned list is flat: all detections from
+        // all scales, each annotated with its 'work' value.
+        public System.Collections.Generic.List<(double score, int x, int y, int w, int h, int work)> DetectTopPerScale(BMP crop, ComputacaoContexto ctx, double detectCutoff = 0.5, int[] scales = null, int[] steps = null, int topK = 5)
+        {
+            if (crop == null) throw new ArgumentNullException(nameof(crop));
+            if (scales == null) scales = new int[] { 32, 48, 64 };
+            if (steps == null) steps = new int[] { 4, 6, 8 };
+            var results = new System.Collections.Generic.List<(double score, int x, int y, int w, int h, int work)>();
+
+            int cropW = crop.Width;
+            int cropH = crop.Height;
+            if (cropW <= 0 || cropH <= 0) return results;
+
+            for (int si = 0; si < scales.Length; si++)
+            {
+                int work = scales[si]; int step = steps[si];
+                if (work > cropW || work > cropH) continue;
+                var per = new System.Collections.Generic.List<(double score, int x, int y, int w, int h)>();
+                for (int y0 = 0; y0 + work <= cropH; y0 += step)
+                {
+                    for (int x0 = 0; x0 + work <= cropW; x0 += step)
+                    {
+                        var win = ManipuladorDeImagem.cortar(crop, x0, y0, work, work);
+                        var t = ManipuladorDeImagem.TransformarCropParaTensorGrayscale(win, 20, ctx);
+                        var outt = this.Forward(t, ctx);
+                        double score = outt[0];
+                        if (score < detectCutoff) continue;
+                        // ignore degenerate whole-crop boxes
+                        if (work >= Math.Max(0.99 * cropW, cropW) && work >= Math.Max(0.99 * cropH, cropH)) continue;
+                        per.Add((score, x0, y0, work, work));
+                    }
+                }
+                // sort per-scale and take topK
+                var top = per.OrderByDescending(p => p.score).Take(topK);
+                foreach (var p in top) results.Add((p.score, p.x, p.y, p.w, p.h, work));
+            }
+            return results;
         }
 
         
