@@ -11,22 +11,14 @@
 <div>A: <img id="imgA" width="160"></div>
 <div>B: <img id="imgB" width="160"></div>
 <div id="result"></div>
+<script src="/js/compare.js"></script>
 <script>
-(async ()=>{
-  const video=document.getElementById('video'); const canvas=document.getElementById('canvas');
-  const imgA=document.getElementById('imgA'); const imgB=document.getElementById('imgB');
-  let blobA=null, blobB=null;
-  try{const s=await navigator.mediaDevices.getUserMedia({video:true}); video.srcObject=s;}catch(e){console.error(e)}
-  function capture(){ const w=canvas.width=video.videoWidth||320; const h=canvas.height=video.videoHeight||240; const ctx=canvas.getContext('2d'); ctx.drawImage(video,0,0,w,h); return new Promise(res=>canvas.toBlob(res,'image/png')); }
-  document.getElementById('capA').addEventListener('click', async ()=>{ blobA=await capture(); imgA.src=URL.createObjectURL(blobA); });
-  document.getElementById('capB').addEventListener('click', async ()=>{ blobB=await capture(); imgB.src=URL.createObjectURL(blobB); });
-  document.getElementById('compare').addEventListener('click', async ()=>{
-    if(!blobA||!blobB){alert('capture both images');return}
-    const form=new FormData(); form.append('a', blobA, 'a.png'); form.append('b', blobB, 'b.png');
-    const resp=await fetch('/api/face/compare', {method:'POST', body: form});
-    const json=await resp.json(); document.getElementById('result').innerText=JSON.stringify(json);
-  });
-})();
+  // configure for server API compare endpoints
+  window.demoCompareConfig = {
+    embedEndpoint: '/api/face/embed',
+    compareEndpoint: '/api/face/compare',
+    thresholdPercent: 70
+  };
 </script>
 </body>
 </html>
