@@ -1,4 +1,4 @@
-# BIONIX-ML-VIVAZ (.NET)
+# BIONIX-ML-VIVAZ
 
 <p align="center">
 	<img src="ICONE.png" alt="Ícone do BIONIX-ML-VIVAZ" width="160">
@@ -220,15 +220,6 @@ Observações e boas práticas:
 - Para retomada exata, certifique-se de que `opt_slot_*.bin` e `opt_meta.json` estejam presentes e que o `meta.json` contenha os campos esperados (`rngSeed` e `processedSamples`).
 - Checkpoints são escritos de forma atômica (escrito em diretório temporário e substituído), reduzindo o risco de arquivos corrompidos.
 - O `meta.json.processedSamples` permite pular as N primeiras amostras ao reiniciar para continuar exatamente de onde parou.
-
-
-Conversão de imagens
-
-Existe um utilitário Python para conversão/normalização de imagens (se aplicável). Instale `Pillow` se for usar scripts de conversão.
-
-Observações
-
-Os projetos expõem pontos de partida (stubs) para detecção e reconhecimento. É necessário integrar o carregamento de checkpoints e a lógica de inferência para tornar os endpoints produtivos. Para cenários cross-platform considere migrar utilitários de imagem para ImageSharp/SkiaSharp.
 
 Ajuda e contribuições
 Abra issues descrevendo o cenário (incluir versão .NET, SO, passos para reproduzir). Pull requests com exemplos funcionais e instruções claras são bem-vindos.
