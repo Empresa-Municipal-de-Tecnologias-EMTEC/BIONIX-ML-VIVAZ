@@ -328,12 +328,35 @@ namespace DetectorLeveModel.Runner
                                 });
                             }
 
+                            // compute consensus bounding box from detections and draw it
+                            var final = detModel.AggregateConsensus(allDet, img.Width, img.Height, 0.4);
+                            if (final.found)
+                            {
+                                var finalColor = new SixLabors.ImageSharp.PixelFormats.Rgba32(255,255,0,255);
+                                int tx = final.x, ty = final.y, tw = final.w, th = final.h;
+                                int thickness = 4;
+                                img.ProcessPixelRows(accessor =>
+                                {
+                                    for (int y = ty; y < ty + th; y++)
+                                    {
+                                        if (y < 0 || y >= img.Height) continue;
+                                        for (int x = tx; x < tx + tw; x++)
+                                        {
+                                            if (x < 0 || x >= img.Width) continue;
+                                            bool border = (x - tx < thickness) || (tx + tw - 1 - x < thickness) || (y - ty < thickness) || (ty + th - 1 - y < thickness);
+                                            if (border) accessor.GetRowSpan(y)[x] = finalColor;
+                                        }
+                                    }
+                                });
+                            }
+
                             var outPath = Path.Combine(saidaDir, $"detect_{idx:000}_ann_{Path.GetFileName(ann.ImagePath)}");
                             using (var fs = File.Create(outPath + ".png")) img.Save(fs, new SixLabors.ImageSharp.Formats.Png.PngEncoder());
                             // write detection info: list all detected boxes with work and score
                             var sb = new System.Text.StringBuilder();
                             sb.AppendLine($"ann_box={gb.X},{gb.Y},{gb.Width},{gb.Height}");
                             foreach (var d in allDet.OrderByDescending(d=>d.score)) sb.AppendLine($"det={d.work}:{d.x},{d.y},{d.w},{d.h},score={d.score:F6}");
+                            if (final.found) sb.AppendLine($"final={final.x},{final.y},{final.w},{final.h}");
                             File.WriteAllText(outPath + ".txt", sb.ToString());
                         }
                         catch (Exception ex)

@@ -294,6 +294,132 @@ namespace DetectorLeveModel
             return results;
         }
 
+        // Aggregate detections to a single consensus bounding box where the face
+        // is assumed to be the area with the highest concentration of overlapping
+        // detections. Rules applied:
+        // - Build a per-pixel heatmap counting how many detection rectangles cover each pixel.
+        // - Find the connected component containing a max-count pixel using a threshold
+        //   of 50% of max count.
+        // - Keep only detections whose intersection with that component has at least
+        //   `minSideFraction` (fraction of the detection side) in both width and height.
+        // - If none remain, fall back to the highest-score detection.
+        // - Expand final box so height >= width (grow downward), then add 20% of the
+        //   square height downward, clipping to crop bounds.
+        public (bool found, int x, int y, int w, int h) AggregateConsensus(System.Collections.Generic.List<(double score, int x, int y, int w, int h, int work)> detections, int cropW, int cropH, double minSideFraction = 0.4)
+        {
+            if (detections == null || detections.Count == 0) return (false, 0, 0, 0, 0);
+            // clamp
+            cropW = Math.Max(1, cropW);
+            cropH = Math.Max(1, cropH);
+
+            var heat = new int[cropW, cropH];
+            int maxCount = 0;
+            foreach (var d in detections)
+            {
+                int x0 = Math.Max(0, Math.Min(d.x, cropW - 1));
+                int y0 = Math.Max(0, Math.Min(d.y, cropH - 1));
+                int x1 = Math.Max(0, Math.Min(d.x + d.w, cropW));
+                int y1 = Math.Max(0, Math.Min(d.y + d.h, cropH));
+                for (int y = y0; y < y1; y++)
+                {
+                    for (int x = x0; x < x1; x++)
+                    {
+                        heat[x, y]++;
+                        if (heat[x, y] > maxCount) maxCount = heat[x, y];
+                    }
+                }
+            }
+
+            if (maxCount <= 0) return (false, 0, 0, 0, 0);
+
+            int thresh = Math.Max(1, (int)Math.Ceiling(maxCount * 0.5));
+            // find a max pixel (first one) to start flood fill
+            int sx = -1, sy = -1;
+            for (int y = 0; y < cropH && sx < 0; y++) for (int x = 0; x < cropW; x++) if (heat[x, y] >= thresh) { sx = x; sy = y; break; }
+            if (sx < 0) return (false, 0, 0, 0, 0);
+
+            // bfs to get connected component of pixels with heat >= thresh
+            var qx = new System.Collections.Generic.Queue<int>();
+            var qy = new System.Collections.Generic.Queue<int>();
+            var seen = new bool[cropW, cropH];
+            qx.Enqueue(sx); qy.Enqueue(sy); seen[sx, sy] = true;
+            int minX = sx, minY = sy, maxX = sx, maxY = sy;
+            while (qx.Count > 0)
+            {
+                int x = qx.Dequeue(); int y = qy.Dequeue();
+                minX = Math.Min(minX, x); minY = Math.Min(minY, y); maxX = Math.Max(maxX, x); maxY = Math.Max(maxY, y);
+                var nbrs = new (int dx, int dy)[] { (-1,0),(1,0),(0,-1),(0,1) };
+                foreach (var n in nbrs)
+                {
+                    int nx = x + n.dx, ny = y + n.dy;
+                    if (nx < 0 || nx >= cropW || ny < 0 || ny >= cropH) continue;
+                    if (seen[nx, ny]) continue;
+                    if (heat[nx, ny] >= thresh)
+                    {
+                        seen[nx, ny] = true;
+                        qx.Enqueue(nx); qy.Enqueue(ny);
+                    }
+                }
+            }
+            // component bounding box (inclusive pixels) => convert to rect coordinates
+            int compX = minX, compY = minY, compW = maxX - minX + 1, compH = maxY - minY + 1;
+
+            // filter detections by intersection fraction relative to their side
+            var included = new System.Collections.Generic.List<(double score, int x, int y, int w, int h)>();
+            foreach (var d in detections)
+            {
+                int ix0 = Math.Max(d.x, compX);
+                int iy0 = Math.Max(d.y, compY);
+                int ix1 = Math.Min(d.x + d.w, compX + compW);
+                int iy1 = Math.Min(d.y + d.h, compY + compH);
+                int iW = Math.Max(0, ix1 - ix0);
+                int iH = Math.Max(0, iy1 - iy0);
+                if (iW <= 0 || iH <= 0) continue;
+                if (iW < Math.Ceiling(minSideFraction * d.w) || iH < Math.Ceiling(minSideFraction * d.h)) continue;
+                included.Add((d.score, d.x, d.y, d.w, d.h));
+            }
+
+            int finalX, finalY, finalW, finalH;
+            if (included.Count == 0)
+            {
+                // fallback: choose highest-score detection
+                var best = detections.OrderByDescending(d => d.score).First();
+                finalX = best.x; finalY = best.y; finalW = best.w; finalH = best.h;
+            }
+            else
+            {
+                finalX = included.Min(d => d.x);
+                finalY = included.Min(d => d.y);
+                int rx = included.Max(d => d.x + d.w);
+                int ry = included.Max(d => d.y + d.h);
+                finalW = rx - finalX;
+                finalH = ry - finalY;
+            }
+
+            // ensure height >= width by expanding downward if needed
+            if (finalH < finalW)
+            {
+                int desiredH = finalW;
+                int extra = desiredH - finalH;
+                // expand downward
+                finalH = desiredH;
+                // clamp within crop
+                if (finalY + finalH > cropH) finalH = cropH - finalY;
+            }
+            // add 20% of square height downward
+            int add = (int)Math.Round(0.2 * Math.Max(finalW, finalH));
+            if (finalY + finalH + add > cropH) add = cropH - (finalY + finalH);
+            finalH += Math.Max(0, add);
+
+            // clip and ensure positive
+            finalX = Math.Max(0, Math.Min(finalX, cropW - 1));
+            finalY = Math.Max(0, Math.Min(finalY, cropH - 1));
+            finalW = Math.Max(1, Math.Min(finalW, cropW - finalX));
+            finalH = Math.Max(1, Math.Min(finalH, cropH - finalY));
+
+            return (true, finalX, finalY, finalW, finalH);
+        }
+
         
     }
 }
