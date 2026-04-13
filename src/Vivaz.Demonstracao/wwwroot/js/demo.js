@@ -27,7 +27,9 @@
         const form = new FormData();
         form.append('file', blob, 'frame.png');
 
-        const resp = await fetch('/api/face/detectjson', { method: 'POST', body: form });
+        // call WASM-backed API endpoint on backend server (Vivaz.Api on port 5000)
+        // this uses the Vivaz.WASM helper inside the API (preferred when WASM weights embedded)
+        const resp = await fetch('http://localhost:5000/api/face/wasm/detectjson', { method: 'POST', body: form });
         if (!resp.ok) {
             console.error('API error', resp.statusText);
             return;
@@ -36,7 +38,8 @@
         drawDetections(json);
 
         // also fetch the crop PNG
-        const cropResp = await fetch('/api/face/detect', { method: 'POST', body: form });
+        // request crop via WASM-backed endpoint as well
+        const cropResp = await fetch('http://localhost:5000/api/face/wasm/detectcrop', { method: 'POST', body: form });
         if (cropResp.ok) {
             const blobCrop = await cropResp.blob();
             cropImg.src = URL.createObjectURL(blobCrop);
