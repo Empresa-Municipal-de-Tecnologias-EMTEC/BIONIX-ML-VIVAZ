@@ -10,3 +10,6 @@ obj/
 DATASET/
 **/DATASET/
 
+# Ignore published WASM artifacts produced by local publish
+src/Vivaz.WASM/wasm_publish/
+
