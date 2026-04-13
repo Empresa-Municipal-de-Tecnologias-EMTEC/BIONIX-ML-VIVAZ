@@ -9,5 +9,6 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\IdentificadorLeveModel\IdentificadorLeveModel.csproj" />
+    <ProjectReference Include="..\DetectorModel\DetectorModel.csproj" />
   </ItemGroup>
 </Project>
