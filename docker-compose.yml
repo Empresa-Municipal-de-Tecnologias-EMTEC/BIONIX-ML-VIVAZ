@@ -1,0 +1,36 @@
+version: '3.8'
+services:
+  vivaz_api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    image: vivaz_api:latest
+    ports:
+      - "5001:80" # maps host 5001 -> container 80
+    volumes:
+      - ./PESOS:/app/PESOS:ro
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+
+  vivaz_demo:
+    build:
+      context: .
+      dockerfile: Dockerfile.demo
+    image: vivaz_demo:latest
+    ports:
+      - "5000:80" # demo site
+    depends_on:
+      - vivaz_api
+
+# Optional build-only service for Vivaz.WASM artifacts
+  vivaz_wasm_builder:
+    build:
+      context: .
+      dockerfile: Dockerfile.wasm
+    image: vivaz_wasm_builder:latest
+    # no ports exposed - this is a build artifact helper
+
+# Notes:
+# - `Vivaz.WASM` is a library referenced by the API and Demo; it doesn't need its own runtime container.
+# - If you want the WASM weights embedded for offline usage, copy the weights folder (e.g. PESOS/IDENTIFICADOR_LEVE)
+#   into src/Vivaz.WASM/PESOS before building the images so they become embedded resources.
