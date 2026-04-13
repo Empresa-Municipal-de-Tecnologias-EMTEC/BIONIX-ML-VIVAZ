@@ -5,8 +5,45 @@
 <html>
 <head><meta charset="utf-8"><title>WASM Demo</title></head>
 <body>
-    <h1>WASM Demo (placeholder)</h1>
-    <p>Client-side WASM detection demo will be implemented here.</p>
-    <p>Current status: server-side API demo is available at <a href="/Demo/Api">/Demo/Api</a>.</p>
+    <h1>WASM-backed Demo</h1>
+    <p>This demo uses the WASM-backed endpoints on the server that call the embedded Vivaz.WASM helpers.</p>
+    <video id="video" autoplay playsinline width="480" height="360" style="border:1px solid #ccc"></video>
+    <canvas id="canvas" width="480" height="360" style="display:none"></canvas>
+    <div>
+        <button id="btnCapture" onclick="postDetectWasm()">Capture & Detect (WASM)</button>
+    </div>
+    <div>
+        <h3>Detected rectangle (drawn):</h3>
+        <canvas id="outCanvas" width="480" height="360" style="border:1px solid #333"></canvas>
+    </div>
+    <div>
+        <h3>Crop returned by WASM-backed endpoint:</h3>
+        <img id="cropImg" />
+    </div>
+
+    <script>
+        async function postDetectWasm(){
+            const video = document.getElementById('video');
+            const canvas = document.getElementById('canvas');
+            const outCanvas = document.getElementById('outCanvas');
+            const cropImg = document.getElementById('cropImg');
+            try{ const s = await navigator.mediaDevices.getUserMedia({video:true}); video.srcObject = s; }
+            catch(e){ console.error('camera init failed', e); return; }
+            // capture one frame
+            const w = canvas.width = video.videoWidth || 480; const h = canvas.height = video.videoHeight || 360; const ctx = canvas.getContext('2d'); ctx.drawImage(video,0,0,w,h);
+            const blob = await new Promise(res=>canvas.toBlob(res,'image/png'));
+            if(!blob) return;
+            const form = new FormData(); form.append('file', blob, 'frame.png');
+            const resp = await fetch('/api/face/wasm/detectjson', { method: 'POST', body: form });
+            if(!resp.ok){ console.error('detectjson error', resp.statusText); return; }
+            const json = await resp.json();
+            // draw
+            const ctxOut = outCanvas.getContext('2d'); outCanvas.width = w; outCanvas.height = h; ctxOut.drawImage(video,0,0,w,h);
+            if(json && json.final){ ctxOut.lineWidth = 4; ctxOut.strokeStyle = 'yellow'; const f = json.final; ctxOut.strokeRect(f.x,f.y,f.w,f.h); }
+            // get crop
+            const cropResp = await fetch('/api/face/wasm/detectcrop', { method: 'POST', body: form });
+            if(cropResp.ok){ const b = await cropResp.blob(); cropImg.src = URL.createObjectURL(b); }
+        }
+    </script>
 </body>
 </html>

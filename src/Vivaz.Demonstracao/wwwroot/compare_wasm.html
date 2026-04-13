@@ -11,37 +11,14 @@
 <div>A: <img id="imgA" width="160"></div>
 <div>B: <img id="imgB" width="160"></div>
 <div id="result"></div>
+<script src="/js/compare.js"></script>
 <script>
-(async ()=>{
-  const video=document.getElementById('video'); const canvas=document.getElementById('canvas');
-  const imgA=document.getElementById('imgA'); const imgB=document.getElementById('imgB');
-  let blobA=null, blobB=null;
-  try{const s=await navigator.mediaDevices.getUserMedia({video:true}); video.srcObject=s;}catch(e){console.error(e)}
-  function capture(){ const w=canvas.width=video.videoWidth||320; const h=canvas.height=video.videoHeight||240; const ctx=canvas.getContext('2d'); ctx.drawImage(video,0,0,w,h); return new Promise(res=>canvas.toBlob(res,'image/png')); }
-  document.getElementById('capA').addEventListener('click', async ()=>{ blobA=await capture(); imgA.src=URL.createObjectURL(blobA); });
-  document.getElementById('capB').addEventListener('click', async ()=>{ blobB=await capture(); imgB.src=URL.createObjectURL(blobB); });
-  document.getElementById('compare').addEventListener('click', async ()=>{
-    if(!blobA||!blobB){alert('capture both images');return}
-    const form=new FormData(); form.append('file', blobA, 'a.png');
-    // get embeddings from WASM endpoint
-    const respA = await fetch('/api/face/wasm/embed', { method: 'POST', body: form });
-    const jsonA = await respA.json();
-    const formB=new FormData(); formB.append('file', blobB, 'b.png');
-    const respB = await fetch('/api/face/wasm/embed', { method: 'POST', body: formB });
-    const jsonB = await respB.json();
-    // if embed endpoints fail, try direct compare endpoint
-    if (!jsonA.embedding || !jsonB.embedding) {
-        const form2 = new FormData(); form2.append('file', blobA, 'a.png'); form2.append('file', blobB, 'b.png');
-        const cresp = await fetch('/api/face/wasm/compare', { method: 'POST', body: form2 });
-        const cjson = await cresp.json(); document.getElementById('result').innerText = JSON.stringify(cjson); return;
-    }
-    // compute percent locally
-    const a = jsonA.embedding, b = jsonB.embedding;
-    let dot = 0, na=0, nb=0; for(let i=0;i<a.length;i++){ dot+=a[i]*b[i]; na+=a[i]*a[i]; nb+=b[i]*b[i]; }
-    na=Math.sqrt(na); nb=Math.sqrt(nb); const cos = dot/(Math.max(1e-12,na*nb)); const percent = Math.max(0,cos)*100;
-    const same = percent >= 70; document.getElementById('result').innerText = JSON.stringify({percent, same});
-  });
-})();
+  // configure for WASM-backed endpoints
+  window.demoCompareConfig = {
+    embedEndpoint: '/api/face/wasm/embed',
+    compareEndpoint: '/api/face/wasm/compare',
+    thresholdPercent: 70
+  };
 </script>
 </body>
 </html>
