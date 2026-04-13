@@ -6,6 +6,11 @@
     <AssemblyName>Vivaz.WASM</AssemblyName>
     <RootNamespace>Vivaz.WASM</RootNamespace>
     <OutputType>Library</OutputType>
+    <!-- When publishing for browser-wasm make the project output an exe so the publish step succeeds -->
+    <OutputType Condition="'$(RuntimeIdentifier)'=='browser-wasm'">Exe</OutputType>
+    <!-- Disable trimming/AOT linking for browser-wasm here to avoid ILLink errors during iterative builds -->
+    <PublishTrimmed Condition="'$(RuntimeIdentifier)'=='browser-wasm'">false</PublishTrimmed>
+    <PublishAot Condition="'$(RuntimeIdentifier)'=='browser-wasm'">false</PublishAot>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\\..\\..\\BIONIX-ML\\src\\Bionix.ML\\Bionix.ML.csproj" />

@@ -4,6 +4,9 @@ WORKDIR /src
 COPY . ./
 RUN dotnet restore BIONIX-ML-VIVAZ.sln
 RUN dotnet publish src/Vivaz.Demonstracao/Vivaz.Demonstracao.csproj -c Release -o /app/publish --no-restore
+# If a client-side WASM publish folder exists under the Vivaz.WASM project,
+# copy its contents into the demo wwwroot so the demo can serve the wasm artifacts.
+RUN if [ -d "src/Vivaz.WASM/wasm_publish" ]; then mkdir -p /app/publish/wwwroot/wasm && cp -r src/Vivaz.WASM/wasm_publish/* /app/publish/wwwroot/wasm/; fi
 
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /app

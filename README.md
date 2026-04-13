@@ -144,6 +144,71 @@ Modelo de integração (página de exemplo já incluída em `src/Vivaz.Demonstra
 	- envia imagens ao endpoint de embedding (`embedEndpoint`) para obter os vetores,
 	- faz comparação localmente (produto interno / normalização) quando os embeddings estão disponíveis, ou recorre ao endpoint de comparação do servidor (`compareEndpoint`) como fallback.
 
+Modo cliente (WebAssembly)
+--------------------------
+É possível executar `Vivaz.WASM` inteiramente no navegador compilando a biblioteca para WebAssembly e servindo os artefatos gerados junto à página de demonstração. O fluxo recomendado:
+
+- Compile `Vivaz.WASM` para um runtime WebAssembly (ex.: `browser-wasm`) usando o SDK apropriado ou ferramenta de empacotamento. Um exemplo genérico (ajuste conforme seu toolchain):
+
+```bash
+# publique artefatos wasm em uma pasta local
+dotnet publish src/Vivaz.WASM/Vivaz.WASM.csproj -c Release -r browser-wasm -o src/Vivaz.WASM/wasm_publish --no-self-contained
+```
+
+Importante — pesos e URL da API
+--------------------------------
+O runtime cliente (WASM) precisa acessar os arquivos de pesos. Por convenção o `Vivaz.Api` serve os pesos em um endpoint estático `GET /pesos/<NOME>.zip` — por exemplo `http://localhost:5000/pesos/CLASSIFICADOR_DETECTOR_LEVE.zip`.
+
+Antes de iniciar a API de demonstração copie as pastas de pesos para o diretório público do projeto API (ex.: `src/Vivaz.Api/wwwroot/pesos/`). Exemplo (PowerShell):
+
+```powershell
+# copia pesos para a pasta pública do servidor API
+Copy-Item -Recurse PESOS\CLASSIFICADOR_DETECTOR_LEVE src\Vivaz.Api\wwwroot\pesos\CLASSIFICADOR_DETECTOR_LEVE
+# Opcional: empacote como zip para que o WASM baixe um único arquivo por convenção
+Compress-Archive -Path src\Vivaz.Api\wwwroot\pesos\CLASSIFICADOR_DETECTOR_LEVE -DestinationPath src\Vivaz.Api\wwwroot\pesos\CLASSIFICADOR_DETECTOR_LEVE.zip -Force
+```
+
+Ao iniciar o demo/aplicação cliente, defina a variável de ambiente `VIVAZ_API_URL` apontando para a base da sua API (ex.: `http://localhost:5000`). O `Vivaz.WASM` tentará baixar `VIVAZ_API_URL/pesos/CLASSIFICADOR_DETECTOR_LEVE.zip` ou `.../IDENTIFICADOR_LEVE.zip` caso não encontre pesos embutidos ou locais.
+
+Instalar ferramentas WASM no .NET
+--------------------------------
+Para compilar para `browser-wasm` instale o workload `wasm-tools` no .NET SDK (uma vez por máquina):
+
+```powershell
+dotnet workload install wasm-tools
+```
+
+
+- Copie os arquivos resultantes (`vivaz.wasm`, `vivaz.js`, `_framework` etc. dependendo do toolchain) para a pasta de arquivos estáticos da demonstração: `src/Vivaz.Demonstracao/wwwroot/wasm/`.
+- O `Vivaz.Demonstracao` (demo) agora tenta carregar automaticamente um loader JS em `/wasm/` e, se encontrar uma implementação cliente, usará o runtime WebAssembly local para gerar embeddings e fazer comparações sem roundtrip ao servidor.
+
+Arquivos de suporte e fallback
+-----------------------------
+O demo inclui um pequeno loader/fallback em `src/Vivaz.Demonstracao/wwwroot/js/vivaz-wasm-loader.js` que tenta carregar artefatos em `/wasm/` e expõe a API `window.vivazWasm`:
+
+- `window.vivazWasm.ready` — Promise que resolve quando o loader está pronto.
+- `window.vivazWasm.embedFromBlob(blob)` — retorna `{ embedding: [...] }` quando suportado.
+- `window.vivazWasm.compareBlobs(a,b)` — retorna `{ percent, same }` quando suportado.
+
+Se o loader não encontrar artefatos wasm, ele faz fallback às chamadas HTTP para os endpoints WASM-backed do servidor (`/api/face/wasm/embed`, `/api/face/wasm/compare`).
+
+Servindo o WASM com Docker (demo)
+---------------------------------
+O `Dockerfile.demo` foi atualizado para copiar automaticamente qualquer artefato presente em `src/Vivaz.WASM/wasm_publish/` para `wwwroot/wasm/` do demo durante a construção da imagem. Assim, para publicar a demo com o WASM embutido:
+
+1. Publique os artefatos WASM em `src/Vivaz.WASM/wasm_publish/` (veja comando acima).
+2. Construa a imagem demo normalmente:
+
+```bash
+docker build -f Dockerfile.demo -t vivaz_demo:wasm .
+docker run -p 80:80 vivaz_demo:wasm
+```
+
+Observações
+-----------
+- O processo exato de compilação para WebAssembly depende do SDK/toolchain que você escolher (por exemplo: Blazor WebAssembly, dotnet-wasm toolchain, ou um empacotador AOT). Ajuste as instruções acima conforme necessário.
+- Não houve alteração no projeto `Vivaz.WASM` além de instruções — você pode produzir o WASM usando a sua ferramenta preferida. O repositório agora inclui suporte no demo para servir e usar esses artefatos no cliente.
+
 Portanto, para integrar ao seu site, reutilize a estrutura de HTML e o `compare.js` (ou implemente chamadas `fetch` equivalentes que enviem `FormData` com o arquivo no campo `file`).
 
 Incluir pesos embutidos no `Vivaz.WASM`
