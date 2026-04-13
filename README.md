@@ -59,6 +59,89 @@ A API expõe endpoints para health, detecção e identificação. Exemplo (resum
 - `POST /api/face/compare` — recebe duas imagens e retorna score/verificação
 - `POST /api/face/embedding` — retorna embedding de 128 floats
 
+Treinar do zero (IdentificadorLeve / DetectorLeve)
+-----------------------------------------------
+Os runners suportam iniciar do zero e retomar a partir de checkpoints salvos em `PESOS/`.
+
+- Treinar `IdentificadorLeve` do zero (PowerShell):
+
+```
+# remover checkpoints antigos (opcional)
+if (Test-Path PESOS\IDENTIFICADOR_LEVE) { Remove-Item -Recurse PESOS\IDENTIFICADOR_LEVE }
+$env:RESUME='0'; $env:INITIAL_LR='0.005'; $env:EPOCHS='1000'; $env:LOSS_THRESHOLD='0.0005'; $env:SUPPRESS_OUTPUTS='1';
+dotnet run --project src/IdentificadorLeveModel.Runner/IdentificadorLeveModel.Runner.csproj -c Debug
+```
+
+- Treinar `DetectorLeve` do zero (PowerShell):
+
+```
+# quick test (saves image and exits)
+$env:QUICK_TEST_SAVE='1'; dotnet run --project src/DetectorLeveModel.Runner/DetectorLeveModel.Runner.csproj -c Debug -- --mode train
+
+# full train (resume support handled via env RESUME)
+$env:RESUME='0'; $env:EPOCHS='1000'; dotnet run --project src/DetectorLeveModel.Runner/DetectorLeveModel.Runner.csproj -c Debug -- --mode train
+```
+
+Retomar treinos
+----------------
+Para retomar a partir de um checkpoint coloque os arquivos de checkpoint em `PESOS/<NOME>` e execute com `RESUME=1`:
+
+```
+$env:RESUME='1'; dotnet run --project src/IdentificadorLeveModel.Runner/IdentificadorLeveModel.Runner.csproj -c Debug
+```
+
+WASM / API — como usar
+-----------------------
+O projeto inclui duas formas de expor inferência WASM via a API:
+
+- Endpoints tradicionais (API):
+	- `POST /api/face/detect` — envia um arquivo (`form` `file`) retorna PNG crop ou JSON detections
+	- `POST /api/face/detectjson` — retorna JSON de detections
+
+- Endpoints WASM-backed (o runtime usa `Vivaz.WASM` internamente):
+	- `POST /api/face/wasm/detectjson` — aceita `form` `file`, retorna JSON
+	- `POST /api/face/wasm/detectcrop` — aceita `form` `file`, retorna PNG crop
+	- `POST /api/face/wasm/embed` — aceita `form` `file`, retorna `{ embedding: [...] }`
+	- `POST /api/face/wasm/compare` — aceita dois arquivos no `form` (ordem: primeiro, segundo), retorna `{ percent, same }`
+
+Exemplos com `curl` (API na porta 5000):
+
+```bash
+curl -X POST -F "file=@face.jpg" http://localhost:5000/api/face/wasm/detectjson
+curl -X POST -F "file=@face.jpg" http://localhost:5000/api/face/wasm/detectcrop --output crop.png
+curl -X POST -F "file=@a.jpg" -F "file=@b.jpg" http://localhost:5000/api/face/wasm/compare
+```
+
+Embedding weights into `Vivaz.WASM` (offline WASM)
+-------------------------------------------------
+If you want `Vivaz.WASM` to include model weights as embedded resources (so the API can use WASM without reading external `PESOS`), copy the target weights folder into `src/Vivaz.WASM/PESOS/<FOLDER>` before building the `Vivaz.WASM` project. Example:
+
+```
+# copy current trained weights into the WASM project (one-time)
+cp -r PESOS/IDENTIFICADOR_LEVE src/Vivaz.WASM/PESOS/IDENTIFICADOR_LEVE
+dotnet build src/Vivaz.WASM/Vivaz.WASM.csproj -c Release
+```
+
+Docker (build + run)
+--------------------
+This repository includes Dockerfiles and a `docker-compose.yml` to run the API and Demo.
+
+From the repository root (`BIONIX-ML-VIVAZ`):
+
+```powershell
+docker compose up --build
+```
+
+This starts two services by default:
+
+- `vivaz_api` mapped to container port `80` → host `5001` in compose (configurable in `docker-compose.yml`)
+- `vivaz_demo` mapped to container port `80` → host `5000`
+
+Notes:
+- To embed WASM weights inside the `Vivaz.WASM` assembly before building the images, copy the `PESOS/<FOLDER>` into `src/Vivaz.WASM/PESOS` then run `docker compose build` so the embedded resources are included in the build stage.
+- The `Vivaz.WASM` project is a library and does not run standalone — the Dockerfile for WASM is build-only to produce artifacts.
+
+
 Modelos e dataset
 
 Coloque checkpoints em `src/MODELO/` e imagens em `src/DATASET/` (ambas pastas não versionadas). Este repositório inclui suporte para o dataset CelebA com landmarks. Estrutura esperada:

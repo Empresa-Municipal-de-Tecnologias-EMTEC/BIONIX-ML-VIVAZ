@@ -1,0 +1,15 @@
+# Build-only Dockerfile for Vivaz.WASM (library)
+# Note: `Vivaz.WASM` is a C# library referenced by `Vivaz.Api` and `Vivaz.Demonstracao`.
+# It does not run standalone; this image builds the artifacts for CI or packaging.
+
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+WORKDIR /src
+COPY . ./
+RUN dotnet restore BIONIX-ML-VIVAZ.sln
+RUN dotnet build src/Vivaz.WASM/Vivaz.WASM.csproj -c Release
+
+# Export build artifacts
+FROM mcr.microsoft.com/dotnet/runtime:8.0 AS artifacts
+WORKDIR /artifacts
+COPY --from=build /src/src/Vivaz.WASM/bin/Release/net8.0 ./Vivaz.WASM
+CMD ["/bin/sh", "-c", "echo Built Vivaz.WASM artifacts in /artifacts/Vivaz.WASM && sleep 3600"]
