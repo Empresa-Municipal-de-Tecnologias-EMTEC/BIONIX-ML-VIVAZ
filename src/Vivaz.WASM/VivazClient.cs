@@ -6,6 +6,7 @@ using Bionix.ML.dados.imagem;
 using Bionix.ML.dados.imagem.bmp;
 using Bionix.ML.computacao;
 using DetectorLeveModel;
+using IdentificadorLeveModel;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 
@@ -59,6 +60,42 @@ namespace Vivaz.WASM
             return null;
         }
 
+        // Try to extract embedded weights for IdentificadorLeve (resource name contains IDENTIFICADOR_LEVE)
+        private static string? ExtractEmbeddedIdentificadorWeights(out string? tempPesosDir)
+        {
+            tempPesosDir = null;
+            try
+            {
+                var asm = typeof(VivazClient).Assembly;
+                foreach (var name in asm.GetManifestResourceNames())
+                {
+                    if (name.ToLower().Contains("identificador_leve") || name.ToLower().Contains("identificadorleve"))
+                    {
+                        var outDir = Path.Combine(Path.GetTempPath(), "vivaz_pesos_identificador");
+                        Directory.CreateDirectory(outDir);
+                        var resFile = Path.Combine(outDir, "embedded_pesos.bin");
+                        using var s = asm.GetManifestResourceStream(name);
+                        if (s == null) continue;
+                        using var fs = File.Create(resFile);
+                        s.CopyTo(fs);
+                        try
+                        {
+                            System.IO.Compression.ZipFile.ExtractToDirectory(resFile, Path.Combine(outDir, "IDENTIFICADOR_LEVE"), true);
+                            tempPesosDir = Path.Combine(outDir, "IDENTIFICADOR_LEVE");
+                            return tempPesosDir;
+                        }
+                        catch
+                        {
+                            tempPesosDir = outDir;
+                            return tempPesosDir;
+                        }
+                    }
+                }
+            }
+            catch { }
+            return null;
+        }
+
         public static string DetectJson(byte[] imageBytes)
         {
             if (imageBytes == null || imageBytes.Length == 0) return JsonSerializer.Serialize(new { found = false });
@@ -67,6 +104,7 @@ namespace Vivaz.WASM
                 using var ms = new MemoryStream(imageBytes);
                 var img = Image.Load<Rgba32>(ms);
                 var bmp = BMP.FromImage(img);
+                
                 ComputacaoContexto ctx = new ComputacaoCPUSIMDContexto();
                 // prefer embedded weights if present
                 string? tempPesos;
@@ -125,6 +163,60 @@ namespace Vivaz.WASM
                 return outMs.ToArray();
             }
             catch { return null; }
+        }
+
+        // Compute embedding for an image and return JSON: { embedding: [..] }
+        public static string EmbedJson(byte[] imageBytes)
+        {
+            if (imageBytes == null || imageBytes.Length == 0) return JsonSerializer.Serialize(new { error = "no data" });
+            try
+            {
+                using var ms = new MemoryStream(imageBytes);
+                var img = Image.Load<Rgba32>(ms);
+                var bmp = BMP.FromImage(img);
+                ComputacaoContexto ctx = new ComputacaoCPUSIMDContexto();
+                string? tempPesos;
+                var embedded = ExtractEmbeddedIdentificadorWeights(out tempPesos);
+                var pesosDir = embedded ?? Path.Combine(Directory.GetCurrentDirectory(), "PESOS", "IDENTIFICADOR_LEVE");
+                var ident = IdentificadorLeve.GetInstance(ctx, pesosDir);
+                var embT = ident.EmbedFromBmp(bmp, ctx);
+                var arr = ident.EmbeddingToArray(embT, l2Normalize: true);
+                return JsonSerializer.Serialize(new { embedding = arr });
+            }
+            catch (Exception ex)
+            {
+                return JsonSerializer.Serialize(new { error = ex.Message });
+            }
+        }
+
+        // Compare two images and return JSON: { percent: 73.1, same: true }
+        public static string CompareJson(byte[] aBytes, byte[] bBytes, double threshold = 0.7)
+        {
+            if (aBytes == null || bBytes == null) return JsonSerializer.Serialize(new { error = "two images required" });
+            try
+            {
+                using var msa = new MemoryStream(aBytes);
+                using var msb = new MemoryStream(bBytes);
+                var imga = Image.Load<Rgba32>(msa);
+                var imgb = Image.Load<Rgba32>(msb);
+                var bmpa = BMP.FromImage(imga);
+                var bmpb = BMP.FromImage(imgb);
+                ComputacaoContexto ctx = new ComputacaoCPUSIMDContexto();
+                string? tempPesos;
+                var embedded = ExtractEmbeddedIdentificadorWeights(out tempPesos);
+                var pesosDir = embedded ?? Path.Combine(Directory.GetCurrentDirectory(), "PESOS", "IDENTIFICADOR_LEVE");
+                var ident = IdentificadorLeve.GetInstance(ctx, pesosDir);
+                var embA = ident.EmbedFromBmp(bmpa, ctx);
+                var embB = ident.EmbedFromBmp(bmpb, ctx);
+                var arrA = ident.EmbeddingToArray(embA, true);
+                var arrB = ident.EmbeddingToArray(embB, true);
+                var (percent, same) = IdentificadorLeve.CompareEmbeddings(arrA, arrB, threshold);
+                return JsonSerializer.Serialize(new { percent = percent, same = same });
+            }
+            catch (Exception ex)
+            {
+                return JsonSerializer.Serialize(new { error = ex.Message });
+            }
         }
     }
 }

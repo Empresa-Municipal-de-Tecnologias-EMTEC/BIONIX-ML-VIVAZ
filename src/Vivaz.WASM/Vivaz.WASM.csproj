@@ -11,6 +11,7 @@
     <ProjectReference Include="..\\..\\..\\BIONIX-ML\\src\\Bionix.ML\\Bionix.ML.csproj" />
     <ProjectReference Include="..\\DetectorModel\\DetectorModel.csproj" />
     <ProjectReference Include="..\\DetectorLeveModel\\DetectorLeveModel.csproj" />
+    <ProjectReference Include="..\\IdentificadorLeveModel\\IdentificadorLeveModel.csproj" />
   </ItemGroup>
   <ItemGroup>
     <!-- If you place weight files under src/Vivaz.WASM/PESOS they'll be embedded into the assembly -->
