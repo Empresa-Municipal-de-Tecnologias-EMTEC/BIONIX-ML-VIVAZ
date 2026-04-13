@@ -39,6 +39,12 @@ namespace IdentificadorLeveModel.Runner
             if (!string.IsNullOrEmpty(epochsEnv) && int.TryParse(epochsEnv, NumberStyles.Integer, CultureInfo.InvariantCulture, out var e)) hp.NumEpochs = Math.Max(1, e);
             var supOut = Environment.GetEnvironmentVariable("SUPPRESS_OUTPUTS");
             if (!string.IsNullOrEmpty(supOut) && (supOut == "1" || supOut.Equals("true", StringComparison.OrdinalIgnoreCase))) hp.SuppressOutputs = true;
+            var lossTh = Environment.GetEnvironmentVariable("LOSS_THRESHOLD");
+            if (!string.IsNullOrEmpty(lossTh) && double.TryParse(lossTh, System.Globalization.NumberStyles.Float, CultureInfo.InvariantCulture, out var lt)) hp.LossThreshold = lt;
+            var reducePat = Environment.GetEnvironmentVariable("REDUCE_ON_PLATEAU_PATIENCE");
+            if (!string.IsNullOrEmpty(reducePat) && int.TryParse(reducePat, NumberStyles.Integer, CultureInfo.InvariantCulture, out var rpat)) hp.ReduceOnPlateauPatience = rpat;
+            var reduceFactor = Environment.GetEnvironmentVariable("REDUCE_ON_PLATEAU_FACTOR");
+            if (!string.IsNullOrEmpty(reduceFactor) && double.TryParse(reduceFactor, System.Globalization.NumberStyles.Float, CultureInfo.InvariantCulture, out var rf)) hp.ReduceOnPlateauFactor = rf;
 
             var computeEnv = Environment.GetEnvironmentVariable("COMPUTE") ?? "SIMD";
             ComputacaoContexto ctx = computeEnv.Equals("CPU", StringComparison.OrdinalIgnoreCase) ? (ComputacaoContexto)new ComputacaoCPUContexto() : new ComputacaoCPUSIMDContexto();
@@ -91,18 +97,65 @@ namespace IdentificadorLeveModel.Runner
                 foreach (var kv in model.GetNamedParameters()) if (kv.tensor != null) paramList.Add(kv.tensor);
                 paramList.Add(Wa); paramList.Add(Wb); paramList.Add(bh); paramList.Add(Wo); paramList.Add(bo);
 
+                // ensure pesos dir exists (used for resume/checkpoints)
+                var pesosDirRoot = Path.Combine(Directory.GetCurrentDirectory(), "PESOS", "IDENTIFICADOR_LEVE"); Directory.CreateDirectory(pesosDirRoot);
+
                     // create Adam optimizer with configurable LR
                     var initialLrEnv = Environment.GetEnvironmentVariable("INITIAL_LR");
                     if (!string.IsNullOrEmpty(initialLrEnv) && double.TryParse(initialLrEnv, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var ilr)) hp.InitialLearningRate = ilr;
                     var optimizer = new Bionix.ML.nucleo.otimizadores.Adam(paramList, lr: hp.InitialLearningRate, beta1: 0.9, beta2: 0.999, eps: 1e-8);
 
+                    // resume support: check PESOS/IDENTIFICADOR_LEVE/meta.json or RESUME env var
+                    var resumeFlag = Environment.GetEnvironmentVariable("RESUME") == "1";
+                    int resumeFromEpoch = -1;
+                    var pesosMetaPath = Path.Combine(pesosDirRoot, "meta.json");
+                    if (resumeFlag || File.Exists(pesosMetaPath))
+                    {
+                        try
+                        {
+                            var metaPath = pesosMetaPath;
+                            if (File.Exists(metaPath))
+                            {
+                                var meta = System.Text.Json.JsonSerializer.Deserialize<System.Collections.Generic.Dictionary<string, object>>(File.ReadAllText(metaPath));
+                                if (meta != null && meta.ContainsKey("epoch"))
+                                {
+                                    try { resumeFromEpoch = Convert.ToInt32(meta["epoch"]); } catch { resumeFromEpoch = -1; }
+                                    Console.WriteLine($"Found checkpoint meta: epoch={resumeFromEpoch}");
+                                }
+                            }
+                            // attempt to load model weights and optimizer slots
+                            try { model.LoadWeights(pesosDirRoot); } catch { }
+                            try { optimizer.LoadState(pesosDirRoot); } catch { }
+                            if (File.Exists(metaPath))
+                            {
+                                try
+                                {
+                                    var meta = System.Text.Json.JsonSerializer.Deserialize<System.Collections.Generic.Dictionary<string, object>>(File.ReadAllText(metaPath));
+                                    if (meta != null && meta.ContainsKey("lr"))
+                                    {
+                                        try { optimizer.Lr = Convert.ToDouble(meta["lr"]); } catch { }
+                                    }
+                                }
+                                catch { }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"Resume load failed: {ex.Message}");
+                        }
+                    }
+
                 var saidaDir = Path.Combine(Directory.GetCurrentDirectory(), "SAIDA"); Directory.CreateDirectory(saidaDir);
-                var pesosDirRoot = Path.Combine(Directory.GetCurrentDirectory(), "PESOS", "IDENTIFICADOR_LEVE"); Directory.CreateDirectory(pesosDirRoot);
 
                 // training loop
                 if (hp.MaxSamplesPerEpoch <= 0) hp.MaxSamplesPerEpoch = hp.BatchSize;
 
-                for (int epoch = 0; epoch < hp.NumEpochs; epoch++)
+                // ReduceLROnPlateau state
+                double bestEpochLoss = double.PositiveInfinity;
+                int epochsSinceImprovement = 0;
+                int initialEpoch = Math.Max(0, (resumeFromEpoch >= 0 ? resumeFromEpoch + 1 : 0));
+
+                for (int epoch = initialEpoch; epoch < hp.NumEpochs; epoch++)
                 {
                     Console.WriteLine($"Epoch {epoch}");
                     anns = anns.OrderBy(x => rnd.Next()).ToList();
@@ -290,6 +343,35 @@ namespace IdentificadorLeveModel.Runner
 
                     var avgLoss = (lossCount > 0 ? epochLoss / lossCount : double.NaN);
                     Console.WriteLine($"Epoch {epoch} avg loss = {avgLoss:F6}");
+
+                    // ReduceLROnPlateau logic (if enabled)
+                    try
+                    {
+                        if (!double.IsNaN(avgLoss))
+                        {
+                            if (avgLoss < bestEpochLoss - 1e-12)
+                            {
+                                bestEpochLoss = avgLoss;
+                                epochsSinceImprovement = 0;
+                            }
+                            else
+                            {
+                                epochsSinceImprovement++;
+                            }
+
+                            if (hp.ReduceOnPlateau && epochsSinceImprovement >= hp.ReduceOnPlateauPatience)
+                            {
+                                var newLr = Math.Max(hp.MinLearningRate, optimizer.Lr * hp.ReduceOnPlateauFactor);
+                                if (newLr < optimizer.Lr - 1e-12)
+                                {
+                                    Console.WriteLine($"ReduceLROnPlateau: reducing lr {optimizer.Lr} -> {newLr}");
+                                    optimizer.Lr = newLr;
+                                }
+                                epochsSinceImprovement = 0;
+                            }
+                        }
+                    }
+                    catch { }
 
                     // checkpoint (save model weights + comparator + optimizer state + meta)
                     try
