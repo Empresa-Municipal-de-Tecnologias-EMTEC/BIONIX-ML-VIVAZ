@@ -71,7 +71,7 @@ namespace IdentificadorLeveModel.Runner
                 if (anns.Count == 0) { Console.WriteLine("No annotations found."); return; }
 
                 var fabrica = new FabricaTensor(ctx);
-                var bceFn = FabricaFuncoesPerda.CriarBCE(ctx);
+                var smoothL1Fn = FabricaFuncoesPerda.CriarSmoothL1(ctx);
 
                 int embeddingSize = model.EmbeddingSize;
                 int hidden = 64;
@@ -91,7 +91,10 @@ namespace IdentificadorLeveModel.Runner
                 foreach (var kv in model.GetNamedParameters()) if (kv.tensor != null) paramList.Add(kv.tensor);
                 paramList.Add(Wa); paramList.Add(Wb); paramList.Add(bh); paramList.Add(Wo); paramList.Add(bo);
 
-                var optimizer = FabricaOtimizadores.CriarStatefulSGD(paramList, ctx, lr: hp.InitialLearningRate, momentum: 0.9);
+                    // create Adam optimizer with configurable LR
+                    var initialLrEnv = Environment.GetEnvironmentVariable("INITIAL_LR");
+                    if (!string.IsNullOrEmpty(initialLrEnv) && double.TryParse(initialLrEnv, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var ilr)) hp.InitialLearningRate = ilr;
+                    var optimizer = new Bionix.ML.nucleo.otimizadores.Adam(paramList, lr: hp.InitialLearningRate, beta1: 0.9, beta2: 0.999, eps: 1e-8);
 
                 var saidaDir = Path.Combine(Directory.GetCurrentDirectory(), "SAIDA"); Directory.CreateDirectory(saidaDir);
                 var pesosDirRoot = Path.Combine(Directory.GetCurrentDirectory(), "PESOS", "IDENTIFICADOR_LEVE"); Directory.CreateDirectory(pesosDirRoot);
@@ -171,13 +174,97 @@ namespace IdentificadorLeveModel.Runner
                             var targPos = fabrica.FromArray(new int[] { 1, 1 }, new double[] { 1.0 });
                             var targNeg = fabrica.FromArray(new int[] { 1, 1 }, new double[] { 0.0 });
 
-                            var lossPos = bceFn(outPos, targPos);
-                            var lossNeg = bceFn(outNeg, targNeg);
-                            var total = lossPos.Add(lossNeg);
+                                // Contrastive-style loss using SmoothL1 on difference vector
+                                var diffPos = embPos1.Sub(embPos2); // [1,emb]
+                                var diffNeg = embPos1.Sub(embNeg);
+                                // positive target: zeros
+                                var targZero = fabrica.Criar(1, embPos1.Shape[1]);
+                                for (int zi = 0; zi < targZero.Size; zi++) targZero[zi] = 0.0;
+                                // negative target: vector with per-element value s.t. L2 norm ~ margin
+                                var marginEnv = Environment.GetEnvironmentVariable("MARGIN");
+                                double margin = 1.0; if (!string.IsNullOrEmpty(marginEnv) && double.TryParse(marginEnv, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var mm)) margin = mm;
+                                double perElem = margin / Math.Sqrt(embPos1.Shape[1]);
+                                var targMargin = fabrica.Criar(1, embPos1.Shape[1]);
+                                for (int zi = 0; zi < targMargin.Size; zi++) targMargin[zi] = perElem;
+
+                                var lossPos = smoothL1Fn(diffPos, targZero);
+                                var lossNeg = smoothL1Fn(diffNeg, targMargin);
+                                var total = lossPos.Add(lossNeg);
                             epochLoss += total[0]; lossCount++;
 
+                            // zero grads on all parameters to avoid accidental accumulation
+                            try { foreach (var p in paramList) p.ZeroGrad(); } catch { }
                             total.Backward();
-                            optimizer.Step();
+
+                            // log gradient norms (per-sample) for diagnosis occasionally
+                            if (i % 50 == 0)
+                            {
+                                try
+                                {
+                                    int gi = 0;
+                                    foreach (var p in paramList)
+                                    {
+                                        if (p?.Grad == null) { gi++; continue; }
+                                        double ss = 0.0;
+                                        for (int kk = 0; kk < p.Grad.Length; kk++) ss += p.Grad[kk] * p.Grad[kk];
+                                        var gn = Math.Sqrt(ss);
+                                        Console.WriteLine($"Grad[{gi}] L2={gn:E6} shape=[{(p.Shape!=null?string.Join(',',p.Shape):string.Empty)}]");
+                                        gi++;
+                                    }
+                                }
+                                catch { }
+                            }
+
+                            // Log parameter norms before and after the optimizer step occasionally
+                            try
+                            {
+                                if (i % 50 == 0)
+                                {
+                                    var before = new System.Collections.Generic.List<double>();
+                                    foreach (var p in paramList)
+                                    {
+                                        try
+                                        {
+                                            double ss = 0.0;
+                                            for (int kk = 0; kk < p.Size; kk++) ss += p[kk] * p[kk];
+                                            before.Add(Math.Sqrt(ss));
+                                        }
+                                        catch { before.Add(double.NaN); }
+                                    }
+
+                                    optimizer.Step();
+
+                                    // after
+                                    var after = new System.Collections.Generic.List<double>();
+                                    foreach (var p in paramList)
+                                    {
+                                        try
+                                        {
+                                            double ss = 0.0;
+                                            for (int kk = 0; kk < p.Size; kk++) ss += p[kk] * p[kk];
+                                            after.Add(Math.Sqrt(ss));
+                                        }
+                                        catch { after.Add(double.NaN); }
+                                    }
+
+                                    // print per-parameter delta
+                                    for (int pi = 0; pi < Math.Min(before.Count, after.Count); pi++)
+                                    {
+                                        var b = before[pi]; var a = after[pi];
+                                        var d = (double.IsNaN(b) || double.IsNaN(a)) ? double.NaN : a - b;
+                                        Console.WriteLine($"Param[{pi}] norm before={b:E6} after={a:E6} delta={d:E6}");
+                                    }
+                                }
+                                else
+                                {
+                                    optimizer.Step();
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine($"Optimizer step/log failed: {ex.Message}");
+                                try { optimizer.Step(); } catch { }
+                            }
 
                             // optional outputs: save cropped pairs occasionally
                             try
@@ -204,7 +291,7 @@ namespace IdentificadorLeveModel.Runner
                     var avgLoss = (lossCount > 0 ? epochLoss / lossCount : double.NaN);
                     Console.WriteLine($"Epoch {epoch} avg loss = {avgLoss:F6}");
 
-                    // checkpoint
+                    // checkpoint (save model weights + comparator + optimizer state + meta)
                     try
                     {
                         var tmp = pesosDirRoot + ".tmp_" + DateTime.UtcNow.Ticks;
@@ -216,9 +303,31 @@ namespace IdentificadorLeveModel.Runner
                         try { SerializadorTensor.SaveBinary(Path.Combine(tmp, "comp_bh.bin"), bh); } catch { }
                         try { SerializadorTensor.SaveBinary(Path.Combine(tmp, "comp_Wo.bin"), Wo); } catch { }
                         try { SerializadorTensor.SaveBinary(Path.Combine(tmp, "comp_bo.bin"), bo); } catch { }
+                        // save optimizer state if available
+                        try { optimizer?.SaveState(tmp); } catch { }
+                        // write meta.json including epoch and lr
+                        try
+                        {
+                            var meta = new System.Collections.Generic.Dictionary<string, object>() {
+                                { "epoch", epoch },
+                                { "lr", (optimizer != null ? optimizer.Lr : hp.InitialLearningRate) },
+                                { "timestamp", DateTime.UtcNow }
+                            };
+                            File.WriteAllText(Path.Combine(tmp, "meta.json"), System.Text.Json.JsonSerializer.Serialize(meta));
+                        }
+                        catch { }
                         if (Directory.Exists(pesosDirRoot)) Directory.Delete(pesosDirRoot, true);
                         Directory.Move(tmp, pesosDirRoot);
                         Console.WriteLine($"Checkpoint saved to {pesosDirRoot}");
+                        // append to training CSV log
+                        try
+                        {
+                            var csv = Path.Combine(pesosDirRoot, "training_log.csv");
+                            if (!File.Exists(csv)) File.WriteAllText(csv, "epoch,avgLoss,lr\n");
+                            var line = $"{epoch},{(lossCount>0?epochLoss/lossCount:double.NaN)},{(optimizer!=null?optimizer.Lr:hp.InitialLearningRate)}\n";
+                            File.AppendAllText(csv, line);
+                        }
+                        catch { }
                     }
                     catch (Exception ex)
                     {
