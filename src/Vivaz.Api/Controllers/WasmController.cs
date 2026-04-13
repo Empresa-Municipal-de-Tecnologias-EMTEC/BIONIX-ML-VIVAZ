@@ -33,5 +33,28 @@ namespace Vivaz.Api.Controllers
             if (png == null) return NotFound();
             return File(png, "image/png");
         }
+
+        [HttpPost("embed")]
+        public async Task<IActionResult> Embed()
+        {
+            var file = Request.Form.Files.Count > 0 ? Request.Form.Files[0] : null;
+            if (file == null) return BadRequest("no file");
+            using var ms = new MemoryStream();
+            await file.CopyToAsync(ms);
+            var bytes = ms.ToArray();
+            var json = VivazClient.EmbedJson(bytes);
+            return Content(json, "application/json");
+        }
+
+        [HttpPost("compare")]
+        public async Task<IActionResult> Compare()
+        {
+            if (Request.Form.Files.Count < 2) return BadRequest("two files required");
+            var fa = Request.Form.Files[0]; var fb = Request.Form.Files[1];
+            using var msa = new MemoryStream(); await fa.CopyToAsync(msa);
+            using var msb = new MemoryStream(); await fb.CopyToAsync(msb);
+            var json = VivazClient.CompareJson(msa.ToArray(), msb.ToArray());
+            return Content(json, "application/json");
+        }
     }
 }

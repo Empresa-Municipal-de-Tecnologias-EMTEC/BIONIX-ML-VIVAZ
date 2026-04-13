@@ -3,6 +3,7 @@ using System.IO;
 using Bionix.ML.computacao;
 using Bionix.ML.nucleo.tensor;
 using Bionix.ML.dados.imagem;
+using Bionix.ML.dados.imagem.bmp;
 using Bionix.ML.dados.serializacao;
 using System.Collections.Generic;
 
@@ -146,6 +147,91 @@ namespace IdentificadorLeveModel
                 }
             }
             return _instance;
+        }
+
+        // Create embedding tensor from a BMP image. Performs square-crop (center crop by trimming
+        // the longer side), resizes to `InputSide`, converts to grayscale tensor and runs forward.
+        public Tensor EmbedFromBmp(BMP bmp, ComputacaoContexto ctx)
+        {
+            if (bmp == null) throw new ArgumentNullException(nameof(bmp));
+            // make square by trimming longer side (center crop)
+            int w = bmp.Width, h = bmp.Height;
+            BMP square = bmp;
+            if (w != h)
+            {
+                if (h > w)
+                {
+                    int trim = h - w;
+                    int top = trim / 2;
+                    square = ManipuladorDeImagem.cortar(bmp, 0, top, w, w);
+                }
+                else
+                {
+                    int trim = w - h;
+                    int left = trim / 2;
+                    square = ManipuladorDeImagem.cortar(bmp, left, 0, h, h);
+                }
+            }
+            var resized = ManipuladorDeImagem.redimensionar(square, InputSide, InputSide);
+            var t = ManipuladorDeImagem.TransformarCropParaTensorGrayscale(resized, InputSide, ctx ?? new ComputacaoCPUContexto());
+            var emb = this.Forward(t, ctx ?? new ComputacaoCPUContexto());
+            return emb;
+        }
+
+        // Convert embedding tensor to array (optionally L2-normalized)
+        public double[] EmbeddingToArray(Tensor emb, bool l2Normalize = true)
+        {
+            if (emb == null) throw new ArgumentNullException(nameof(emb));
+            var arr = new double[EmbeddingSize];
+            for (int i = 0; i < EmbeddingSize; i++) arr[i] = emb[i];
+            if (l2Normalize)
+            {
+                double ss = 0.0; for (int i = 0; i < EmbeddingSize; i++) ss += arr[i] * arr[i];
+                double nrm = Math.Sqrt(Math.Max(1e-12, ss));
+                for (int i = 0; i < EmbeddingSize; i++) arr[i] /= nrm;
+            }
+            return arr;
+        }
+
+        // Cosine similarity between two arrays (assumes already L2-normalized). Returns value in [-1,1].
+        public static double CosineSimilarity(double[] a, double[] b)
+        {
+            if (a == null || b == null) throw new ArgumentNullException();
+            if (a.Length != b.Length) throw new ArgumentException("vector length mismatch");
+            double s = 0.0; for (int i = 0; i < a.Length; i++) s += a[i] * b[i];
+            return s;
+        }
+
+        // Return percent similarity in [0..100]. We clamp negative cosine to 0.
+        public static double SimilarityPercent(double[] a, double[] b)
+        {
+            var cos = CosineSimilarity(a, b);
+            var v = Math.Max(0.0, cos);
+            return v * 100.0;
+        }
+
+        // Compare two embeddings (arrays) and return percent and boolean whether above threshold (0.7 default)
+        public static (double percent, bool same) CompareEmbeddings(double[] a, double[] b, double threshold = 0.7)
+        {
+            var p = SimilarityPercent(a, b);
+            return (p, p >= threshold * 100.0);
+        }
+
+        // Given a list of embeddings, find the most similar to `query`. Returns index and percent.
+        public static (int index, double percent) FindMostSimilar(IList<double[]> list, double[] query)
+        {
+            if (list == null || list.Count == 0) return (-1, 0.0);
+            int bestIdx = -1; double best = -1.0;
+            for (int i = 0; i < list.Count; i++)
+            {
+                try
+                {
+                    var p = SimilarityPercent(list[i], query);
+                    if (p > best) { best = p; bestIdx = i; }
+                }
+                catch { }
+            }
+            return (bestIdx, best);
         }
     }
 }

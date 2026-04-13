@@ -111,8 +111,26 @@ public class FaceController : ControllerBase
         using var msa = new MemoryStream(); await a.CopyToAsync(msa);
         using var msb = new MemoryStream(); await b.CopyToAsync(msb);
 
-        // TODO: run recognition and compute similarity via Bionix.ML
-        var response = new { same = false, score = 0.42 };
-        return Ok(response);
+        try
+        {
+            msa.Seek(0, SeekOrigin.Begin); msb.Seek(0, SeekOrigin.Begin);
+            Image<Rgba32> imga = Image.Load<Rgba32>(msa);
+            Image<Rgba32> imgb = Image.Load<Rgba32>(msb);
+            var bmpa = BMP.FromImage(imga);
+            var bmpb = BMP.FromImage(imgb);
+            ComputacaoContexto ctx = new ComputacaoCPUSIMDContexto();
+            var pesosDir = Path.Combine(Directory.GetCurrentDirectory(), "PESOS", "IDENTIFICADOR_LEVE");
+            var ident = IdentificadorLeveModel.IdentificadorLeve.GetInstance(ctx, pesosDir);
+            var embA = ident.EmbedFromBmp(bmpa, ctx);
+            var embB = ident.EmbedFromBmp(bmpb, ctx);
+            var arrA = ident.EmbeddingToArray(embA, true);
+            var arrB = ident.EmbeddingToArray(embB, true);
+            var (percent, same) = IdentificadorLeveModel.IdentificadorLeve.CompareEmbeddings(arrA, arrB, 0.7);
+            return Ok(new { same = same, percent = percent });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
     }
 }
