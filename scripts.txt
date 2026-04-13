@@ -1,70 +1,78 @@
-Treino do Detector (do zero)
+Comandos principais para o workspace BIONIX (exemplos em PowerShell e Bash)
 
-dotnet run --project BIONIX-ML-VIVAZ/src/DetectorModel.Runner/DetectorModel.Runner.csproj -- --mode train
+## 1) Soluções
+- Build solução principal (ambos repositórios):
+	PowerShell:
+		dotnet build BIONIX-ML/BIONIX-ML.sln -c Debug
+		dotnet build BIONIX-ML-VIVAZ/BIONIX-ML-VIVAZ.sln -c Debug
+	Bash:
+		dotnet build "BIONIX-ML/BIONIX-ML.sln" -c Debug
+		dotnet build "BIONIX-ML-VIVAZ/BIONIX-ML-VIVAZ.sln" -c Debug
 
-Retomar treino do Detector (usar checkpoint em PESOS/DETECTOR)
+## 2) Bionix.ML / exemplos (console)
+- Executar exemplo 0001 (Regressão Linear):
+	dotnet run --project BIONIX-ML/src/Exemplos/Exemplo0001RegressaoLinear/Exemplo0001RegressaoLinear.csproj -c Debug
 
-# Preferir passar a flag --resume; alternadamente use a variável de ambiente RESUME=1
-$env:RESUME='1'; dotnet run --project BIONIX-ML-VIVAZ/src/DetectorModel.Runner/DetectorModel.Runner.csproj -- --mode train --resume
+## 3) Treinos e runners (Detector, Identificador, DetectorLeve)
+- Detector (modelo principal) — treinar do zero:
+	$env:RESUME=''; dotnet run --project BIONIX-ML-VIVAZ/src/DetectorModel.Runner/DetectorModel.Runner.csproj -- --mode train
 
-Teste rápido (salva apenas 1 imagem e sai)
+- Retomar treino do Detector (usar checkpoint em PESOS/DETECTOR):
+	$env:RESUME='1'; dotnet run --project BIONIX-ML-VIVAZ/src/DetectorModel.Runner/DetectorModel.Runner.csproj -- --mode train --resume
 
-$env:QUICK_TEST_SAVE='1'; dotnet run --project BIONIX-ML-VIVAZ/src/DetectorModel.Runner/DetectorModel.Runner.csproj -- --mode train
+- Identificador — treinar:
+	dotnet run --project BIONIX-ML-VIVAZ/src/IdentificadorModel.Runner/IdentificadorModel.Runner.csproj -- --mode train
 
-Forçar semente RNG e retomar (exemplo)
+- DetectorLeve (20×20 MLP) — treinar / retomar / opções comuns:
+	Treinar (modo padrão):
+		dotnet run --project BIONIX-ML-VIVAZ/src/DetectorLeveModel.Runner/DetectorLeveModel.Runner.csproj -c Debug -- --mode train
+	Retomar com checkpoint:
+		$env:RESUME='1'; dotnet run --project BIONIX-ML-VIVAZ/src/DetectorLeveModel.Runner/DetectorLeveModel.Runner.csproj -c Debug -- --mode train --resume
+	Teste rápido (salva 1 imagem e sai):
+		$env:QUICK_TEST_SAVE='1'; dotnet run --project BIONIX-ML-VIVAZ/src/DetectorLeveModel.Runner/DetectorLeveModel.Runner.csproj -c Debug -- --mode train
+	Ajustar épocas / parada por perda / suprimir outputs (exemplos):
+		$env:EPOCHS='50'; $env:LOSS_THRESHOLD='0.5'; dotnet run --project BIONIX-ML-VIVAZ/src/DetectorLeveModel.Runner/DetectorLeveModel.Runner.csproj -c Debug -- --mode train
+		$env:SUPPRESS_OUTPUTS='1'; dotnet run --project BIONIX-ML-VIVAZ/src/DetectorLeveModel.Runner/DetectorLeveModel.Runner.csproj -c Debug -- --mode train
 
-$env:SEED=12345; $env:RESUME='1'; dotnet run --project BIONIX-ML-VIVAZ/src/DetectorModel.Runner/DetectorModel.Runner.csproj -- --mode train --resume
+## 4) Teste de detecção (detect-test) — gera crops e .txt em SAIDA
+- Exemplo rápido (6 amostras, PowerShell):
+	$env:RESUME='1'; dotnet run --project BIONIX-ML-VIVAZ/src/DetectorLeveModel.Runner/DetectorLeveModel.Runner.csproj -c Debug -- --detect-test --detect-samples 6 --resume
 
----
-Treino do Identificador
+- Exemplo: 100 amostras
+	$env:RESUME='1'; dotnet run --project BIONIX-ML-VIVAZ/src/DetectorLeveModel.Runner/DetectorLeveModel.Runner.csproj -c Debug -- --detect-test --detect-samples 100 --resume
 
-dotnet run --project BIONIX-ML-VIVAZ/src/IdentificadorModel.Runner/IdentificadorModel.Runner.csproj -- --mode train
+## 5) Serviços Web / Demo
+- Rodar API (Vivaz.Api) — retorna crop PNG / JSON
+	dotnet run --project BIONIX-ML-VIVAZ/src/Vivaz.Api/Vivaz.Api.csproj -c Debug --urls "http://localhost:5000"
 
-Retomar treino do Identificador (usar checkpoint em PESOS/IDENTIFICADOR)
+- Rodar demo MVC (Vivaz.Demonstracao) — páginas de demonstração (API + WASM)
+	dotnet run --project BIONIX-ML-VIVAZ/src/Vivaz.Demonstracao/Vivaz.Demonstracao.csproj -c Debug --urls "http://localhost:5001"
 
-$env:RESUME='1'; dotnet run --project BIONIX-ML-VIVAZ/src/IdentificadorModel.Runner/IdentificadorModel.Runner.csproj -- --mode train --resume
+- Build / publicar Vivaz.WASM (biblioteca WASM/C#):
+	dotnet build BIONIX-ML-VIVAZ/src/Vivaz.WASM/Vivaz.WASM.csproj -c Release
+	(empacotar/embarcar pesos na artefato WASM ainda é um passo manual adicional)
 
-Observações:
-- Use a flag `--resume` ou `RESUME=1` — o runner detecta ambas. Não passe parâmetros que sobrescrevam diretorios de `PESOS` ou `SAIDA` via linha de comando sem alterar o código que os consome.
-- Para limitar amostras por época (modo rápido), defina `MaxSamplesPerEpoch` no código ou exponha via variável/args; por enquanto o default é igual a `BatchSize`.
-- Exemplos acima são para PowerShell; em CMD/WSL ajuste a sintaxe das variáveis de ambiente.
+## WASM embedding (weights)
+- To embed the DetectorLeve weights into the Vivaz.WASM assembly (recommended for offline WASM usage):
+	1. Copy your weights folder `CLASSIFICADOR_DETECTOR_LEVE` into `src/Vivaz.WASM/PESOS/CLASSIFICADOR_DETECTOR_LEVE`.
+	2. Build the project — files under `src/Vivaz.WASM/PESOS` are embedded into the assembly as resources:
+		 dotnet build BIONIX-ML-VIVAZ/src/Vivaz.WASM/Vivaz.WASM.csproj -c Release
+	3. The API endpoints `/api/face/wasm/detectjson` and `/api/face/wasm/detectcrop` will prefer embedded weights when available.
 
----
-Treino do DetectorLeve (leve, 20x20 grayscale MLP)
+Notes:
+- The demo site (http://localhost:5001) calls the WASM-backed API on http://localhost:5000 by default. Ensure both servers are running.
+- WASM endpoints added to the API:
+	- POST http://localhost:5000/api/face/wasm/detectjson  (form file: `file`)
+	- POST http://localhost:5000/api/face/wasm/detectcrop  (form file: `file`) — returns PNG
 
-dotnet run --project BIONIX-ML-VIVAZ/src/DetectorLeveModel.Runner/DetectorLeveModel.Runner.csproj -- -c Debug
+## 6) Utilitários e notas rápidas
+- Limpar e rebuild:
+	dotnet clean BIONIX-ML-VIVAZ -c Debug
+	dotnet build BIONIX-ML-VIVAZ -c Debug
 
-Retomar treino do DetectorLeve (usar checkpoint em PESOS/CLASSIFICADOR_DETECTOR_LEVE)
+- Observações:
+	- Exemplos de variáveis são para PowerShell; em Bash use `EPOCHS=50 LOSS_THRESHOLD=0.5 dotnet run --project ...`.
+	- Use `--resume` ou `RESUME=1` para retomar checkpoints; os caminhos padrão de `PESOS` e `SAIDA` são definidos no código.
+	- Para executar projetos diferentes, ajuste o path do `--project` apontando para o .csproj desejado.
 
-# Preferir passar a flag --resume; alternadamente use a variável de ambiente RESUME=1
-$env:RESUME='1'; dotnet run --project BIONIX-ML-VIVAZ/src/DetectorLeveModel.Runner/DetectorLeveModel.Runner.csproj -- -c Debug -- --mode train --resume
-
-Teste rápido do DetectorLeve (salva apenas 1 imagem e sai)
-
-$env:QUICK_TEST_SAVE='1'; dotnet run --project BIONIX-ML-VIVAZ/src/DetectorLeveModel.Runner/DetectorLeveModel.Runner.csproj -- -c Debug -- --mode train
-
-Forçar semente RNG e retomar (exemplo)
-
-$env:SEED=12345; $env:RESUME='1'; dotnet run --project BIONIX-ML-VIVAZ/src/DetectorLeveModel.Runner/DetectorLeveModel.Runner.csproj -- -c Debug -- --mode train --resume
-
-Exemplos adicionais para `DetectorLeve`:
-
-# Rodar 50 épocas explicitamente
-$env:EPOCHS='50'; dotnet run --project BIONIX-ML-VIVAZ/src/DetectorLeveModel.Runner/DetectorLeveModel.Runner.csproj -- -c Debug -- --mode train --resume
-
-# Parar automaticamente quando a perda média da época ficar <= 0.5
-$env:LOSS_THRESHOLD='0.5'; dotnet run --project BIONIX-ML-VIVAZ/src/DetectorLeveModel.Runner/DetectorLeveModel.Runner.csproj -- -c Debug -- --mode train --resume
-
-# Suprimir gravação de imagens/txs de `SAIDA`
-$env:SUPPRESS_OUTPUTS='1'; dotnet run --project BIONIX-ML-VIVAZ/src/DetectorLeveModel.Runner/DetectorLeveModel.Runner.csproj -- -c Debug -- --mode train --resume
-
-# Combinação: rodar 100 épocas, parar quando perda <=0.2 e suprimir outputs
-$env:EPOCHS='100'; $env:LOSS_THRESHOLD='0.2'; $env:SUPPRESS_OUTPUTS='1'; dotnet run --project BIONIX-ML-VIVAZ/src/DetectorLeveModel.Runner/DetectorLeveModel.Runner.csproj -- -c Debug -- --mode train --resume
-
----
-# Teste de detecção (gera crops com a anotação ocupando ~25–60% e salva PNG/.TXT em SAIDA)
-# Exemplo: rodar 6 amostras (PowerShell)
-$env:RESUME='1'; dotnet run --project BIONIX-ML-VIVAZ/src/DetectorLeveModel.Runner/DetectorLeveModel.Runner.csproj -c Debug -- --detect-test --detect-samples 6 --resume
-
-# Exemplo: rodar 100 amostras
-$env:RESUME='1'; dotnet run --project BIONIX-ML-VIVAZ/src/DetectorLeveModel.Runner/DetectorLeveModel.Runner.csproj -c Debug -- --detect-test --detect-samples 100 --resume
+Se quiser, eu posso adicionar comandos para outros projetos específicos (por ex. `AnotadorDeDataSet`, `DetectorModel` variantes) — diga quais você quer expor.

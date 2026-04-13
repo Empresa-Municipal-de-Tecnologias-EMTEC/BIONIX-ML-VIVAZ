@@ -16,6 +16,7 @@
     <ProjectReference Include="..\IdentificadorModel\IdentificadorModel.csproj" />
     <ProjectReference Include="..\..\..\BIONIX-ML\src\Bionix.ML\Bionix.ML.csproj" />
     <ProjectReference Include="..\DetectorLeveModel\DetectorLeveModel.csproj" />
+    <ProjectReference Include="..\Vivaz.WASM\Vivaz.WASM.csproj" />
   </ItemGroup>
 
 </Project>

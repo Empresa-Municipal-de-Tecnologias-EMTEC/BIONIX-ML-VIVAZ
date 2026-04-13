@@ -20,6 +20,45 @@ namespace Vivaz.WASM
         }
 
         // Detect and return consensus box as JSON string: { found:bool, x,y,w,h }
+        private static string? ExtractEmbeddedWeightsIfPresent(out string? tempPesosDir)
+        {
+            tempPesosDir = null;
+            try
+            {
+                var asm = typeof(VivazClient).Assembly;
+                // resource path convention: Vivaz.WASM.pesos.CLASSIFICADOR_DETECTOR_LEVE.zip
+                foreach (var name in asm.GetManifestResourceNames())
+                {
+                    if (name.ToLower().Contains("classificador_detector_leve"))
+                    {
+                        var outDir = Path.Combine(Path.GetTempPath(), "vivaz_pesos");
+                        Directory.CreateDirectory(outDir);
+                        var resFile = Path.Combine(outDir, "embedded_pesos.bin");
+                        using var s = asm.GetManifestResourceStream(name);
+                        if (s == null) continue;
+                        using var fs = File.Create(resFile);
+                        s.CopyTo(fs);
+                        // If the resource is a zip/dir expected by GetInstance, try to unzip
+                        try
+                        {
+                            // attempt to unzip (best-effort)
+                            System.IO.Compression.ZipFile.ExtractToDirectory(resFile, Path.Combine(outDir, "CLASSIFICADOR_DETECTOR_LEVE"), true);
+                            tempPesosDir = Path.Combine(outDir, "CLASSIFICADOR_DETECTOR_LEVE");
+                            return tempPesosDir;
+                        }
+                        catch
+                        {
+                            // not a zip — leave single file; detector may support single-file weights
+                            tempPesosDir = outDir;
+                            return tempPesosDir;
+                        }
+                    }
+                }
+            }
+            catch { }
+            return null;
+        }
+
         public static string DetectJson(byte[] imageBytes)
         {
             if (imageBytes == null || imageBytes.Length == 0) return JsonSerializer.Serialize(new { found = false });
@@ -29,7 +68,10 @@ namespace Vivaz.WASM
                 var img = Image.Load<Rgba32>(ms);
                 var bmp = BMP.FromImage(img);
                 ComputacaoContexto ctx = new ComputacaoCPUSIMDContexto();
-                var pesosDir = Path.Combine(Directory.GetCurrentDirectory(), "PESOS", "CLASSIFICADOR_DETECTOR_LEVE");
+                // prefer embedded weights if present
+                string? tempPesos;
+                var embedded = ExtractEmbeddedWeightsIfPresent(out tempPesos);
+                var pesosDir = embedded ?? Path.Combine(Directory.GetCurrentDirectory(), "PESOS", "CLASSIFICADOR_DETECTOR_LEVE");
                 var det = DetectorLeve.GetInstance(ctx, pesosDir);
                 var all = det.DetectTopPerScale(bmp, ctx, 0.5, null, null, 5);
                 var cons = det.AggregateConsensus(all, bmp.Width, bmp.Height, 0.4);
@@ -52,7 +94,10 @@ namespace Vivaz.WASM
                 var img = Image.Load<Rgba32>(ms);
                 var bmp = BMP.FromImage(img);
                 ComputacaoContexto ctx = new ComputacaoCPUSIMDContexto();
-                var pesosDir = Path.Combine(Directory.GetCurrentDirectory(), "PESOS", "CLASSIFICADOR_DETECTOR_LEVE");
+                // prefer embedded weights if present
+                string? tempPesos;
+                var embedded = ExtractEmbeddedWeightsIfPresent(out tempPesos);
+                var pesosDir = embedded ?? Path.Combine(Directory.GetCurrentDirectory(), "PESOS", "CLASSIFICADOR_DETECTOR_LEVE");
                 var det = DetectorLeve.GetInstance(ctx, pesosDir);
                 var all = det.DetectTopPerScale(bmp, ctx, 0.5, null, null, 5);
                 var cons = det.AggregateConsensus(all, bmp.Width, bmp.Height, 0.4);

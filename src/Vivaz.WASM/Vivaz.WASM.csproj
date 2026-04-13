@@ -12,4 +12,8 @@
     <ProjectReference Include="..\\DetectorModel\\DetectorModel.csproj" />
     <ProjectReference Include="..\\DetectorLeveModel\\DetectorLeveModel.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <!-- If you place weight files under src/Vivaz.WASM/PESOS they'll be embedded into the assembly -->
+    <EmbeddedResource Include="PESOS\**\*.*" />
+  </ItemGroup>
 </Project>
