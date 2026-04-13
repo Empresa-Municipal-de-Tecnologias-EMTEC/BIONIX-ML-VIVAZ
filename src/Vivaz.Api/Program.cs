@@ -5,6 +5,16 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddControllers();
+// Allow all CORS for local demo usage (permite todos)
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
 
 var app = builder.Build();
 
@@ -36,6 +46,8 @@ app.MapGet("/weatherforecast", () =>
 .WithOpenApi();
 
 app.UseRouting();
+// Enable CORS policy to allow requests from the demo (and other origins)
+app.UseCors("AllowAll");
 app.UseEndpoints(endpoints =>
 {
     endpoints.MapControllers();
