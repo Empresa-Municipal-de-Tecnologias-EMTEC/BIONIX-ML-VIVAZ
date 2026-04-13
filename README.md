@@ -92,19 +92,18 @@ $env:RESUME='1'; dotnet run --project src/IdentificadorLeveModel.Runner/Identifi
 
 WASM / API — como usar
 -----------------------
-O projeto inclui duas formas de expor inferência WASM via a API:
+O repositório expõe endpoints tradicionais e endpoints "WASM-backed" — estes últimos usam a biblioteca `Vivaz.WASM` internamente no servidor para executar inferência.
 
-- Endpoints tradicionais (API):
-	- `POST /api/face/detect` — envia um arquivo (`form` `file`) retorna PNG crop ou JSON detections
-	- `POST /api/face/detectjson` — retorna JSON de detections
+Principais endpoints (resumo):
 
-- Endpoints WASM-backed (o runtime usa `Vivaz.WASM` internamente):
-	- `POST /api/face/wasm/detectjson` — aceita `form` `file`, retorna JSON
-	- `POST /api/face/wasm/detectcrop` — aceita `form` `file`, retorna PNG crop
-	- `POST /api/face/wasm/embed` — aceita `form` `file`, retorna `{ embedding: [...] }`
-	- `POST /api/face/wasm/compare` — aceita dois arquivos no `form` (ordem: primeiro, segundo), retorna `{ percent, same }`
+- `POST /api/face/detect` — envia um arquivo (`form` campo `file`), retorna uma imagem PNG recortada ou JSON com possíveis detecções.
+- `POST /api/face/detectjson` — envia um arquivo (`form` campo `file`), retorna JSON com todas as detecções.
+- `POST /api/face/wasm/detectjson` — mesma funcionalidade que `detectjson`, porém executa através do runtime WASM (`Vivaz.WASM`) no servidor.
+- `POST /api/face/wasm/detectcrop` — envia `file`, retorna PNG com o crop consensual detectado (ou 404 se não encontrar).
+- `POST /api/face/wasm/embed` — envia `file`, retorna JSON `{ "embedding": [ ... ] }` com o vetor de embedding.
+- `POST /api/face/wasm/compare` — envia dois arquivos no `form` (primeiro e segundo), retorna JSON `{ "percent": <num>, "same": <bool> }`.
 
-Exemplos com `curl` (API na porta 5000):
+Exemplos rápidos com `curl` (API local padrão):
 
 ```bash
 curl -X POST -F "file=@face.jpg" http://localhost:5000/api/face/wasm/detectjson
@@ -112,34 +111,71 @@ curl -X POST -F "file=@face.jpg" http://localhost:5000/api/face/wasm/detectcrop 
 curl -X POST -F "file=@a.jpg" -F "file=@b.jpg" http://localhost:5000/api/face/wasm/compare
 ```
 
-Embedding weights into `Vivaz.WASM` (offline WASM)
--------------------------------------------------
-If you want `Vivaz.WASM` to include model weights as embedded resources (so the API can use WASM without reading external `PESOS`), copy the target weights folder into `src/Vivaz.WASM/PESOS/<FOLDER>` before building the `Vivaz.WASM` project. Example:
+Como usar `Vivaz.WASM` a partir do navegador
+-------------------------------------------
+O servidor oferece endpoints WASM-backed que podem ser consumidos diretamente pelo navegador via `fetch` / `FormData`.
 
+Modelo de integração (página de exemplo já incluída em `src/Vivaz.Demonstracao/wwwroot`):
+
+- Estrutura HTML mínima usada nas demos:
+
+```html
+<video id="video" autoplay playsinline width="320" height="240"></video>
+<canvas id="canvas" style="display:none"></canvas>
+<button id="capA">Capture A</button>
+<button id="capB">Capture B</button>
+<button id="compare">Compare</button>
+<div>A: <img id="imgA" width="160"></div>
+<div>B: <img id="imgB" width="160"></div>
+<div id="result"></div>
+<script src="/js/compare.js"></script>
+<script>
+	window.demoCompareConfig = {
+		embedEndpoint: '/api/face/wasm/embed',
+		compareEndpoint: '/api/face/wasm/compare',
+		thresholdPercent: 70
+	};
+</script>
 ```
-# copy current trained weights into the WASM project (one-time)
-cp -r PESOS/IDENTIFICADOR_LEVE src/Vivaz.WASM/PESOS/IDENTIFICADOR_LEVE
-dotnet build src/Vivaz.WASM/Vivaz.WASM.csproj -c Release
+
+- A lógica comum está em `src/Vivaz.Demonstracao/wwwroot/js/compare.js`. Ela:
+	- inicializa a câmera via `navigator.mediaDevices.getUserMedia`,
+	- captura imagens para um `canvas`,
+	- envia imagens ao endpoint de embedding (`embedEndpoint`) para obter os vetores,
+	- faz comparação localmente (produto interno / normalização) quando os embeddings estão disponíveis, ou recorre ao endpoint de comparação do servidor (`compareEndpoint`) como fallback.
+
+Portanto, para integrar ao seu site, reutilize a estrutura de HTML e o `compare.js` (ou implemente chamadas `fetch` equivalentes que enviem `FormData` com o arquivo no campo `file`).
+
+Incluir pesos embutidos no `Vivaz.WASM`
+--------------------------------------
+Se quiser que o `Vivaz.WASM` inclua pesos no binário (recursos incorporados) — de forma que a API não precise ler a pasta `PESOS` em disco — copie a pasta de pesos para `src/Vivaz.WASM/PESOS/<NOME>` antes de compilar o projeto `Vivaz.WASM`. Exemplo (PowerShell):
+
+```powershell
+# copiar pesos treinados para o projeto WASM (uma vez)
+Copy-Item -Recurse PESOS\IDENTIFICADOR_LEVE src\Vivaz.WASM\PESOS\IDENTIFICADOR_LEVE
+dotnet build src\Vivaz.WASM\Vivaz.WASM.csproj -c Release
 ```
+
+O `Vivaz.WASM` tenta localizar recursos incorporados com nomes que contenham `CLASSIFICADOR_DETECTOR_LEVE` e `IDENTIFICADOR_LEVE`; quando detectados, ele extrai e usa esses arquivos temporariamente em runtime.
 
 Docker (build + run)
 --------------------
-This repository includes Dockerfiles and a `docker-compose.yml` to run the API and Demo.
+Este repositório inclui `Dockerfile`s e um `docker-compose.yml` para executar a API e a demonstração.
 
-From the repository root (`BIONIX-ML-VIVAZ`):
+Do diretório raiz (`BIONIX-ML-VIVAZ`):
 
 ```powershell
 docker compose up --build
 ```
 
-This starts two services by default:
+Por padrão o compose sobe dois serviços úteis para desenvolvimento:
 
-- `vivaz_api` mapped to container port `80` → host `5001` in compose (configurable in `docker-compose.yml`)
-- `vivaz_demo` mapped to container port `80` → host `5000`
+- `vivaz_api` (API) — configurável via `docker-compose.yml` (mapeamento de portas padrão no compose pode expor a API em `localhost:5001`).
+- `vivaz_demo` (página de demonstração) — geralmente exposta em `localhost:5000`.
 
-Notes:
-- To embed WASM weights inside the `Vivaz.WASM` assembly before building the images, copy the `PESOS/<FOLDER>` into `src/Vivaz.WASM/PESOS` then run `docker compose build` so the embedded resources are included in the build stage.
-- The `Vivaz.WASM` project is a library and does not run standalone — the Dockerfile for WASM is build-only to produce artifacts.
+Observações:
+- Para embutir pesos no binário `Vivaz.WASM` antes de construir as imagens, copie `PESOS/<FOLDER>` para `src/Vivaz.WASM/PESOS` e execute `docker compose build` para que os recursos incorporados sejam empacotados na imagem.
+- O projeto `Vivaz.WASM` é uma biblioteca (.dll) usada pelo servidor; sua Dockerfile típica é de build-only para produzir o artefato que o `Vivaz.Api` consome.
 
 
 Modelos e dataset
