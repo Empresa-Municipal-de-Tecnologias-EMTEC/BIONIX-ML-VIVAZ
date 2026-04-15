@@ -45,8 +45,8 @@ namespace Vivaz.WASM
                         try
                         {
                             // attempt to unzip (best-effort)
-                            System.IO.Compression.ZipFile.ExtractToDirectory(resFile, Path.Combine(outDir, "CLASSIFICADOR_DETECTOR_LEVE"), true);
-                            tempPesosDir = Path.Combine(outDir, "CLASSIFICADOR_DETECTOR_LEVE");
+                            System.IO.Compression.ZipFile.ExtractToDirectory(resFile, Path.Combine(outDir, "CLASSIFICADOR_DETECTOR_LEVE_B"), true);
+                            tempPesosDir = Path.Combine(outDir, "CLASSIFICADOR_DETECTOR_LEVE_B");
                             return tempPesosDir;
                         }
                         catch
@@ -62,7 +62,7 @@ namespace Vivaz.WASM
                 if (!string.IsNullOrEmpty(apiUrl))
                 {
                     // best-effort: try known peso package names
-                    var tryNames = new[] { "CLASSIFICADOR_DETECTOR_LEVE", "IDENTIFICADOR_LEVE" };
+                    var tryNames = new[] { "CLASSIFICADOR_DETECTOR_LEVE_B", "IDENTIFICADOR_LEVE" };
                     foreach (var n in tryNames)
                     {
                         try
@@ -165,7 +165,7 @@ namespace Vivaz.WASM
                 ComputacaoContexto ctx = new ComputacaoCPUSIMDContexto();
                 string? tempPesos;
                 var embedded = ExtractEmbeddedWeightsIfPresent(out tempPesos);
-                var pesosDir = embedded ?? Path.Combine(Directory.GetCurrentDirectory(), "PESOS", "CLASSIFICADOR_DETECTOR_LEVE");
+                var pesosDir = embedded ?? Path.Combine(Directory.GetCurrentDirectory(), "PESOS", "CLASSIFICADOR_DETECTOR_LEVE_B");
                 var det = DetectorLeve.GetInstance(ctx, pesosDir);
                 var all = det.DetectTopPerScale(bmp, ctx, 0.5, null, null, 5);
                 var cons = det.AggregateConsensus(all, bmp.Width, bmp.Height, 0.4);
@@ -187,7 +187,7 @@ namespace Vivaz.WASM
                 ComputacaoContexto ctx = new ComputacaoCPUSIMDContexto();
                 string? tempPesos;
                 var embedded = ExtractEmbeddedWeightsIfPresent(out tempPesos);
-                var pesosDir = embedded ?? Path.Combine(Directory.GetCurrentDirectory(), "PESOS", "CLASSIFICADOR_DETECTOR_LEVE");
+                var pesosDir = embedded ?? Path.Combine(Directory.GetCurrentDirectory(), "PESOS", "CLASSIFICADOR_DETECTOR_LEVE_B");
                 var det = DetectorLeve.GetInstance(ctx, pesosDir);
                 var all = det.DetectTopPerScale(bmp, ctx, 0.5, null, null, 5);
                 var cons = det.AggregateConsensus(all, bmp.Width, bmp.Height, 0.4);

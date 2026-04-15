@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\BIONIX-ML\src\Bionix.ML\Bionix.ML.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AssemblyName>DetectorLeveBModel</AssemblyName>
+    <RootNamespace>DetectorLeveBModel</RootNamespace>
+  </PropertyGroup>
+
+</Project>

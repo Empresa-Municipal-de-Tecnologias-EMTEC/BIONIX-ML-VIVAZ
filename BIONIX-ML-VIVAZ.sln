@@ -2,8 +2,6 @@
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.0.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bionix.ML.Vivaz", "src\Bionix.ML.Vivaz\Bionix.ML.Vivaz.csproj", "{22222222-2222-2222-2222-222222222222}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{8859A958-9CDF-4D3E-96E4-3D47D69C702C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DetectorModel", "src\DetectorModel\DetectorModel.csproj", "{DEC2F77E-90B6-4B20-95B6-07C7407C67C8}"
@@ -16,16 +14,17 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DatasetAnnotator", "src\Ano
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DetectorModel.Runner", "src\DetectorModel.Runner\DetectorModel.Runner.csproj", "{7BC7CE7E-2DCA-48AD-80B6-875685F5B23C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DetectorLeveBModel", "src\DetectorLeveBModel\DetectorLeveBModel.csproj", "{51F58D9B-515D-4444-B0F3-7262195F1C8F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DetectorLeveBModel.Runner", "src\DetectorLeveBModel.Runner\DetectorLeveBModel.Runner.csproj", "{E746DB6D-162D-4DF5-8090-03DAD4A42FE3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{22222222-2222-2222-2222-222222222222}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{22222222-2222-2222-2222-222222222222}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{22222222-2222-2222-2222-222222222222}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{22222222-2222-2222-2222-222222222222}.Release|Any CPU.Build.0 = Release|Any CPU
+		
 		{DEC2F77E-90B6-4B20-95B6-07C7407C67C8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{DEC2F77E-90B6-4B20-95B6-07C7407C67C8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DEC2F77E-90B6-4B20-95B6-07C7407C67C8}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -46,6 +45,14 @@ Global
 		{7BC7CE7E-2DCA-48AD-80B6-875685F5B23C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7BC7CE7E-2DCA-48AD-80B6-875685F5B23C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7BC7CE7E-2DCA-48AD-80B6-875685F5B23C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{51F58D9B-515D-4444-B0F3-7262195F1C8F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{51F58D9B-515D-4444-B0F3-7262195F1C8F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{51F58D9B-515D-4444-B0F3-7262195F1C8F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{51F58D9B-515D-4444-B0F3-7262195F1C8F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E746DB6D-162D-4DF5-8090-03DAD4A42FE3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E746DB6D-162D-4DF5-8090-03DAD4A42FE3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E746DB6D-162D-4DF5-8090-03DAD4A42FE3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E746DB6D-162D-4DF5-8090-03DAD4A42FE3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{DEC2F77E-90B6-4B20-95B6-07C7407C67C8} = {8859A958-9CDF-4D3E-96E4-3D47D69C702C}
@@ -53,5 +60,7 @@ Global
 		{2EC8389A-8285-4CC9-B6F6-3CEA929106C6} = {8859A958-9CDF-4D3E-96E4-3D47D69C702C}
 		{40D119C4-7BE3-4795-BDC0-92CAFCC9C446} = {8859A958-9CDF-4D3E-96E4-3D47D69C702C}
 		{7BC7CE7E-2DCA-48AD-80B6-875685F5B23C} = {8859A958-9CDF-4D3E-96E4-3D47D69C702C}
+		{51F58D9B-515D-4444-B0F3-7262195F1C8F} = {8859A958-9CDF-4D3E-96E4-3D47D69C702C}
+		{E746DB6D-162D-4DF5-8090-03DAD4A42FE3} = {8859A958-9CDF-4D3E-96E4-3D47D69C702C}
 	EndGlobalSection
 EndGlobal

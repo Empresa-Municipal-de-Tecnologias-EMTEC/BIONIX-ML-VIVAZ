@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>DetectorLeveBModel.Runner</AssemblyName>
+    <RootNamespace>DetectorLeveBModel.Runner</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\DetectorLeveBModel\DetectorLeveBModel.csproj" />
+    <ProjectReference Include="..\DetectorModel\DetectorModel.csproj" />
+  </ItemGroup>
+</Project>

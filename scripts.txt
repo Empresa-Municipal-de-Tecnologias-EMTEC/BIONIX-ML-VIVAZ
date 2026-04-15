@@ -86,8 +86,8 @@ Note: If you want to embed trained weights into the `Vivaz.WASM` assembly before
 	- Exemplo PowerShell:
 
 ```powershell
-Copy-Item -Recurse PESOS\CLASSIFICADOR_DETECTOR_LEVE src\Vivaz.Api\wwwroot\pesos\CLASSIFICADOR_DETECTOR_LEVE
-Compress-Archive -Path src\Vivaz.Api\wwwroot\pesos\CLASSIFICADOR_DETECTOR_LEVE -DestinationPath src\Vivaz.Api\wwwroot\pesos\CLASSIFICADOR_DETECTOR_LEVE.zip -Force
+	Copy-Item -Recurse PESOS\CLASSIFICADOR_DETECTOR_LEVE_B src\Vivaz.Api\wwwroot\pesos\CLASSIFICADOR_DETECTOR_LEVE_B
+	Compress-Archive -Path src\Vivaz.Api\wwwroot\pesos\CLASSIFICADOR_DETECTOR_LEVE_B -DestinationPath src\Vivaz.Api\wwwroot\pesos\CLASSIFICADOR_DETECTOR_LEVE_B.zip -Force
 ```
 
 - Configure a variável de ambiente usada pelo WASM para localizar a API de pesos antes de servir a demo (exemplo PowerShell):
@@ -101,7 +101,7 @@ O runtime cliente (quando compilado para WASM) tentará baixar `VIVAZ_API_URL/pe
 
 ## WASM embedding (weights)
 - To embed the DetectorLeve weights into the Vivaz.WASM assembly (recommended for offline WASM usage):
-	1. Copy your weights folder `CLASSIFICADOR_DETECTOR_LEVE` into `src/Vivaz.WASM/PESOS/CLASSIFICADOR_DETECTOR_LEVE`.
+	1. Copy your weights folder `CLASSIFICADOR_DETECTOR_LEVE_B` into `src/Vivaz.WASM/PESOS/CLASSIFICADOR_DETECTOR_LEVE_B`.
 	2. Build the project — files under `src/Vivaz.WASM/PESOS` are embedded into the assembly as resources:
 		 dotnet build BIONIX-ML-VIVAZ/src/Vivaz.WASM/Vivaz.WASM.csproj -c Release
 	3. The API endpoints `/api/face/wasm/detectjson` and `/api/face/wasm/detectcrop` will prefer embedded weights when available.
