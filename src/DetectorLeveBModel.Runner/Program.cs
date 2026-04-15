@@ -85,6 +85,9 @@ namespace DetectorLeveModel.Runner
             // QUICK_TEST_SAVE env for quick one-sample test (backwards compat)
             var quick = Environment.GetEnvironmentVariable("QUICK_TEST_SAVE");
             if (!string.IsNullOrEmpty(quick) && (quick == "1" || quick.Equals("true", StringComparison.OrdinalIgnoreCase))) hp.MaxSamplesPerEpoch = 1;
+            // allow RESUME via environment variable for convenience (backwards compat)
+            var resumeEnvVar = Environment.GetEnvironmentVariable("RESUME");
+            if (!string.IsNullOrEmpty(resumeEnvVar) && (resumeEnvVar == "1" || resumeEnvVar.Equals("true", StringComparison.OrdinalIgnoreCase))) resume = true;
             var supOut = Environment.GetEnvironmentVariable("SUPPRESS_OUTPUTS");
             if (!string.IsNullOrEmpty(supOut) && (supOut == "1" || supOut.Equals("true", StringComparison.OrdinalIgnoreCase))) hp.SuppressOutputs = true;
             var lrEnv = Environment.GetEnvironmentVariable("INITIAL_LR") ?? Environment.GetEnvironmentVariable("LR");
