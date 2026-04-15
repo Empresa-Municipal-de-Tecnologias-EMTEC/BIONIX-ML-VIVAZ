@@ -173,3 +173,9 @@ Conjunto de hiperparâmetros com acurácia de + 90%
 
 
 $env:RESUME='1'; $env:INITIAL_LR='1e-3'; $env:MIN_LR='1e-7'; $env:WEIGHT_DECAY='0.0'; $env:EPOCHS='1000000'; dotnet run --project BIONIX-ML-VIVAZ/src/DetectorLeveBModel.Runner/DetectorLeveBModel.Runner.csproj -c Debug -- --max-samples 256
+
+
+97%
+
+$env:RESUME='1'; $env:INITIAL_LR='0.0000000001'; $env:MIN_LR='0.000000000001'; $env:WEIGHT_DECAY='0.0'; $env:EPOCHS='1000000'; dotnet 
+run --project BIONIX-ML-VIVAZ/src/DetectorLeveBModel.Runner/DetectorLeveBModel.Runner.csproj -c Debug -- --max-samples 256
