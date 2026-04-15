@@ -556,11 +556,23 @@ namespace DetectorLeveModel.Runner
                     // Scheduler step: reduce LR on plateau
                     if (scheduler != null && !double.IsNaN(avgLoss))
                     {
+                        Console.WriteLine($"Scheduler check (epoch={epoch}): avgLoss={avgLoss:F6} optimizer.Lr={(optimizer!=null?optimizer.Lr:hp.InitialLearningRate):E6} scheduler.CurrentLr={scheduler.CurrentLr:E6} weightDecay={weightDecay:E6}");
                         var reduced = scheduler.Step(avgLoss);
                         if (reduced && optimizer != null)
                         {
+                            // log param L2 before applying new lr
+                            double paramL2Before = 0.0;
+                            try { foreach (var pp in paramList) { if (pp==null) continue; for (int pi=0; pi<pp.Size; pi++) paramL2Before += pp[pi]*pp[pi]; } } catch { }
+                            Console.WriteLine($"ReduceOnPlateau: reducing LR -> previous scheduler.CurrentLr={scheduler.CurrentLr:E6}");
                             optimizer.Lr = scheduler.CurrentLr;
-                            Console.WriteLine($"ReduceOnPlateau: reduced LR to {scheduler.CurrentLr:E6}");
+                            Console.WriteLine($"ReduceOnPlateau: reduced LR to {scheduler.CurrentLr:E6}; optimizer.Lr now {optimizer.Lr:E6}");
+                            double paramL2After = 0.0;
+                            try { foreach (var pp in paramList) { if (pp==null) continue; for (int pi=0; pi<pp.Size; pi++) paramL2After += pp[pi]*pp[pi]; } } catch { }
+                            Console.WriteLine($"ParamL2 before/after LR change: {paramL2Before:E6} / {paramL2After:E6}");
+                            if (scheduler.CurrentLr <= scheduler.MinLr)
+                            {
+                                Console.WriteLine($"Scheduler reached MinLr={scheduler.MinLr:E6}");
+                            }
                         }
                     }
 
