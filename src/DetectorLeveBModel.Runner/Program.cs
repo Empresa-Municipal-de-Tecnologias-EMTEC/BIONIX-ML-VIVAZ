@@ -130,9 +130,9 @@ namespace DetectorLeveModel.Runner
                 }
                 else if (hp.AccuracyThreshold <= 0.0)
                 {
-                    // If user didn't set an accuracy threshold, require at least 90% by default.
-                    Console.WriteLine("No accuracy threshold provided — enforcing minimum required accuracy = 90%.");
-                    hp.AccuracyThreshold = 0.9;
+                    // If user didn't set an accuracy threshold, require at least 98% by default.
+                    Console.WriteLine("No accuracy threshold provided — enforcing minimum required accuracy = 98%.");
+                    hp.AccuracyThreshold = 0.98;
                 }
             }
             else
