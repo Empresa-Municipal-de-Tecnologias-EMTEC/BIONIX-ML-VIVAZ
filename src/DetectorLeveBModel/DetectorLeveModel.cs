@@ -12,7 +12,13 @@ namespace DetectorLeveModel
 {
     public class DetectorLeve
     {
-        // MLP parameters: input 400 -> hidden 64 -> output 1
+        // Convolution + MLP parameters:
+        // conv: 3x3 kernel -> 16 channels (valid conv) (not trained here)
+        // pooling -> 9x9x16 = 1296 flattened input to MLP
+        public Tensor convW { get; private set; }
+        public Tensor convB { get; private set; }
+
+        // MLP parameters: input 1296 -> hidden 64 -> output 1
         public Tensor W1 { get; private set; }
         public Tensor b1 { get; private set; }
         public Tensor W2 { get; private set; }
@@ -23,16 +29,27 @@ namespace DetectorLeveModel
         public void InitializeWeights(ComputacaoContexto ctx)
         {
             var fabrica = new FabricaTensor(ctx ?? new ComputacaoCPUContexto());
-            W1 = fabrica.Criar(400, 64);
+            // conv weights: im2col representation: patchSize=3*3*1=9 -> [9,16]
+            convW = fabrica.Criar(9, 16);
+            convB = fabrica.Criar(1, 16);
+
+            W1 = fabrica.Criar(1296, 64);
             b1 = fabrica.Criar(1, 64);
             W2 = fabrica.Criar(64, 1);
             b2 = fabrica.Criar(1, 1);
             // mark parameters as requiring gradients so autograd accumulates grads
+            // conv weights enabled for training
+            convW.RequiresGrad = true;
+            convB.RequiresGrad = true;
+
             W1.RequiresGrad = true;
             b1.RequiresGrad = true;
             W2.RequiresGrad = true;
             b2.RequiresGrad = true;
             var rnd = new Random(1234);
+            for (int i = 0; i < convW.Size; i++) convW[i] = (rnd.NextDouble() - 0.5) * 0.05;
+            for (int i = 0; i < convB.Size; i++) convB[i] = 0.0;
+
             for (int i = 0; i < W1.Size; i++) W1[i] = (rnd.NextDouble() - 0.5) * 0.01;
             for (int i = 0; i < b1.Size; i++) b1[i] = 0.0;
             for (int i = 0; i < W2.Size; i++) W2[i] = (rnd.NextDouble() - 0.5) * 0.01;
@@ -44,15 +61,93 @@ namespace DetectorLeveModel
         {
             if (input == null) throw new ArgumentNullException(nameof(input));
             var fabrica = new FabricaTensor(ctx ?? new ComputacaoCPUContexto());
-            // flatten to [1,400]
-            var x = fabrica.Criar(1, input.Size);
-            for (int i = 0; i < input.Size; i++) x[i] = input[i];
+            // input expected shape [h,w,1]
+            if (input.Shape.Length != 3) throw new ArgumentException("Expected input shape [h,w,1]");
+            int h = input.Shape[0];
+            int w = input.Shape[1];
+            int c = input.Shape[2];
+            // convolution params
+            int kh = 3, kw = 3;
+            int outH = h - kh + 1;
+            int outW = w - kw + 1;
+            int outC = 16;
+            int patchSize = kh * kw * c; // expected 9
+
+            // im2col: build matrix [outH*outW, patchSize]
+            var Xcol = fabrica.Criar(outH * outW, patchSize);
+            for (int oy = 0; oy < outH; oy++)
+            {
+                for (int ox = 0; ox < outW; ox++)
+                {
+                    int row = oy * outW + ox;
+                    int p = 0;
+                    for (int ky = 0; ky < kh; ky++)
+                    {
+                        for (int kx = 0; kx < kw; kx++)
+                        {
+                            for (int ic = 0; ic < c; ic++)
+                            {
+                                int inIdx = ((oy + ky) * w + (ox + kx)) * c + ic;
+                                Xcol[row * patchSize + p] = input[inIdx];
+                                p++;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // conv: outCol = Xcol * convW  => [outH*outW, outC]
+            var outCol = Xcol.MatMul(convW);
+            // add bias by tiling convB using ones vector
+            var ones = fabrica.Criar(outH * outW, 1);
+            for (int i = 0; i < ones.Size; i++) ones[i] = 1.0;
+            var biasMat = ones.MatMul(convB); // [outH*outW, outC]
+            outCol = outCol.Add(biasMat);
+            // activation
+            var outAct = SigmoidTensor(outCol, ctx);
+
+            // average pooling 2x2 -> reduces outH,outW (18,18) to (9,9)
+            int pH = 2, pW = 2;
+            int pooledH = outH / 2;
+            int pooledW = outW / 2;
+            int pooledN = pooledH * pooledW; // 81
+            // build pooling matrix P [pooledN, outH*outW] where each row averages 4 positions
+            var P = fabrica.Criar(pooledN, outH * outW);
+            for (int py = 0; py < pooledH; py++)
+            {
+                for (int px = 0; px < pooledW; px++)
+                {
+                    int prow = py * pooledW + px;
+                    for (int dy = 0; dy < pH; dy++)
+                    {
+                        for (int dx = 0; dx < pW; dx++)
+                        {
+                            int oy = py * pH + dy;
+                            int ox = px * pW + dx;
+                            int src = oy * outW + ox;
+                            P[prow * (outH * outW) + src] = 0.25; // average
+                        }
+                    }
+                }
+            }
+            var pooled = P.MatMul(outAct); // [pooledN, outC]
+
+            // flatten pooled [pooledN, outC] -> x [1, pooledN*outC]
+            int flatDim = pooledN * outC; // 1296
+            var x = fabrica.Criar(1, flatDim);
+            for (int r = 0; r < pooledN; r++)
+            {
+                for (int oc = 0; oc < outC; oc++)
+                {
+                    int srcIdx = r * outC + oc;
+                    int dstIdx = r * outC + oc;
+                    x[dstIdx] = pooled[srcIdx];
+                }
+            }
 
             // hidden = sigmoid(x * W1 + b1)
             var hidden = x.MatMul(W1); // [1,64]
-            // add bias via tensor Add to preserve autograd graph
             hidden = hidden.Add(b1);
-            // apply sigmoid elementwise (use CPU helper implementation via creating tensor)
             hidden = SigmoidTensor(hidden, ctx);
 
             // out = sigmoid(hidden * W2 + b2)
@@ -110,6 +205,8 @@ namespace DetectorLeveModel
             try { SerializadorTensor.SaveBinary(Path.Combine(dir, "b1.bin"), b1); } catch { }
             try { SerializadorTensor.SaveBinary(Path.Combine(dir, "w2.bin"), W2); } catch { }
             try { SerializadorTensor.SaveBinary(Path.Combine(dir, "b2.bin"), b2); } catch { }
+            try { SerializadorTensor.SaveBinary(Path.Combine(dir, "convW.bin"), convW); } catch { }
+            try { SerializadorTensor.SaveBinary(Path.Combine(dir, "convB.bin"), convB); } catch { }
         }
 
         public void LoadWeights(string dir)
@@ -120,12 +217,16 @@ namespace DetectorLeveModel
                 p = Path.Combine(dir, "b1.bin"); if (File.Exists(p) && b1 != null) { var t = SerializadorTensor.LoadBinary(p); if (t != null && t.Size == b1.Size) for (int i=0;i<b1.Size;i++) b1[i]=t[i]; }
                 p = Path.Combine(dir, "w2.bin"); if (File.Exists(p) && W2 != null) { var t = SerializadorTensor.LoadBinary(p); if (t != null && t.Size == W2.Size) for (int i=0;i<W2.Size;i++) W2[i]=t[i]; }
                 p = Path.Combine(dir, "b2.bin"); if (File.Exists(p) && b2 != null) { var t = SerializadorTensor.LoadBinary(p); if (t != null && t.Size == b2.Size) for (int i=0;i<b2.Size;i++) b2[i]=t[i]; }
+                p = Path.Combine(dir, "convW.bin"); if (File.Exists(p) && convW != null) { var t = SerializadorTensor.LoadBinary(p); if (t != null && t.Size == convW.Size) for (int i=0;i<convW.Size;i++) convW[i]=t[i]; }
+                p = Path.Combine(dir, "convB.bin"); if (File.Exists(p) && convB != null) { var t = SerializadorTensor.LoadBinary(p); if (t != null && t.Size == convB.Size) for (int i=0;i<convB.Size;i++) convB[i]=t[i]; }
             }
             catch { }
         }
 
         public System.Collections.Generic.IEnumerable<(string name, Tensor tensor)> GetNamedParameters()
         {
+            if (convW != null) yield return ("convW", convW);
+            if (convB != null) yield return ("convB", convB);
             yield return ("w1", W1);
             yield return ("b1", b1);
             yield return ("w2", W2);

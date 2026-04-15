@@ -112,6 +112,10 @@ namespace DetectorLeveModel.Runner
             // default MaxSamplesPerEpoch to BatchSize if unset (0)
             if (hp.MaxSamplesPerEpoch <= 0) hp.MaxSamplesPerEpoch = hp.BatchSize;
 
+            // Enforce minimum samples per epoch to avoid degenerate 1-sample quick tests
+            // This ensures at least meaningful batches (user requested minimum 16)
+            hp.MaxSamplesPerEpoch = Math.Max(hp.MaxSamplesPerEpoch, 16);
+
             // detect cutoff from env
             var detectCutoffEnv = Environment.GetEnvironmentVariable("DETECT_CUTOFF");
             if (!string.IsNullOrEmpty(detectCutoffEnv) && (double.TryParse(detectCutoffEnv, NumberStyles.Float|NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out var dce) || double.TryParse(detectCutoffEnv, out dce))) detectCutoff = Math.Max(0.0, Math.Min(1.0, dce));
@@ -173,11 +177,23 @@ namespace DetectorLeveModel.Runner
                 // collect model params
                 var paramList = new List<Tensor>();
                 foreach (var kv in model.GetNamedParameters()) if (kv.tensor != null) paramList.Add(kv.tensor);
-                if (optimizerName == "adam" || optimizerName == "adamw")
+
+                // choose optimizer implementation
+                IStatefulOptimizer optimizer = null;
+                if (optimizerName == "adam")
                 {
-                    Console.WriteLine($"Optimizer requested: {optimizerName} — Adam not available in this runtime, falling back to SGD with momentum.");
+                    Console.WriteLine("Optimizer requested: adam — using Adam optimizer.");
+                    optimizer = new Adam(paramList, hp.InitialLearningRate);
                 }
-                var optimizer = FabricaOtimizadores.CriarStatefulSGD(paramList, ctx, lr: hp.InitialLearningRate, momentum: 0.9);
+                else if (optimizerName == "adamw")
+                {
+                    Console.WriteLine("Optimizer requested: adamw — using Adam (weight decay not implemented)." );
+                    optimizer = new Adam(paramList, hp.InitialLearningRate);
+                }
+                else
+                {
+                    optimizer = FabricaOtimizadores.CriarStatefulSGD(paramList, ctx, lr: hp.InitialLearningRate, momentum: 0.9);
+                }
                 // initialize scheduler
                 if (hp.ReduceOnPlateau)
                 {
