@@ -42,6 +42,49 @@ Comandos principais para o workspace BIONIX (exemplos em PowerShell e Bash)
 		$env:EPOCHS='50'; $env:LOSS_THRESHOLD='0.5'; dotnet run --project BIONIX-ML-VIVAZ/src/DetectorLeveModel.Runner/DetectorLeveModel.Runner.csproj -c Debug -- --mode train
 		$env:SUPPRESS_OUTPUTS='1'; dotnet run --project BIONIX-ML-VIVAZ/src/DetectorLeveModel.Runner/DetectorLeveModel.Runner.csproj -c Debug -- --mode train
 
+DetectorLeve B (conv+pool + MLP) — comandos específicos
+ - Treinar (continuação a partir de checkpoint):
+	 $env:RESUME='1'; dotnet run --project BIONIX-ML-VIVAZ/src/DetectorLeveBModel.Runner/DetectorLeveBModel.Runner.csproj -c Debug -- --resume --optimizer adam --epochs 1000 --max-samples 512
+
+ - Treinar do zero (remover checkpoints e iniciar):
+	 if (Test-Path PESOS\CLASSIFICADOR_DETECTOR_LEVE_B) { Remove-Item -Recurse PESOS\CLASSIFICADOR_DETECTOR_LEVE_B }
+	 $env:RESUME='0'; $env:INITIAL_LR='1e-3'; $env:WEIGHT_DECAY='1e-4'; dotnet run --project BIONIX-ML-VIVAZ/src/DetectorLeveBModel.Runner/DetectorLeveBModel.Runner.csproj -c Debug -- --optimizer adam --epochs 1000 --max-samples 512
+
+ - Teste rápido / detect-test (gera crops em SAIDA):
+	 $env:RESUME='1'; dotnet run --project BIONIX-ML-VIVAZ/src/DetectorLeveBModel.Runner/DetectorLeveBModel.Runner.csproj -c Debug -- --detect-test --detect-samples 20 --resume
+
+ - Comandos de continuação com LR maior (sweep sugerido):
+	 # INITIAL_LR = 1e-3
+	 $env:RESUME='1'; $env:INITIAL_LR='1e-3'; $env:WEIGHT_DECAY='1e-4'; dotnet run --project BIONIX-ML-VIVAZ/src/DetectorLeveBModel.Runner/DetectorLeveBModel.Runner.csproj -c Debug -- --resume --optimizer adam --epochs 500 --max-samples 512
+	 # INITIAL_LR = 5e-4
+	 $env:RESUME='1'; $env:INITIAL_LR='5e-4'; $env:WEIGHT_DECAY='1e-5'; dotnet run --project BIONIX-ML-VIVAZ/src/DetectorLeveBModel.Runner/DetectorLeveBModel.Runner.csproj -c Debug -- --resume --optimizer adam --epochs 500 --max-samples 512
+	 # INITIAL_LR = 1e-4 (segurança)
+	 $env:RESUME='1'; $env:INITIAL_LR='1e-4'; $env:WEIGHT_DECAY='1e-5'; dotnet run --project BIONIX-ML-VIVAZ/src/DetectorLeveBModel.Runner/DetectorLeveBModel.Runner.csproj -c Debug -- --resume --optimizer adam --epochs 1000 --max-samples 512
+
+	Sugestões de hiperparâmetros e comandos úteis (PowerShell)
+	- Continuação com taxa de aprendizado maior (tente 1e-3):
+		$env:RESUME='1'; $env:INITIAL_LR='1e-3'; $env:WEIGHT_DECAY='1e-4'; dotnet run --project BIONIX-ML-VIVAZ/src/DetectorLeveModel.Runner/DetectorLeveModel.Runner.csproj -c Debug -- --resume --optimizer adam --epochs 1000 --max-samples 512
+
+	- Sweep de taxas iniciais (experimente em ordem: 1e-3 → 5e-4 → 1e-4):
+		# 1e-3
+		$env:RESUME='1'; $env:INITIAL_LR='1e-3'; $env:WEIGHT_DECAY='1e-4'; dotnet run --project BIONIX-ML-VIVAZ/src/DetectorLeveModel.Runner/DetectorLeveModel.Runner.csproj -c Debug -- --resume --optimizer adam --epochs 500 --max-samples 512
+		# 5e-4
+		$env:RESUME='1'; $env:INITIAL_LR='5e-4'; $env:WEIGHT_DECAY='1e-5'; dotnet run --project BIONIX-ML-VIVAZ/src/DetectorLeveBModel.Runner/DetectorLeveModel.Runner.csproj -c Debug -- --resume --optimizer adam --epochs 500 --max-samples 512
+		# 1e-4 (valor de segurança se 1e-3 divergir)
+		$env:RESUME='1'; $env:INITIAL_LR='1e-4'; $env:WEIGHT_DECAY='1e-5'; dotnet run --project BIONIX-ML-VIVAZ/src/DetectorLeveModel.Runner/DetectorLeveModel.Runner.csproj -c Debug -- --resume --optimizer adam --epochs 1000 --max-samples 512
+
+	- Alternativa: treinar do zero com LR alto e decaimento (quando reiniciando):
+		if (Test-Path PESOS\CLASSIFICADOR_DETECTOR_LEVE_B) { Remove-Item -Recurse PESOS\CLASSIFICADOR_DETECTOR_LEVE_B }
+		$env:RESUME='0'; $env:INITIAL_LR='1e-3'; $env:WEIGHT_DECAY='1e-4'; dotnet run --project BIONIX-ML-VIVAZ/src/DetectorLeveModel.Runner/DetectorLeveModel.Runner.csproj -c Debug -- --optimizer adam --epochs 1000 --max-samples 512
+
+	- Detect-test (gera crops e logs em SAIDA) — exemplo rápido 20 amostras:
+		$env:RESUME='1'; dotnet run --project BIONIX-ML-VIVAZ/src/DetectorLeveModel.Runner/DetectorLeveModel.Runner.csproj -c Debug -- --detect-test --detect-samples 20 --resume
+
+	- Dicas rápidas:
+		- Se observar instabilidade (loss explodindo), reduza `INITIAL_LR` para 5e-4 ou 1e-4.
+		- Experimente `WEIGHT_DECAY` entre 1e-5 e 1e-3 (regulariza se houver overfitting).
+		- Use `--max-samples` para limitar amostras por época e acelerar experimentos curtos.
+
 ## 4) Teste de detecção (detect-test) — gera crops e .txt em SAIDA
 - Exemplo rápido (6 amostras, PowerShell):
 	$env:RESUME='1'; dotnet run --project BIONIX-ML-VIVAZ/src/DetectorLeveModel.Runner/DetectorLeveModel.Runner.csproj -c Debug -- --detect-test --detect-samples 6 --resume
