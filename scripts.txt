@@ -166,3 +166,10 @@ Notes:
 	- Para executar projetos diferentes, ajuste o path do `--project` apontando para o .csproj desejado.
 
 $env:WEIGHT_DECAY='0.1'; $env:EPOCHS='1000000'; $env:RESUME='0'; $env:INITIAL_LR='1e-3'; $env:MIN_LR='1e-6'; dotnet run --project BIONIX-ML-VIVAZ/src/DetectorLeveBModel.Runner/DetectorLeveBModel.Runner.csproj -c Debug -- --max-samples 64
+
+
+
+Conjunto de hiperparâmetros com acurácia de + 90%
+
+
+$env:RESUME='1'; $env:INITIAL_LR='1e-3'; $env:MIN_LR='1e-7'; $env:WEIGHT_DECAY='0.0'; $env:EPOCHS='1000000'; dotnet run --project BIONIX-ML-VIVAZ/src/DetectorLeveBModel.Runner/DetectorLeveBModel.Runner.csproj -c Debug -- --max-samples 256
