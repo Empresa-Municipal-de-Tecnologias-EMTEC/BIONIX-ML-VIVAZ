@@ -103,34 +103,40 @@ namespace DetectorLeveModel
             for (int i = 0; i < ones.Size; i++) ones[i] = 1.0;
             var biasMat = ones.MatMul(convB); // [outH*outW, outC]
             outCol = outCol.Add(biasMat);
-            // activation
-            var outAct = SigmoidTensor(outCol, ctx);
+            // activation: use ReLU after conv to avoid early saturation
+            var outAct = ReLUTensor(outCol, ctx);
 
-            // average pooling 2x2 -> reduces outH,outW (18,18) to (9,9)
+            // max pooling 2x2 -> reduces outH,outW (18,18) to (9,9)
             int pH = 2, pW = 2;
             int pooledH = outH / 2;
             int pooledW = outW / 2;
             int pooledN = pooledH * pooledW; // 81
-            // build pooling matrix P [pooledN, outH*outW] where each row averages 4 positions
-            var P = fabrica.Criar(pooledN, outH * outW);
+            // compute max over 2x2 windows for each channel
+            var pooled = fabrica.Criar(pooledN, outC);
             for (int py = 0; py < pooledH; py++)
             {
                 for (int px = 0; px < pooledW; px++)
                 {
                     int prow = py * pooledW + px;
-                    for (int dy = 0; dy < pH; dy++)
+                    for (int oc = 0; oc < outC; oc++)
                     {
-                        for (int dx = 0; dx < pW; dx++)
+                        double mval = double.NegativeInfinity;
+                        for (int dy = 0; dy < pH; dy++)
                         {
-                            int oy = py * pH + dy;
-                            int ox = px * pW + dx;
-                            int src = oy * outW + ox;
-                            P[prow * (outH * outW) + src] = 0.25; // average
+                            for (int dx = 0; dx < pW; dx++)
+                            {
+                                int oy = py * pH + dy;
+                                int ox = px * pW + dx;
+                                int src = oy * outW + ox;
+                                int idx = src * outC + oc;
+                                var v = outAct[idx];
+                                if (v > mval) mval = v;
+                            }
                         }
+                        pooled[prow * outC + oc] = mval;
                     }
                 }
             }
-            var pooled = P.MatMul(outAct); // [pooledN, outC]
 
             // flatten pooled [pooledN, outC] -> x [1, pooledN*outC]
             int flatDim = pooledN * outC; // 1296
@@ -145,10 +151,10 @@ namespace DetectorLeveModel
                 }
             }
 
-            // hidden = sigmoid(x * W1 + b1)
+            // hidden = ReLU(x * W1 + b1)
             var hidden = x.MatMul(W1); // [1,64]
             hidden = hidden.Add(b1);
-            hidden = SigmoidTensor(hidden, ctx);
+            hidden = ReLUTensor(hidden, ctx);
 
             // out = sigmoid(hidden * W2 + b2)
             var outt = hidden.MatMul(W2); // [1,1]
@@ -196,6 +202,47 @@ namespace DetectorLeveModel
                 return outT;
             }
             else throw new NotSupportedException("Unsupported tensor type for Sigmoid helper.");
+        }
+
+        private Tensor ReLUTensor(Tensor input)
+        {
+            return ReLUTensor(input, null);
+        }
+
+        private Tensor ReLUTensor(Tensor input, ComputacaoContexto ctx)
+        {
+            var fabrica = new FabricaTensor(ctx ?? new ComputacaoCPUContexto());
+            if (input is Bionix.ML.nucleo.tensor.TensorCPU srcCpu)
+            {
+                var outT = fabrica.Criar(srcCpu.Shape);
+                for (int i = 0; i < srcCpu.Size; i++) outT[i] = Math.Max(0.0, srcCpu[i]);
+                outT.RequiresGrad = true;
+                outT.GradFn = new Bionix.ML.grafo.CPU.ActivationFunction(srcCpu, outT as Bionix.ML.nucleo.tensor.TensorCPU);
+                return outT;
+            }
+            else if (input is Bionix.ML.nucleo.tensor.TensorCPUSIMD srcSimd)
+            {
+                var outT = fabrica.Criar(srcSimd.Shape);
+                int n = srcSimd.Size;
+                if (System.Numerics.Vector.IsHardwareAccelerated)
+                {
+                    int vecSize = System.Numerics.Vector<double>.Count;
+                    int i = 0;
+                    for (; i <= n - vecSize; i += vecSize)
+                    {
+                        for (int k = 0; k < vecSize; k++) outT[i + k] = Math.Max(0.0, srcSimd[i + k]);
+                    }
+                    for (; i < n; i++) outT[i] = Math.Max(0.0, srcSimd[i]);
+                }
+                else
+                {
+                    for (int i = 0; i < n; i++) outT[i] = Math.Max(0.0, srcSimd[i]);
+                }
+                outT.RequiresGrad = true;
+                outT.GradFn = new Bionix.ML.grafo.CPUSIMD.ActivationFunction(srcSimd, outT as Bionix.ML.nucleo.tensor.TensorCPUSIMD);
+                return outT;
+            }
+            else throw new NotSupportedException("Unsupported tensor type for ReLU helper.");
         }
 
         public void SaveWeights(string dir)
