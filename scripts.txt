@@ -165,4 +165,4 @@ Notes:
 	- Use `--resume` ou `RESUME=1` para retomar checkpoints; os caminhos padrão de `PESOS` e `SAIDA` são definidos no código.
 	- Para executar projetos diferentes, ajuste o path do `--project` apontando para o .csproj desejado.
 
-Se quiser, eu posso adicionar comandos para outros projetos específicos (por ex. `AnotadorDeDataSet`, `DetectorModel` variantes) — diga quais você quer expor.
+$env:WEIGHT_DECAY='0.1'; $env:EPOCHS='1000000'; $env:RESUME='0'; $env:INITIAL_LR='1e-3'; $env:MIN_LR='1e-6'; dotnet run --project BIONIX-ML-VIVAZ/src/DetectorLeveBModel.Runner/DetectorLeveBModel.Runner.csproj -c Debug -- --max-samples 64
