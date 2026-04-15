@@ -453,6 +453,7 @@ namespace DetectorLeveModel.Runner
                             if (!string.IsNullOrEmpty(dbg) && (dbg == "1" || dbg.Equals("true", StringComparison.OrdinalIgnoreCase)))
                             {
                                 double gradSum = 0.0;
+                                double paramL2Before = 0.0;
                                 foreach (var pp in paramList)
                                 {
                                     if (pp?.Grad != null)
@@ -460,17 +461,25 @@ namespace DetectorLeveModel.Runner
                                         var garr = pp.Grad;
                                         for (int gi = 0; gi < garr.Length; gi++) gradSum += Math.Abs(garr[gi]);
                                     }
+                                    if (pp != null)
+                                    {
+                                        for (int pi = 0; pi < pp.Size; pi++) paramL2Before += pp[pi] * pp[pi];
+                                    }
                                 }
                                 Console.WriteLine($"GradSum before step: {gradSum:E6}");
+                                Console.WriteLine($"ParamL2 before step: {paramL2Before:E6}");
                             }
                             // apply weight decay to gradients if requested (L2)
-                            if (weightDecay > 0.0)
+                            // Schedule: no weight decay for the first 50 epochs, then use configured value
+                            double currentWeightDecay = (epoch < 50) ? 0.0 : weightDecay;
+                            if (currentWeightDecay > 0.0)
                             {
+                                if (epoch == 50) Console.WriteLine($"Weight decay enabled starting epoch {epoch}: {currentWeightDecay:E6}");
                                 foreach (var pp in paramList)
                                 {
                                     if (pp?.Grad == null) continue;
                                     var g = pp.Grad;
-                                    for (int gi = 0; gi < g.Length; gi++) g[gi] += weightDecay * pp[gi];
+                                    for (int gi = 0; gi < g.Length; gi++) g[gi] += currentWeightDecay * pp[gi];
                                 }
                             }
                             // global grad clipping
@@ -496,6 +505,18 @@ namespace DetectorLeveModel.Runner
                                 }
                             }
                             optimizer.Step();
+
+                            // if debugging, print parameter L2 after optimizer step to verify updates
+                            if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("DEBUG_GRADS")) && (Environment.GetEnvironmentVariable("DEBUG_GRADS") == "1" || Environment.GetEnvironmentVariable("DEBUG_GRADS").Equals("true", StringComparison.OrdinalIgnoreCase)))
+                            {
+                                double paramL2After = 0.0;
+                                foreach (var pp in paramList)
+                                {
+                                    if (pp == null) continue;
+                                    for (int pi = 0; pi < pp.Size; pi++) paramL2After += pp[pi] * pp[pi];
+                                }
+                                Console.WriteLine($"ParamL2 after step: {paramL2After:E6}");
+                            }
 
                             // save outputs: resized crops to SAIDA with probs (skippable)
                             try
