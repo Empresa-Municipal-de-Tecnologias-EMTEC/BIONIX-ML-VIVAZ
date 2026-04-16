@@ -8,12 +8,16 @@
       const create = mod.default || mod.createDotnetRuntime || mod.createDotnetRuntime || window.createDotnetRuntime;
       if (!create) throw new Error('createDotnetRuntime not found in /vivaz-wasm/dotnet.js');
 
-      const runtime = await create({
+      // Prefer the published deps/boot manifest so the runtime does not try to
+      // fetch the default ./blazor.boot.json from the script directory.
+      // Use a module-factory callback to ensure the runtime picks up configSrc
+      // and config reliably (avoids fallback to ./blazor.boot.json).
+      const runtime = await create(() => ({
+        configSrc: '/vivaz-wasm/Vivaz.WASM.deps.json',
         config: {
-          // allow the managed code to download pesos from the same origin
           environmentVariables: { VIVAZ_API_URL: (typeof window !== 'undefined' && window.location ? window.location.origin : '') }
         }
-      });
+      }));
 
       const exports = await runtime.getAssemblyExports('Vivaz.WASM.dll');
 

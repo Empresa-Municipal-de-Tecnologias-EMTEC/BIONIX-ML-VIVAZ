@@ -33,6 +33,13 @@
   // loader: prefer a JS glue file at /wasm/vivaz.js which should expose a global
   // `VivazClientWASM` with methods `embedFromArrayBuffer` and `compareFromArrayBuffer`.
   api.ready = (async ()=>{
+    // If a glue script already initialized (moved to site root), use it and
+    // avoid network probes that cause noisy 404s for /vivaz-wasm/vivaz.js.
+    if (window.VivazClientWASM && (window.VivazClientWASM.embedFromArrayBuffer || window.VivazClientWASM.compareFromArrayBuffer)){
+      api._impl = window.VivazClientWASM;
+      return api;
+    }
+
     try{
       // try to load the glue script only from /vivaz-wasm (no fallback)
       const glueUrl = '/vivaz-wasm/vivaz.js';
