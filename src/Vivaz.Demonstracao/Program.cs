@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.FileProviders;
+using Microsoft.AspNetCore.StaticFiles;
 using System.IO;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -14,10 +15,16 @@ app.UseStaticFiles();
 var demoStatic = Path.Combine(builder.Environment.ContentRootPath, "wwwroot");
 if (Directory.Exists(demoStatic))
 {
+	var provider = new PhysicalFileProvider(demoStatic);
+	var contentTypeProvider = new FileExtensionContentTypeProvider();
+	// Ensure .dll/.pdb (and any other unknown extensions) are served as binary
+	contentTypeProvider.Mappings[".dll"] = "application/octet-stream";
+	contentTypeProvider.Mappings[".pdb"] = "application/octet-stream";
 	app.UseStaticFiles(new StaticFileOptions
 	{
-		FileProvider = new PhysicalFileProvider(demoStatic),
-		RequestPath = ""
+		FileProvider = provider,
+		RequestPath = "",
+		ContentTypeProvider = contentTypeProvider
 	});
 }
 app.UseRouting();
