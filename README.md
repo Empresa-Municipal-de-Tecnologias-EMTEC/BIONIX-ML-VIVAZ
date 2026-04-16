@@ -155,6 +155,8 @@ Modo cliente (WebAssembly)
 dotnet publish src/Vivaz.WASM/Vivaz.WASM.csproj -c Release -r browser-wasm -o src/Vivaz.WASM/wasm_publish --no-self-contained
 ```
 
+Para instruções passo-a-passo sobre como publicar e disponibilizar os artefatos WASM para a demo (inclui comandos exatos e recomendações sobre MIME/types e Git LFS), veja também: [Instruções para publicar/usar WASM](src/Vivaz.WASM/INSTRUCOES.md).
+
 Importante — pesos e URL da API
 --------------------------------
 O runtime cliente (WASM) precisa acessar os arquivos de pesos. Por convenção o `Vivaz.Api` serve os pesos em um endpoint estático `GET /pesos/<NOME>.zip` — por exemplo `http://localhost:5000/pesos/CLASSIFICADOR_DETECTOR_LEVE.zip`.

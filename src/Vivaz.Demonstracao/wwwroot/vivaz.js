@@ -5,30 +5,46 @@
   async function init(){
     try{
       const mod = await import('/vivaz-wasm/dotnet.js');
-      const create = mod.default || mod.createDotnetRuntime || mod.createDotnetRuntime || window.createDotnetRuntime;
-      if (!create) throw new Error('createDotnetRuntime not found in /vivaz-wasm/dotnet.js');
-
-      // Prefer the published deps/boot manifest so the runtime does not try to
-      // fetch the default ./blazor.boot.json from the script directory.
-      // Use a module-factory callback to ensure the runtime picks up configSrc
-      // and config reliably (avoids fallback to ./blazor.boot.json).
-      const runtime = await create(() => ({
-        // point to the minimal blazor-style boot manifest we added
-        configSrc: '/vivaz-wasm/blazor.boot.json',
-        // log boot resource requests to aid debugging (returns default URI)
-        loadBootResource: (type, name, defaultUri, integrity) => {
-          try { console.debug('[vivaz] loadBootResource', { type, name, defaultUri, integrity }); } catch (e) {}
-          return defaultUri;
-        },
-        config: {
-          environmentVariables: {
-            VIVAZ_API_URL: (typeof window !== 'undefined' && window.location ? window.location.origin : ''),
-            // Enable verbose Mono/WASM runtime logging to help diagnose assembly/runtime failures
-            MONO_LOG_LEVEL: 'debug',
-            MONO_LOG_MASK: 'all'
-          }
+      // Prefer the new .NET 8+ API: `dotnet.withConfig(...).create()` when available.
+      let runtime;
+      try {
+        if (mod && mod.dotnet && typeof mod.dotnet.withConfig === 'function') {
+          const cfg = {
+            configSrc: '/vivaz-wasm/blazor.boot.json',
+            loadBootResource: (type, name, defaultUri, integrity) => {
+              try { console.debug('[vivaz] loadBootResource', { type, name, defaultUri, integrity }); } catch (e) {}
+              return defaultUri;
+            },
+            environmentVariables: {
+              VIVAZ_API_URL: (typeof window !== 'undefined' && window.location ? window.location.origin : ''),
+              MONO_LOG_LEVEL: 'debug',
+              MONO_LOG_MASK: 'all'
+            }
+          };
+          runtime = await mod.dotnet.withConfig(cfg).create();
         }
-      }));
+      } catch(e) {
+        console.debug('[vivaz] dotnet.withConfig failed, falling back', e);
+      }
+
+      if (!runtime) {
+        const create = mod.default || mod.createDotnetRuntime || window.createDotnetRuntime;
+        if (!create) throw new Error('createDotnetRuntime not found in /vivaz-wasm/dotnet.js');
+        runtime = await create(() => ({
+          configSrc: '/vivaz-wasm/blazor.boot.json',
+          loadBootResource: (type, name, defaultUri, integrity) => {
+            try { console.debug('[vivaz] loadBootResource', { type, name, defaultUri, integrity }); } catch (e) {}
+            return defaultUri;
+          },
+          config: {
+            environmentVariables: {
+              VIVAZ_API_URL: (typeof window !== 'undefined' && window.location ? window.location.origin : ''),
+              MONO_LOG_LEVEL: 'debug',
+              MONO_LOG_MASK: 'all'
+            }
+          }
+        }));
+      }
 
       const exports = await runtime.getAssemblyExports('Vivaz.WASM.dll');
 

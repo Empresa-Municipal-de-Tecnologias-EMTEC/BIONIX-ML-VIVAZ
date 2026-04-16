@@ -20,6 +20,8 @@ if (Directory.Exists(demoStatic))
 	// Ensure .dll/.pdb (and any other unknown extensions) are served as binary
 	contentTypeProvider.Mappings[".dll"] = "application/octet-stream";
 	contentTypeProvider.Mappings[".pdb"] = "application/octet-stream";
+	// Ensure .wasm is served with the correct MIME type
+	contentTypeProvider.Mappings[".wasm"] = "application/wasm";
 	app.UseStaticFiles(new StaticFileOptions
 	{
 		FileProvider = provider,
