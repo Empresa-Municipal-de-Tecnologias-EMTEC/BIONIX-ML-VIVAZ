@@ -12,17 +12,19 @@
     _impl: null,
     async embedFromBlob(blob){
       if (this._impl && this._impl.embedFromArrayBuffer) return this._impl.embedFromArrayBuffer(await blob.arrayBuffer());
-      // fallback to server
+      // if server fallback is disabled, throw
+      if (window.demoCompareConfig && window.demoCompareConfig.allowServerFallback === false) throw new Error('No client WASM available and server fallback disabled');
+      // fallback to server if configured
       const form = new FormData(); form.append('file', blob, 'img.png');
-      const resp = await fetch(window.demoCompareConfig.embedEndpoint, { method: 'POST', body: form });
+      const resp = await fetch(window.demoCompareConfig && window.demoCompareConfig.embedEndpoint ? window.demoCompareConfig.embedEndpoint : '/api/face/wasm/embed', { method: 'POST', body: form });
       if(!resp.ok) throw new Error('embed failed');
       return await resp.json();
     },
     async compareBlobs(aBlob, bBlob){
       if (this._impl && this._impl.compareFromArrayBuffer) return this._impl.compareFromArrayBuffer(await aBlob.arrayBuffer(), await bBlob.arrayBuffer());
-      // fallback to server
+      if (window.demoCompareConfig && window.demoCompareConfig.allowServerFallback === false) throw new Error('No client WASM available and server fallback disabled');
       const form = new FormData(); form.append('a', aBlob, 'a.png'); form.append('b', bBlob, 'b.png');
-      const resp = await fetch(window.demoCompareConfig.compareEndpoint, { method: 'POST', body: form });
+      const resp = await fetch(window.demoCompareConfig && window.demoCompareConfig.compareEndpoint ? window.demoCompareConfig.compareEndpoint : '/api/face/wasm/compare', { method: 'POST', body: form });
       if(!resp.ok) throw new Error('compare failed');
       return await resp.json();
     }

@@ -17,14 +17,14 @@
 </div>
 <div style="display:flex; gap:12px; margin-top:8px;"><div>A: <img id="imgA" width="160"></div><div>B: <img id="imgB" width="160"></div></div>
 <div id="result" style="margin-top:8px;"></div>
-<script src="/js/compare.js"></script>
 <script>
-  // configurar endpoints para rota WASM (fallbacks mantidos)
+  // Demo config: use client WASM only (disable server fallback)
   window.demoCompareConfig = {
-    embedEndpoint: '/api/face/wasm/embed',
-    compareEndpoint: '/api/face/wasm/compare',
+    allowServerFallback: false,
     thresholdPercent: 70
   };
 </script>
+<script src="/js/vivaz-wasm-loader.js"></script>
+<script src="/js/compare.js"></script>
 </body>
 </html>

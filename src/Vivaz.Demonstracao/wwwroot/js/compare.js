@@ -44,9 +44,9 @@
     if(window.vivazWasm && window.vivazWasm._impl && window.vivazWasm._impl.detectFromArrayBuffer){
       return await window.vivazWasm._impl.detectFromArrayBuffer(new Uint8Array(buf));
     }
-    const form = new FormData(); form.append('file', blob, 'img.png');
-    const r = await fetch('/api/face/wasm/detectjson', { method: 'POST', body: form });
-    if(!r.ok) return null; return await r.json();
+    // No client WASM available — do not fallback to server in this demo
+    console.warn('No client WASM available for detect; server fallback disabled for compare_wasm.html');
+    return null;
   }
 
   async function detectLoop(intervalMs=250){
