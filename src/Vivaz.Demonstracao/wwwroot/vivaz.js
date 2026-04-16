@@ -15,6 +15,11 @@
       const runtime = await create(() => ({
         // point to the minimal blazor-style boot manifest we added
         configSrc: '/vivaz-wasm/blazor.boot.json',
+        // log boot resource requests to aid debugging (returns default URI)
+        loadBootResource: (type, name, defaultUri, integrity) => {
+          try { console.debug('[vivaz] loadBootResource', { type, name, defaultUri, integrity }); } catch (e) {}
+          return defaultUri;
+        },
         config: {
           environmentVariables: {
             VIVAZ_API_URL: (typeof window !== 'undefined' && window.location ? window.location.origin : ''),
