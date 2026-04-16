@@ -276,7 +276,7 @@ namespace DetectorLeveModel.Runner
                 if (anns.Count == 0) { Console.WriteLine("No annotations found."); return; }
 
                 // If detect-test mode requested, run detection tests and exit
-                if (detectTest)
+                    if (detectTest)
                 {
                     Console.WriteLine($"Running detect-test on {detectSamples} samples...");
                     var detModel = DetectorLeveModel.DetectorLeve.GetInstance(ctx, pesosDirRoot);
@@ -290,15 +290,12 @@ namespace DetectorLeveModel.Runner
                             var gb = ann.Boxes[0];
                             // pick random expansion factor p in [0.5, 1.5]
                             double p = rnd.NextDouble() * (1.5 - 0.5) + 0.5;
-                            // diagonal of the annotated box
                             double diag = Math.Sqrt((double)gb.Width * gb.Width + (double)gb.Height * gb.Height);
-                            // expand by delta = p * diag on both corners (grow along diagonal)
                             double delta = p * diag;
                             double x0d = gb.X - delta;
                             double y0d = gb.Y - delta;
                             double x1d = gb.X + gb.Width + delta;
                             double y1d = gb.Y + gb.Height + delta;
-                            // clamp negatives to zero and max to image bounds
                             int x0 = (int)Math.Max(0, Math.Floor(x0d));
                             int y0 = (int)Math.Max(0, Math.Floor(y0d));
                             int x1 = (int)Math.Min(bmpFull.Width, Math.Ceiling(x1d));
@@ -307,52 +304,14 @@ namespace DetectorLeveModel.Runner
                             int h = Math.Max(1, y1 - y0);
                             var crop = ManipuladorDeImagem.cortar(bmpFull, x0, y0, w, h);
 
-                            // perform detection returning top-K per scale
-                            var allDet = detModel.DetectTopPerScale(crop, ctx, detectCutoff, null, null, 5);
+                            // perform single best detection (use detectCutoff to threshold)
+                            var best = detModel.DetectBest(crop, ctx, detectCutoff, null, null);
 
                             var img = ToImage(crop);
-                            // color map per work (window size)
-                            var colorMap = new System.Collections.Generic.Dictionary<int, SixLabors.ImageSharp.PixelFormats.Rgba32>() {
-                                { 32, new SixLabors.ImageSharp.PixelFormats.Rgba32(255,0,0,255) },
-                                { 48, new SixLabors.ImageSharp.PixelFormats.Rgba32(0,255,0,255) },
-                                { 64, new SixLabors.ImageSharp.PixelFormats.Rgba32(0,0,255,255) }
-                            };
-
-                            // group by work and draw up to 5 per scale
-                            var groups = allDet.GroupBy(d => d.work);
-                            foreach (var g in groups)
-                            {
-                                var work = g.Key;
-                                var list = g.OrderByDescending(x => x.score).Take(5).ToList();
-                                var color = colorMap.ContainsKey(work) ? colorMap[work] : new SixLabors.ImageSharp.PixelFormats.Rgba32(255,255,0,255);
-                                img.ProcessPixelRows(accessor =>
-                                {
-                                    foreach (var d in list)
-                                    {
-                                        int dx = Math.Max(0, Math.Min(d.x, img.Width - 1));
-                                        int dy = Math.Max(0, Math.Min(d.y, img.Height - 1));
-                                        int dw = Math.Min(d.w, img.Width - dx);
-                                        int dh = Math.Min(d.h, img.Height - dy);
-                                        for (int y = dy; y < dy + dh; y++)
-                                        {
-                                            if (y < 0 || y >= img.Height) continue;
-                                            for (int x = dx; x < dx + dw; x++)
-                                            {
-                                                if (x < 0 || x >= img.Width) continue;
-                                                bool border = (x - dx < 2) || (dx + dw - 1 - x < 2) || (y - dy < 2) || (dy + dh - 1 - y < 2);
-                                                if (border) accessor.GetRowSpan(y)[x] = color;
-                                            }
-                                        }
-                                    }
-                                });
-                            }
-
-                            // compute consensus bounding box from detections and draw it
-                            var final = detModel.AggregateConsensus(allDet, img.Width, img.Height, 0.4);
-                            if (final.found)
+                            if (best.score > double.NegativeInfinity && best.score >= detectCutoff)
                             {
                                 var finalColor = new SixLabors.ImageSharp.PixelFormats.Rgba32(255,255,0,255);
-                                int tx = final.x, ty = final.y, tw = final.w, th = final.h;
+                                int tx = best.x, ty = best.y, tw = best.w, th = best.h;
                                 int thickness = 4;
                                 img.ProcessPixelRows(accessor =>
                                 {
@@ -371,11 +330,17 @@ namespace DetectorLeveModel.Runner
 
                             var outPath = Path.Combine(saidaDir, $"detect_{idx:000}_ann_{Path.GetFileName(ann.ImagePath)}");
                             using (var fs = File.Create(outPath + ".png")) img.Save(fs, new SixLabors.ImageSharp.Formats.Png.PngEncoder());
-                            // write detection info: list all detected boxes with work and score
+                            // write detection info: only best detection if above cutoff
                             var sb = new System.Text.StringBuilder();
                             sb.AppendLine($"ann_box={gb.X},{gb.Y},{gb.Width},{gb.Height}");
-                            foreach (var d in allDet.OrderByDescending(d=>d.score)) sb.AppendLine($"det={d.work}:{d.x},{d.y},{d.w},{d.h},score={d.score:F6}");
-                            if (final.found) sb.AppendLine($"final={final.x},{final.y},{final.w},{final.h}");
+                            if (best.score > double.NegativeInfinity && best.score >= detectCutoff)
+                            {
+                                sb.AppendLine($"best={best.x},{best.y},{best.w},{best.h},score={best.score:F6}");
+                            }
+                            else
+                            {
+                                sb.AppendLine("best=none");
+                            }
                             File.WriteAllText(outPath + ".txt", sb.ToString());
                         }
                         catch (Exception ex)
