@@ -15,7 +15,7 @@
   <ItemGroup>
     <ProjectReference Include="..\\..\\..\\BIONIX-ML\\src\\Bionix.ML\\Bionix.ML.csproj" />
     <ProjectReference Include="..\\DetectorModel\\DetectorModel.csproj" />
-    <ProjectReference Include="..\\DetectorLeveModel\\DetectorLeveModel.csproj" />
+    <ProjectReference Include="..\\DetectorLeveBModel\\DetectorLeveBModel.csproj" />
     <ProjectReference Include="..\\IdentificadorLeveModel\\IdentificadorLeveModel.csproj" />
   </ItemGroup>
   <ItemGroup>

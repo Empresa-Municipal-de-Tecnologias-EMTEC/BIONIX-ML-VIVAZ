@@ -7,7 +7,7 @@ using Bionix.ML;
 using Bionix.ML.dados.imagem;
 using Bionix.ML.dados.imagem.bmp;
 using Bionix.ML.computacao;
-using DetectorLeveModel;
+using DetectorLeveBModel;
 using IdentificadorLeveModel;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;

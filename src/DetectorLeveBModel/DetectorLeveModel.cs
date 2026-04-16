@@ -8,7 +8,7 @@ using Bionix.ML.dados.imagem.bmp;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace DetectorLeveModel
+namespace DetectorLeveBModel
 {
     public class DetectorLeve
     {
