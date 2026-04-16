@@ -1,24 +1,18 @@
 {
-  "entryAssembly": "Vivaz.WASM.dll",
   "resources": {
-    "wasmNative": {
-      "dotnet.native.wasm": ""
-    },
-    "jsModuleNative": {
-      "dotnet.native.js": ""
-    },
-    "jsModuleRuntime": {
-      "dotnet.runtime.js": ""
-    },
-    "jsModuleDotnet": {
-      "dotnet.js": ""
-    },
+    "dotnetwasm": [
+      {
+        "name": "dotnet.native.wasm",
+        "url": "dotnet.native.wasm"
+      }
+    ],
     "assembly": {
-      "Vivaz.WASM.dll": "",
-      "DetectorLeveBModel.dll": "",
-      "DetectorModel.dll": "",
-      "IdentificadorLeveModel.dll": "",
-      "Bionix.ML.dll": ""
+      "Vivaz.WASM.dll": {},
+      "DetectorLeveBModel.dll": {},
+      "DetectorModel.dll": {},
+      "IdentificadorLeveModel.dll": {},
+      "Bionix.ML.dll": {}
     }
-  }
+  },
+  "entry": "Vivaz.WASM.dll"
 }
