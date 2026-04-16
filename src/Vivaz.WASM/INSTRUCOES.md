@@ -42,6 +42,32 @@ robocopy "BIONIX-ML-VIVAZ\artifacts\vivaz_wasm_publish\_framework" "BIONIX-ML-VI
 
 3) Reinicie o servidor demo e faça um hard reload da página demo.
 
+Copiar todo o conteúdo de `dist-wasm` para `vivaz-wasm`
+----------------------------------------------------
+
+Se você publicou para a pasta `dist-wasm` (ou usou `-o dist-wasm`), copie TODO o conteúdo dela para a pasta `vivaz-wasm` para que o demo use exatamente os artefatos gerados pelo publish. Exemplos:
+
+PowerShell (Windows):
+
+```powershell
+Push-Location C:\PROJETOS\BIONIX\BIONIX-ML-VIVAZ
+# remove qualquer conteúdo antigo
+Remove-Item -Recurse -Force .\src\Vivaz.Demonstracao\wwwroot\vivaz-wasm\*
+
+# copia tudo de dist-wasm para wwwroot/vivaz-wasm
+robocopy .\dist-wasm .\src\Vivaz.Demonstracao\wwwroot\vivaz-wasm /MIR
+Pop-Location
+```
+
+Linux/macOS (rsync):
+
+```bash
+rm -rf src/Vivaz.Demonstracao/wwwroot/vivaz-wasm/*
+rsync -av --delete dist-wasm/ src/Vivaz.Demonstracao/wwwroot/vivaz-wasm/
+```
+
+Após copiar, confirme que `Vivaz.WASM.deps.json` (ou `blazor.boot.json`) e os artefatos runtime (`dotnet.js`, `dotnet.runtime.js`, `dotnet.native.wasm`, `dotnet.native.js`, `icudt.dat`, etc.) estão presentes em `src/Vivaz.Demonstracao/wwwroot/vivaz-wasm`.
+
 Passo B — Contingência: copiar runtime do SDK (o que fizemos aqui)
 ----------------------------------------------------------------
 

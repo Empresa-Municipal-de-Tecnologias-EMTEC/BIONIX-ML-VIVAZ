@@ -1,0 +1,26 @@
+{
+  "mainAssemblyName": "Vivaz.WASM.dll",
+  "resources": {
+    "assembly": {
+      "Vivaz.WASM.dll": "",
+      "Bionix.ML.dll": "",
+      "DetectorLeveBModel.dll": "",
+      "DetectorModel.dll": "",
+      "IdentificadorLeveModel.dll": "",
+      "ILGPU.dll": "",
+      "SixLabors.ImageSharp.dll": ""
+    },
+    "runtime": {
+      "icudt.dat": ""
+    },
+    "wasmNative": {
+      "dotnet.native.wasm": ""
+    },
+    "jsModuleNative": {
+      "dotnet.native.js": ""
+    },
+    "jsModuleRuntime": {
+      "dotnet.runtime.js": ""
+    }
+  }
+}

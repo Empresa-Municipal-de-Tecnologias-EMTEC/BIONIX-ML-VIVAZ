@@ -10,7 +10,7 @@
       try {
         if (mod && mod.dotnet && typeof mod.dotnet.withConfig === 'function') {
           const cfg = {
-            configSrc: '/vivaz-wasm/blazor.boot.json',
+            configSrc: '/vivaz-wasm/Vivaz.WASM.deps.json',
             loadBootResource: (type, name, defaultUri, integrity) => {
               try { console.debug('[vivaz] loadBootResource', { type, name, defaultUri, integrity }); } catch (e) {}
               return defaultUri;
@@ -31,7 +31,7 @@
         const create = mod.default || mod.createDotnetRuntime || window.createDotnetRuntime;
         if (!create) throw new Error('createDotnetRuntime not found in /vivaz-wasm/dotnet.js');
         runtime = await create(() => ({
-          configSrc: '/vivaz-wasm/blazor.boot.json',
+          configSrc: '/vivaz-wasm/Vivaz.WASM.deps.json',
           loadBootResource: (type, name, defaultUri, integrity) => {
             try { console.debug('[vivaz] loadBootResource', { type, name, defaultUri, integrity }); } catch (e) {}
             return defaultUri;
