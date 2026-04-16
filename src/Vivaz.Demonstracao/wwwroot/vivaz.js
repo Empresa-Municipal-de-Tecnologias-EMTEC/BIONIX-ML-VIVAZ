@@ -13,7 +13,8 @@
       // Use a module-factory callback to ensure the runtime picks up configSrc
       // and config reliably (avoids fallback to ./blazor.boot.json).
       const runtime = await create(() => ({
-        configSrc: '/vivaz-wasm/Vivaz.WASM.deps.json',
+        // point to the minimal blazor-style boot manifest we added
+        configSrc: '/vivaz-wasm/blazor.boot.json',
         config: {
           environmentVariables: { VIVAZ_API_URL: (typeof window !== 'undefined' && window.location ? window.location.origin : '') }
         }
