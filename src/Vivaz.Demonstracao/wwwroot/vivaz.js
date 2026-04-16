@@ -16,7 +16,12 @@
         // point to the minimal blazor-style boot manifest we added
         configSrc: '/vivaz-wasm/blazor.boot.json',
         config: {
-          environmentVariables: { VIVAZ_API_URL: (typeof window !== 'undefined' && window.location ? window.location.origin : '') }
+          environmentVariables: {
+            VIVAZ_API_URL: (typeof window !== 'undefined' && window.location ? window.location.origin : ''),
+            // Enable verbose Mono/WASM runtime logging to help diagnose assembly/runtime failures
+            MONO_LOG_LEVEL: 'debug',
+            MONO_LOG_MASK: 'all'
+          }
         }
       }));
 
