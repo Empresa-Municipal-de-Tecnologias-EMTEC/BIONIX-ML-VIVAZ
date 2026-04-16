@@ -34,18 +34,20 @@
   // `VivazClientWASM` with methods `embedFromArrayBuffer` and `compareFromArrayBuffer`.
   api.ready = (async ()=>{
     try{
-      // try to load a glue script
-      const glueUrl = '/wasm/vivaz.js';
-      const r = await fetch(glueUrl, { method: 'HEAD' });
-      if (r.ok){
-        await new Promise((res, rej)=>{
-          const s = document.createElement('script'); s.src = glueUrl; s.onload = res; s.onerror = rej; document.head.appendChild(s);
-        });
-        if (window.VivazClientWASM && (window.VivazClientWASM.embedFromArrayBuffer || window.VivazClientWASM.compareFromArrayBuffer)){
-          api._impl = window.VivazClientWASM;
-          return api;
+      // try to load the glue script only from /vivaz-wasm (no fallback)
+      const glueUrl = '/vivaz-wasm/vivaz.js';
+      try{
+        const r = await fetch(glueUrl, { method: 'HEAD' });
+        if (r.ok){
+          await new Promise((res, rej)=>{
+            const s = document.createElement('script'); s.src = glueUrl; s.onload = res; s.onerror = rej; document.head.appendChild(s);
+          });
+          if (window.VivazClientWASM && (window.VivazClientWASM.embedFromArrayBuffer || window.VivazClientWASM.compareFromArrayBuffer)){
+            api._impl = window.VivazClientWASM;
+            return api;
+          }
         }
-      }
+      }catch(e){ /* ignore and fallthrough to proxy mode */ }
     }catch(e){ /* ignore and fallback */ }
     // no client wasm available — leave _impl null so methods will proxy to server
     return api;
