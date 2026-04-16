@@ -21,7 +21,7 @@
           if(window.VivazClientWASM && window.VivazClientWASM.detectFromArrayBuffer){ resp = await window.VivazClientWASM.detectFromArrayBuffer(new Uint8Array(buf)); }
           else if(window.vivazWasm && window.vivazWasm._impl && window.vivazWasm._impl.detectFromArrayBuffer){ resp = await window.vivazWasm._impl.detectFromArrayBuffer(new Uint8Array(buf)); }
           else { const form = new FormData(); form.append('file', blob, 'img.png'); const r = await fetch('/api/face/wasm/detectjson', { method: 'POST', body: form }); if(r.ok) resp = await r.json(); }
-          if(resp && resp.found){ if(overlay){ overlay.width = video.videoWidth || 320; overlay.height = video.videoHeight || 240; const ctx = overlay.getContext('2d'); ctx.clearRect(0,0,overlay.width, overlay.height); ctx.strokeStyle='lime'; ctx.lineWidth=3; ctx.strokeRect(resp.x, resp.y, resp.w, resp.h); } }
+          if(resp && resp.found){ if(overlay){ resizeOverlay(); const ctx = overlay.getContext('2d'); ctx.clearRect(0,0,overlay.width, overlay.height); ctx.strokeStyle='lime'; ctx.lineWidth=3; ctx.strokeRect(resp.x, resp.y, resp.w, resp.h); } }
           else { if(overlay){ const ctx = overlay.getContext('2d'); ctx.clearRect(0,0,overlay.width, overlay.height); } }
         }catch(e){ console.warn('detect loop error', e); if(overlay){ const ctx = overlay.getContext('2d'); ctx.clearRect(0,0,overlay.width, overlay.height); } }
         await new Promise(r=>setTimeout(r, intervalMs));
@@ -35,12 +35,17 @@
     const s = document.createElement('script'); s.src = '/js/vivaz-wasm-loader.js'; s.async = true; document.head.appendChild(s);
   }
 
+  function resizeOverlay(){
+    if(!overlay) return; const w = video.videoWidth || video.width || 320; const h = video.videoHeight || video.height || 240; if(overlay.width !== w || overlay.height !== h){ overlay.width = w; overlay.height = h; overlay.style.width = w + 'px'; overlay.style.height = h + 'px'; }
+  }
+
   async function initCamera(){
-    try{ const s = await navigator.mediaDevices.getUserMedia({video:true}); video.srcObject = s; }
+    try{ const s = await navigator.mediaDevices.getUserMedia({video:{facingMode:'user'}}); video.srcObject = s; video.onloadedmetadata = ()=>{ video.play(); resizeOverlay(); };
+    }
     catch(e){ console.error('camera init failed', e); }
   }
 
-  function capture(){ const w = canvas.width = video.videoWidth || 320; const h = canvas.height = video.videoHeight || 240; const ctx = canvas.getContext('2d'); ctx.drawImage(video,0,0,w,h); return new Promise(res=>canvas.toBlob(res,'image/png')); }
+  function capture(){ const w = canvas.width = video.videoWidth || video.width || 320; const h = canvas.height = video.videoHeight || video.height || 240; const ctx = canvas.getContext('2d'); ctx.drawImage(video,0,0,w,h); return new Promise(res=>canvas.toBlob(res,'image/png')); }
 
   async function postEmbed(blob){ const form = new FormData(); form.append('file', blob, 'img.png');
     try{
@@ -132,5 +137,9 @@
       if(detecting) detectLoop(250);
     });
 
-    initCamera();
+    // Try to start camera and detection automatically (may require user gesture in some browsers)
+    (async ()=>{
+      try{ await initCamera(); detecting = true; document.getElementById('startDetect').innerText = 'Stop Detect'; detectLoop(250); }
+      catch(e){ /* ignore - user can press button */ }
+    })();
 })();

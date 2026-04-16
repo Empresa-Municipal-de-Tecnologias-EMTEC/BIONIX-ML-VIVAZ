@@ -4,8 +4,10 @@
 <body>
 <h1>Demo — WASM (execução no browser)</h1>
 <p>Esta página usa o modelo compilado para WebAssembly para detecção em tempo real e identificação local.</p>
-<video id="video" autoplay playsinline width="320" height="240"></video>
-<canvas id="overlay" width="320" height="240" style="position:relative; left:0; top:0;"></canvas>
+<div style="position:relative; display:inline-block;">
+  <video id="video" autoplay playsinline width="320" height="240" style="display:block;"></video>
+  <canvas id="overlay" width="320" height="240" style="position:absolute; left:0; top:0; pointer-events:none;"></canvas>
+</div>
 <canvas id="canvas" style="display:none"></canvas>
 <div style="margin-top:8px;">
   <button id="capA">Capturar A</button>
