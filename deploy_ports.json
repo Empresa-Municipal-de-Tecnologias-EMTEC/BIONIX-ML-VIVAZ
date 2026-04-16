@@ -1,0 +1,6 @@
+{
+  "VivazApi": 5000,
+  "VivazDemonstracao": 5001,
+  "VivazWasm": 0,
+  "DemoStaticPort": 8080
+}

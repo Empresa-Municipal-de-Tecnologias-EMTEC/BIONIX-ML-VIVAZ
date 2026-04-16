@@ -174,7 +174,8 @@ namespace Vivaz.WASM
             }
             catch (Exception ex)
             {
-                return JsonSerializer.Serialize(new { found = false, error = ex.Message });
+                try { Console.Error.WriteLine("DetectJson error: " + ex.ToString()); } catch { }
+                return JsonSerializer.Serialize(new { found = false, error = ex.Message, detail = ex.ToString() });
             }
         }
 
@@ -214,7 +215,7 @@ namespace Vivaz.WASM
                 outImg.SaveAsPng(outMs);
                 return outMs.ToArray();
             }
-            catch { return null; }
+            catch (Exception ex) { try { Console.Error.WriteLine("DetectCropPng error: " + ex.ToString()); } catch { } return null; }
         }
 
         // Embed from raw RGB buffer

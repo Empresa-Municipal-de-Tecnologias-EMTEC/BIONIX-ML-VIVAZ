@@ -6,8 +6,28 @@
   const canvas = document.getElementById('canvas');
   const imgA = document.getElementById('imgA');
   const imgB = document.getElementById('imgB');
-  const resultEl = document.getElementById('result');
-  let blobA = null, blobB = null;
+    const resultEl = document.getElementById('result');
+    let blobA = null, blobB = null;
+    const overlay = document.getElementById('overlay');
+    let detecting = false;
+  
+    async function detectLoop(intervalMs=250){
+      while(detecting){
+        try{
+          const blob = await capture();
+          const buf = await blob.arrayBuffer();
+          let resp = null;
+          if(window.vivazWasm && window.vivazWasm.ready) await window.vivazWasm.ready;
+          if(window.VivazClientWASM && window.VivazClientWASM.detectFromArrayBuffer){ resp = await window.VivazClientWASM.detectFromArrayBuffer(new Uint8Array(buf)); }
+          else if(window.vivazWasm && window.vivazWasm._impl && window.vivazWasm._impl.detectFromArrayBuffer){ resp = await window.vivazWasm._impl.detectFromArrayBuffer(new Uint8Array(buf)); }
+          else { const form = new FormData(); form.append('file', blob, 'img.png'); const r = await fetch('/api/face/wasm/detectjson', { method: 'POST', body: form }); if(r.ok) resp = await r.json(); }
+          if(resp && resp.found){ if(overlay){ overlay.width = video.videoWidth || 320; overlay.height = video.videoHeight || 240; const ctx = overlay.getContext('2d'); ctx.clearRect(0,0,overlay.width, overlay.height); ctx.strokeStyle='lime'; ctx.lineWidth=3; ctx.strokeRect(resp.x, resp.y, resp.w, resp.h); } }
+          else { if(overlay){ const ctx = overlay.getContext('2d'); ctx.clearRect(0,0,overlay.width, overlay.height); } }
+        }catch(e){ console.warn('detect loop error', e); if(overlay){ const ctx = overlay.getContext('2d'); ctx.clearRect(0,0,overlay.width, overlay.height); } }
+        await new Promise(r=>setTimeout(r, intervalMs));
+      }
+      if(overlay){ const ctx = overlay.getContext('2d'); ctx.clearRect(0,0,overlay.width, overlay.height); }
+    }
 
   // attempt to use client-side WASM loader if available
   if (!window.vivazWasm) {
@@ -24,6 +44,30 @@
 
   async function postEmbed(blob){ const form = new FormData(); form.append('file', blob, 'img.png');
     try{
+
+    function drawBox(x,y,w,h){ if(!overlay) return; overlay.width = video.videoWidth || 320; overlay.height = video.videoHeight || 240; const ctx = overlay.getContext('2d'); ctx.clearRect(0,0,overlay.width, overlay.height); ctx.strokeStyle='lime'; ctx.lineWidth=3; ctx.strokeRect(x,y,w,h); }
+    function clearBox(){ if(!overlay) return; const ctx = overlay.getContext('2d'); ctx.clearRect(0,0,overlay.width, overlay.height); }
+
+    async function detectLoop(intervalMs=250){
+      while(detecting){
+        try{
+          const blob = await capture();
+          const buf = await blob.arrayBuffer();
+          let resp = null;
+          // prefer client wasm
+          if(window.vivazWasm && window.vivazWasm.ready) await window.vivazWasm.ready;
+          if(window.VivazClientWASM && window.VivazClientWASM.detectFromArrayBuffer){ resp = await window.VivazClientWASM.detectFromArrayBuffer(new Uint8Array(buf)); }
+          else if(window.vivazWasm && window.vivazWasm._impl && window.vivazWasm._impl.detectFromArrayBuffer){ resp = await window.vivazWasm._impl.detectFromArrayBuffer(new Uint8Array(buf)); }
+          else {
+            const form = new FormData(); form.append('file', blob, 'img.png'); const r = await fetch('/api/face/wasm/detectjson', { method: 'POST', body: form }); if(r.ok) resp = await r.json();
+          }
+          if(resp && resp.found){ drawBox(resp.x, resp.y, resp.w, resp.h); }
+          else { clearBox(); }
+        }catch(e){ console.warn('detect loop error', e); clearBox(); }
+        await new Promise(r=>setTimeout(r, intervalMs));
+      }
+      clearBox();
+    }
       const resp = await fetch(window.demoCompareConfig.embedEndpoint, { method: 'POST', body: form });
       if(!resp.ok) return null;
       return await resp.json();
@@ -66,6 +110,7 @@
     if(aJson && aJson.embedding && bJson && bJson.embedding){
       const a = aJson.embedding, b = bJson.embedding;
       let dot=0, na=0, nb=0; for(let i=0;i<a.length;i++){ dot+=a[i]*b[i]; na+=a[i]*a[i]; nb+=b[i]*b[i]; }
+    
       na=Math.sqrt(na); nb=Math.sqrt(nb); const cos = dot/(Math.max(1e-12, na*nb)); const percent = Math.max(0, cos)*100;
       const same = percent >= (window.demoCompareConfig.thresholdPercent||70);
       resultEl.innerText = JSON.stringify({ percent, same, method: 'embed_local' });
@@ -79,5 +124,13 @@
     resultEl.innerText = 'Comparison failed';
   });
 
-  initCamera();
+    // ensure Start Detect can request camera permissions and toggle detection
+    document.getElementById('startDetect').addEventListener('click', async (ev)=>{
+      if(!video.srcObject){ try{ await initCamera(); } catch(e){ console.warn('camera init on demand failed', e); } }
+      detecting = !detecting;
+      ev.target.innerText = detecting ? 'Stop Detect' : 'Start Detect';
+      if(detecting) detectLoop(250);
+    });
+
+    initCamera();
 })();

@@ -12,6 +12,9 @@ namespace DetectorLeveBModel
 {
     public class DetectorLeve
     {
+        // Computation context used to create the model's tensors
+        private ComputacaoContexto _ctxUsed;
+
         // Convolution + MLP parameters:
         // conv: 3x3 kernel -> 16 channels (valid conv) (not trained here)
         // pooling -> 9x9x16 = 1296 flattened input to MLP
@@ -28,7 +31,9 @@ namespace DetectorLeveBModel
 
         public void InitializeWeights(ComputacaoContexto ctx)
         {
-            var fabrica = new FabricaTensor(ctx ?? new ComputacaoCPUContexto());
+            var actualCtx = ctx ?? new ComputacaoCPUContexto();
+            _ctxUsed = actualCtx;
+            var fabrica = new FabricaTensor(actualCtx);
             // conv weights: im2col representation: patchSize=3*3*1=9 -> [9,16]
             convW = fabrica.Criar(9, 16);
             convB = fabrica.Criar(1, 16);
@@ -286,7 +291,6 @@ namespace DetectorLeveBModel
 
         public static DetectorLeve GetInstance(ComputacaoContexto ctx = null, string pesosDir = null)
         {
-            if (_instance != null) return _instance;
             lock (_instLock)
             {
                 if (_instance == null)
@@ -298,9 +302,35 @@ namespace DetectorLeveBModel
                         try { m.LoadWeights(pesosDir); } catch { }
                     }
                     _instance = m;
+                    return _instance;
                 }
+
+                // If an instance already exists but a different computation context
+                // is requested, recreate the model using the requested context
+                if (ctx != null && _instance._ctxUsed != null && ctx.GetType() != _instance._ctxUsed.GetType())
+                {
+                    var m = new DetectorLeve();
+                    m.InitializeWeights(ctx);
+                    if (!string.IsNullOrEmpty(pesosDir))
+                    {
+                        try { m.LoadWeights(pesosDir); } catch { }
+                    }
+                    _instance = m;
+                }
+                else if (ctx != null && _instance._ctxUsed == null)
+                {
+                    // existing instance was created without recording context; recreate with ctx
+                    var m = new DetectorLeve();
+                    m.InitializeWeights(ctx);
+                    if (!string.IsNullOrEmpty(pesosDir))
+                    {
+                        try { m.LoadWeights(pesosDir); } catch { }
+                    }
+                    _instance = m;
+                }
+
+                return _instance;
             }
-            return _instance;
         }
 
         // Perform multi-scale sliding-window detection on an input crop image.

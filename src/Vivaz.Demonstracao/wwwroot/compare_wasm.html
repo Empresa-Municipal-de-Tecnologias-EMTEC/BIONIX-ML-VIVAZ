@@ -1,19 +1,23 @@
 <!doctype html>
 <html>
-<head><meta charset="utf-8"><title>Compare via WASM</title></head>
+<head><meta charset="utf-8"><title>Comparação — WASM (cliente)</title></head>
 <body>
-<h1>Compare (WASM)</h1>
+<h1>Demo — WASM (execução no browser)</h1>
+<p>Esta página usa o modelo compilado para WebAssembly para detecção em tempo real e identificação local.</p>
 <video id="video" autoplay playsinline width="320" height="240"></video>
+<canvas id="overlay" width="320" height="240" style="position:relative; left:0; top:0;"></canvas>
 <canvas id="canvas" style="display:none"></canvas>
-<button id="capA">Capture A</button>
-<button id="capB">Capture B</button>
-<button id="compare">Compare (WASM)</button>
-<div>A: <img id="imgA" width="160"></div>
-<div>B: <img id="imgB" width="160"></div>
-<div id="result"></div>
+<div style="margin-top:8px;">
+  <button id="capA">Capturar A</button>
+  <button id="capB">Capturar B</button>
+  <button id="compare">Comparar (WASM)</button>
+  <button id="startDetect">Iniciar/Parar Detecção</button>
+</div>
+<div style="display:flex; gap:12px; margin-top:8px;"><div>A: <img id="imgA" width="160"></div><div>B: <img id="imgB" width="160"></div></div>
+<div id="result" style="margin-top:8px;"></div>
 <script src="/js/compare.js"></script>
 <script>
-  // configure for WASM-backed endpoints
+  // configurar endpoints para rota WASM (fallbacks mantidos)
   window.demoCompareConfig = {
     embedEndpoint: '/api/face/wasm/embed',
     compareEndpoint: '/api/face/wasm/compare',

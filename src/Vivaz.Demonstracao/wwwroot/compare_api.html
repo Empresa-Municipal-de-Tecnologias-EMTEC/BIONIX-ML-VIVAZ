@@ -1,24 +1,19 @@
 <!doctype html>
 <html>
-<head><meta charset="utf-8"><title>Compare via API</title></head>
+<head><meta charset="utf-8"><title>Comparação — API (Servidor)</title></head>
 <body>
-<h1>Compare (Server API)</h1>
+<h1>Demo — API (comparação no servidor)</h1>
+<p>Alinhe o rosto na elipse e use <strong>Capturar A</strong> e <strong>Capturar B</strong>. A comparação será feita no servidor.</p>
 <video id="video" autoplay playsinline width="320" height="240"></video>
+<canvas id="overlay" style="position:relative; left:0; top:0;"></canvas>
 <canvas id="canvas" style="display:none"></canvas>
-<button id="capA">Capture A</button>
-<button id="capB">Capture B</button>
-<button id="compare">Compare</button>
-<div>A: <img id="imgA" width="160"></div>
-<div>B: <img id="imgB" width="160"></div>
-<div id="result"></div>
-<script src="/js/compare.js"></script>
-<script>
-  // configure for server API compare endpoints
-  window.demoCompareConfig = {
-    embedEndpoint: '/api/face/embed',
-    compareEndpoint: '/api/face/compare',
-    thresholdPercent: 70
-  };
-</script>
+<div style="margin-top:8px;">
+  <button id="capA">Capturar A</button>
+  <button id="capB">Capturar B</button>
+  <button id="compare">Comparar</button>
+</div>
+<div style="display:flex; gap:12px; margin-top:8px;"><div>A: <img id="imgA" width="160"></div><div>B: <img id="imgB" width="160"></div></div>
+<div id="result" style="margin-top:8px;"></div>
+<script src="/js/compare_api.js"></script>
 </body>
 </html>

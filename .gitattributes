@@ -1,3 +1,10 @@
+# Track WebAssembly runtime binaries and published assets with Git LFS
+vivaz-wasm/*.wasm filter=lfs diff=lfs merge=lfs -text
+vivaz-wasm/*.data filter=lfs diff=lfs merge=lfs -text
+vivaz-wasm/*.so filter=lfs diff=lfs merge=lfs -text
+vivaz-wasm/*.dll filter=lfs diff=lfs merge=lfs -text
+PESOS/** filter=lfs diff=lfs merge=lfs -text
+**/*.bin filter=lfs diff=lfs merge=lfs -text
 artifacts/vivaz_wasm_publish_simple/Vivaz.WASM.dll filter=lfs diff=lfs merge=lfs -text
 src/Vivaz.Demonstracao/wwwroot/vivaz-wasm/Vivaz.WASM.dll filter=lfs diff=lfs merge=lfs -text
 artifacts/vivaz_wasm_publish/Vivaz.WASM.dll filter=lfs diff=lfs merge=lfs -text
