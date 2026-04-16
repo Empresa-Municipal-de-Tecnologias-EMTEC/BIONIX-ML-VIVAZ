@@ -13,6 +13,9 @@
 
         // Prefer the new .NET 8+ API: `dotnet.withConfig(...).create()` when available.
         let runtime;
+        // Prevent concurrent callers from invoking `create()` simultaneously by using
+        // a global create promise (`__vivaz_createPromise`). Other callers will await it
+        // and reuse the same runtime instance when it's ready.
         try {
           if (mod && mod.dotnet && typeof mod.dotnet.withConfig === 'function') {
             const cfg = {
@@ -27,22 +30,38 @@
                 MONO_LOG_MASK: 'all'
               }
             };
+
+            if (!window.__vivaz_createPromise) {
+              window.__vivaz_createPromise = (async () => {
+                try {
+                  return await mod.dotnet.withConfig(cfg).create();
+                } catch (e) {
+                  // clear so others can retry if this failed in a non-deterministic way
+                  window.__vivaz_createPromise = null;
+                  throw e;
+                }
+              })();
+            }
+
             try {
-              runtime = await mod.dotnet.withConfig(cfg).create();
+              runtime = await window.__vivaz_createPromise;
             } catch (errCreate) {
-              // If another loader already created the runtime, wait for that instance to be exposed
               const msg = errCreate && errCreate.message ? errCreate.message : '';
               if (msg.includes('Runtime module already loaded')) {
                 console.warn('[vivaz] runtime already loaded by another script; awaiting existing instance');
-                const waitForExisting = async (timeoutMs = 5000) => {
+                const waitForExisting = async (timeoutMs = 10000) => {
                   const start = Date.now();
                   while (Date.now() - start < timeoutMs) {
                     if (window.VivazClientWASM && window.VivazClientWASM._runtime) return window.VivazClientWASM._runtime;
+                    // if another create is in progress, await it
+                    if (window.__vivaz_createPromise) {
+                      try { const r = await window.__vivaz_createPromise; if (r) return r; } catch(e){}
+                    }
                     await new Promise(r => setTimeout(r, 200));
                   }
                   return null;
                 };
-                const existing = await waitForExisting(5000);
+                const existing = await waitForExisting(10000);
                 if (existing) {
                   runtime = existing;
                 } else {
@@ -61,34 +80,48 @@
         if (!runtime) {
           const create = mod.default || mod.createDotnetRuntime || window.createDotnetRuntime;
           if (!create) throw new Error('createDotnetRuntime not found in /vivaz-wasm/dotnet.js');
+          // fallback (non .withConfig) create path: also use the global create promise
           try {
-            runtime = await create(() => ({
-            configSrc: '/vivaz-wasm/Vivaz.WASM.deps.json',
-            loadBootResource: (type, name, defaultUri, integrity) => {
-              try { console.debug('[vivaz] loadBootResource', { type, name, defaultUri, integrity }); } catch (e) {}
-              return defaultUri;
-            },
-            config: {
-              environmentVariables: {
-                VIVAZ_API_URL: (typeof window !== 'undefined' && window.location ? window.location.origin : ''),
-                MONO_LOG_LEVEL: 'debug',
-                MONO_LOG_MASK: 'all'
-              }
+            if (!window.__vivaz_createPromise) {
+              window.__vivaz_createPromise = (async () => {
+                try {
+                  return await create(() => ({
+                    configSrc: '/vivaz-wasm/Vivaz.WASM.deps.json',
+                    loadBootResource: (type, name, defaultUri, integrity) => {
+                      try { console.debug('[vivaz] loadBootResource', { type, name, defaultUri, integrity }); } catch (e) {}
+                      return defaultUri;
+                    },
+                    config: {
+                      environmentVariables: {
+                        VIVAZ_API_URL: (typeof window !== 'undefined' && window.location ? window.location.origin : ''),
+                        MONO_LOG_LEVEL: 'debug',
+                        MONO_LOG_MASK: 'all'
+                      }
+                    }
+                  }));
+                } catch (e) {
+                  window.__vivaz_createPromise = null;
+                  throw e;
+                }
+              })();
             }
-            }));
+            runtime = await window.__vivaz_createPromise;
           } catch(errCreate) {
             const msg = errCreate && errCreate.message ? errCreate.message : '';
             if (msg.includes('Runtime module already loaded')) {
               console.warn('[vivaz] runtime already loaded by another script; awaiting existing instance (fallback create)');
-              const waitForExisting = async (timeoutMs = 5000) => {
+              const waitForExisting = async (timeoutMs = 10000) => {
                 const start = Date.now();
                 while (Date.now() - start < timeoutMs) {
                   if (window.VivazClientWASM && window.VivazClientWASM._runtime) return window.VivazClientWASM._runtime;
+                  if (window.__vivaz_createPromise) {
+                    try { const r = await window.__vivaz_createPromise; if (r) return r; } catch(e){}
+                  }
                   await new Promise(r => setTimeout(r, 200));
                 }
                 return null;
               };
-              const existing = await waitForExisting(5000);
+              const existing = await waitForExisting(10000);
               if (existing) {
                 runtime = existing;
               } else {
