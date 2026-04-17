@@ -7,6 +7,8 @@ using Bionix.ML.dados.imagem;
 using Bionix.ML.dados.imagem.bmp;
 using System.Collections.Generic;
 using System.Linq;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
 
 namespace DetectorLeveBModel
 {
@@ -473,6 +475,34 @@ namespace DetectorLeveBModel
                     int rW = Math.Max(1, (int)Math.Round(cropW * scale));
                     int rH = Math.Max(1, (int)Math.Round(cropH * scale));
                     var resized = ManipuladorDeImagem.redimensionar(crop, rW, rH);
+                    // Debug: save resized image for inspection (one file per scale)
+                    try
+                    {
+                        var outDir = Path.Combine(Environment.CurrentDirectory, "SAIDA", "debug_images");
+                        Directory.CreateDirectory(outDir);
+                        using var imgDbg = new Image<Rgba32>(resized.Width, resized.Height);
+                        imgDbg.ProcessPixelRows(accessor =>
+                        {
+                            for (int yy = 0; yy < resized.Height; yy++)
+                            {
+                                var row = accessor.GetRowSpan(yy);
+                                for (int xx = 0; xx < resized.Width; xx++)
+                                {
+                                    int srcIndex = (yy * resized.Width + xx) * resized.QuantidadeCanais;
+                                    byte r = resized.Armazenamento[srcIndex + 0];
+                                    byte g = resized.Armazenamento[srcIndex + 1];
+                                    byte b = resized.Armazenamento[srcIndex + 2];
+                                    row[xx] = new Rgba32(r, g, b, 255);
+                                }
+                            }
+                        });
+                        var fname = Path.Combine(outDir, $"resized_work_{work}_{DateTime.Now:yyyyMMdd_HHmmssfff}.png");
+                        imgDbg.Save(fname);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("[DetectorLeveB] Failed to save debug resized image: " + ex.ToString());
+                    }
 
                     for (int y0 = 0; y0 + work <= rH; y0 += step)
                     {
