@@ -48,9 +48,12 @@
     return inside && sizeOk;
   }
 
-  async function detectBlob(blob){ const form = new FormData(); form.append('image', blob, 'img.png'); form.append('file', blob, 'img.png'); try{ const r = await fetch('/api/face/detectjson', { method:'POST', body: form }); if(!r.ok) return null; return await r.json(); }catch(e){ console.error('detect error', e); return null; } }
+  // API base (explicit port 5152 for local Vivaz.API)
+  const API_BASE = 'http://localhost:5152';
 
-  async function postCompare(aBlob,bBlob){ const form = new FormData(); form.append('a', aBlob, 'a.png'); form.append('b', bBlob, 'b.png'); try{ const r = await fetch('/api/face/compare', { method:'POST', body: form }); if(!r.ok) return null; return await r.json(); }catch(e){ console.error('compare error', e); return null; } }
+  async function detectBlob(blob){ const form = new FormData(); form.append('image', blob, 'img.png'); form.append('file', blob, 'img.png'); try{ const r = await fetch(`${API_BASE}/api/face/detectjson`, { method:'POST', body: form }); if(!r.ok) return null; return await r.json(); }catch(e){ console.error('detect error', e); return null; } }
+
+  async function postCompare(aBlob,bBlob){ const form = new FormData(); form.append('a', aBlob, 'a.png'); form.append('b', bBlob, 'b.png'); try{ const r = await fetch(`${API_BASE}/api/face/compare`, { method:'POST', body: form }); if(!r.ok) return null; return await r.json(); }catch(e){ console.error('compare error', e); return null; } }
 
   document.getElementById('capA').addEventListener('click', async ()=>{
     try{ if(!video.srcObject) await initCamera(); }

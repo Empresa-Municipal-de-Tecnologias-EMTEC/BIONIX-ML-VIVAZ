@@ -10,7 +10,7 @@ using Bionix.ML.nucleo.otimizadores;
 using Bionix.ML.nucleo.funcoesPerda;
 using Bionix.ML.dados.serializacao;
 using System.Globalization;
-using DetectorLeveModel;
+using DetectorLeveBModel;
 using DetectorModel.dados;
 
 namespace DetectorLeveModel.Runner
@@ -279,7 +279,7 @@ namespace DetectorLeveModel.Runner
                     if (detectTest)
                 {
                     Console.WriteLine($"Running detect-test on {detectSamples} samples...");
-                    var detModel = DetectorLeveModel.DetectorLeve.GetInstance(ctx, pesosDirRoot);
+                    var detModel = DetectorLeve.GetInstance(ctx, pesosDirRoot);
                     var sampleList = anns.Where(a => a.Boxes != null && a.Boxes.Count > 0).OrderBy(x => rnd.Next()).Take(detectSamples).ToList();
                     int idx = 0;
                     foreach (var ann in sampleList)

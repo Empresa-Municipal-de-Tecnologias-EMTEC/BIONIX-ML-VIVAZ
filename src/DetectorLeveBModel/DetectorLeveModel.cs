@@ -265,14 +265,24 @@ namespace DetectorLeveBModel
         {
             try
             {
-                var p = Path.Combine(dir, "w1.bin"); if (File.Exists(p) && W1 != null) { var t = SerializadorTensor.LoadBinary(p); if (t != null && t.Size == W1.Size) for (int i=0;i<W1.Size;i++) W1[i]=t[i]; }
-                p = Path.Combine(dir, "b1.bin"); if (File.Exists(p) && b1 != null) { var t = SerializadorTensor.LoadBinary(p); if (t != null && t.Size == b1.Size) for (int i=0;i<b1.Size;i++) b1[i]=t[i]; }
-                p = Path.Combine(dir, "w2.bin"); if (File.Exists(p) && W2 != null) { var t = SerializadorTensor.LoadBinary(p); if (t != null && t.Size == W2.Size) for (int i=0;i<W2.Size;i++) W2[i]=t[i]; }
-                p = Path.Combine(dir, "b2.bin"); if (File.Exists(p) && b2 != null) { var t = SerializadorTensor.LoadBinary(p); if (t != null && t.Size == b2.Size) for (int i=0;i<b2.Size;i++) b2[i]=t[i]; }
-                p = Path.Combine(dir, "convW.bin"); if (File.Exists(p) && convW != null) { var t = SerializadorTensor.LoadBinary(p); if (t != null && t.Size == convW.Size) for (int i=0;i<convW.Size;i++) convW[i]=t[i]; }
-                p = Path.Combine(dir, "convB.bin"); if (File.Exists(p) && convB != null) { var t = SerializadorTensor.LoadBinary(p); if (t != null && t.Size == convB.Size) for (int i=0;i<convB.Size;i++) convB[i]=t[i]; }
+                Console.WriteLine($"[DetectorLeveB] LoadWeights: looking in '{dir}'");
+                if (!Directory.Exists(dir)) { Console.WriteLine($"[DetectorLeveB] LoadWeights: directory not found: {dir}"); return; }
+                var files = Directory.GetFiles(dir);
+                Console.WriteLine($"[DetectorLeveB] LoadWeights: found {files.Length} files");
+                foreach (var f in files)
+                {
+                    try { var fi = new FileInfo(f); Console.WriteLine($"[DetectorLeveB]   - {fi.Name} ({fi.Length} bytes)"); } catch { }
+                }
+
+                var p = Path.Combine(dir, "w1.bin"); if (File.Exists(p) && W1 != null) { Console.WriteLine("[DetectorLeveB]   Loading w1.bin..."); var t = SerializadorTensor.LoadBinary(p); if (t != null && t.Size == W1.Size) for (int i = 0; i < W1.Size; i++) W1[i] = t[i]; }
+                p = Path.Combine(dir, "b1.bin"); if (File.Exists(p) && b1 != null) { Console.WriteLine("[DetectorLeveB]   Loading b1.bin..."); var t = SerializadorTensor.LoadBinary(p); if (t != null && t.Size == b1.Size) for (int i = 0; i < b1.Size; i++) b1[i] = t[i]; }
+                p = Path.Combine(dir, "w2.bin"); if (File.Exists(p) && W2 != null) { Console.WriteLine("[DetectorLeveB]   Loading w2.bin..."); var t = SerializadorTensor.LoadBinary(p); if (t != null && t.Size == W2.Size) for (int i = 0; i < W2.Size; i++) W2[i] = t[i]; }
+                p = Path.Combine(dir, "b2.bin"); if (File.Exists(p) && b2 != null) { Console.WriteLine("[DetectorLeveB]   Loading b2.bin..."); var t = SerializadorTensor.LoadBinary(p); if (t != null && t.Size == b2.Size) for (int i = 0; i < b2.Size; i++) b2[i] = t[i]; }
+                p = Path.Combine(dir, "convW.bin"); if (File.Exists(p) && convW != null) { Console.WriteLine("[DetectorLeveB]   Loading convW.bin..."); var t = SerializadorTensor.LoadBinary(p); if (t != null && t.Size == convW.Size) for (int i = 0; i < convW.Size; i++) convW[i] = t[i]; }
+                p = Path.Combine(dir, "convB.bin"); if (File.Exists(p) && convB != null) { Console.WriteLine("[DetectorLeveB]   Loading convB.bin..."); var t = SerializadorTensor.LoadBinary(p); if (t != null && t.Size == convB.Size) for (int i = 0; i < convB.Size; i++) convB[i] = t[i]; }
+                Console.WriteLine("[DetectorLeveB] LoadWeights: finished loading available files");
             }
-            catch { }
+            catch (Exception ex) { Console.WriteLine("[DetectorLeveB] LoadWeights error: " + ex.ToString()); }
         }
 
         public System.Collections.Generic.IEnumerable<(string name, Tensor tensor)> GetNamedParameters()
@@ -293,13 +303,14 @@ namespace DetectorLeveBModel
         {
             lock (_instLock)
             {
+                Console.WriteLine($"[DetectorLeveB] GetInstance called. ctx={ctx?.GetType().Name}, pesosDir={pesosDir}");
                 if (_instance == null)
                 {
                     var m = new DetectorLeve();
                     m.InitializeWeights(ctx ?? new ComputacaoCPUContexto());
                     if (!string.IsNullOrEmpty(pesosDir))
                     {
-                        try { m.LoadWeights(pesosDir); } catch { }
+                        try { Console.WriteLine($"[DetectorLeveB] Loading weights during GetInstance from {pesosDir}"); m.LoadWeights(pesosDir); } catch (Exception ex) { Console.WriteLine("[DetectorLeveB] LoadWeights threw: " + ex.ToString()); }
                     }
                     _instance = m;
                     return _instance;
@@ -313,7 +324,7 @@ namespace DetectorLeveBModel
                     m.InitializeWeights(ctx);
                     if (!string.IsNullOrEmpty(pesosDir))
                     {
-                        try { m.LoadWeights(pesosDir); } catch { }
+                        try { Console.WriteLine($"[DetectorLeveB] Recreating instance and loading weights from {pesosDir}"); m.LoadWeights(pesosDir); } catch (Exception ex) { Console.WriteLine("[DetectorLeveB] LoadWeights threw: " + ex.ToString()); }
                     }
                     _instance = m;
                 }
@@ -324,7 +335,7 @@ namespace DetectorLeveBModel
                     m.InitializeWeights(ctx);
                     if (!string.IsNullOrEmpty(pesosDir))
                     {
-                        try { m.LoadWeights(pesosDir); } catch { }
+                        try { Console.WriteLine($"[DetectorLeveB] Recreating instance (no prior ctx) and loading weights from {pesosDir}"); m.LoadWeights(pesosDir); } catch (Exception ex) { Console.WriteLine("[DetectorLeveB] LoadWeights threw: " + ex.ToString()); }
                     }
                     _instance = m;
                 }
@@ -451,20 +462,58 @@ namespace DetectorLeveBModel
                 int work = scales[si]; int step = steps[si];
                 if (work > cropW || work > cropH) continue;
                 var per = new System.Collections.Generic.List<(double score, int x, int y, int w, int h)>();
-                for (int y0 = 0; y0 + work <= cropH; y0 += step)
+
+                // If the input crop is larger than the target 'work' on its smaller side,
+                // resize the crop so its smaller side == work (preserve aspect ratio),
+                // perform sliding-window on the resized image and map detections back to
+                // the original crop coordinates.
+                if (Math.Min(cropW, cropH) > work)
                 {
-                    for (int x0 = 0; x0 + work <= cropW; x0 += step)
+                    double scale = (double)work / Math.Min(cropW, cropH);
+                    int rW = Math.Max(1, (int)Math.Round(cropW * scale));
+                    int rH = Math.Max(1, (int)Math.Round(cropH * scale));
+                    var resized = ManipuladorDeImagem.redimensionar(crop, rW, rH);
+
+                    for (int y0 = 0; y0 + work <= rH; y0 += step)
                     {
-                        var win = ManipuladorDeImagem.cortar(crop, x0, y0, work, work);
-                        var t = ManipuladorDeImagem.TransformarCropParaTensorGrayscale(win, 20, ctx);
-                        var outt = this.Forward(t, ctx);
-                        double score = outt[0];
-                        if (score < detectCutoff) continue;
-                        // ignore degenerate whole-crop boxes
-                        if (work >= Math.Max(0.99 * cropW, cropW) && work >= Math.Max(0.99 * cropH, cropH)) continue;
-                        per.Add((score, x0, y0, work, work));
+                        for (int x0 = 0; x0 + work <= rW; x0 += step)
+                        {
+                            var win = ManipuladorDeImagem.cortar(resized, x0, y0, work, work);
+                            var t = ManipuladorDeImagem.TransformarCropParaTensorGrayscale(win, 20, ctx);
+                            var outt = this.Forward(t, ctx);
+                            double score = outt[0];
+                            if (score < detectCutoff) continue;
+                            // ignore degenerate whole-crop boxes (in resized space)
+                            if (work >= Math.Max(0.99 * rW, rW) && work >= Math.Max(0.99 * rH, rH)) continue;
+
+                            // map coordinates back to original crop space
+                            int ox = Math.Max(0, (int)Math.Round(x0 / scale));
+                            int oy = Math.Max(0, (int)Math.Round(y0 / scale));
+                            int ow = Math.Max(1, (int)Math.Round(work / scale));
+                            int oh = Math.Max(1, (int)Math.Round(work / scale));
+                            per.Add((score, ox, oy, ow, oh));
+                        }
                     }
                 }
+                else
+                {
+                    // input is already smaller-or-equal on the smaller side: slide on original
+                    for (int y0 = 0; y0 + work <= cropH; y0 += step)
+                    {
+                        for (int x0 = 0; x0 + work <= cropW; x0 += step)
+                        {
+                            var win = ManipuladorDeImagem.cortar(crop, x0, y0, work, work);
+                            var t = ManipuladorDeImagem.TransformarCropParaTensorGrayscale(win, 20, ctx);
+                            var outt = this.Forward(t, ctx);
+                            double score = outt[0];
+                            if (score < detectCutoff) continue;
+                            // ignore degenerate whole-crop boxes
+                            if (work >= Math.Max(0.99 * cropW, cropW) && work >= Math.Max(0.99 * cropH, cropH)) continue;
+                            per.Add((score, x0, y0, work, work));
+                        }
+                    }
+                }
+
                 // sort per-scale and take topK
                 var top = per.OrderByDescending(p => p.score).Take(topK);
                 foreach (var p in top) results.Add((p.score, p.x, p.y, p.w, p.h, work));
@@ -598,6 +647,33 @@ namespace DetectorLeveBModel
             return (true, finalX, finalY, finalW, finalH);
         }
 
-        
+        // Helper: detect on a resized version to avoid sliding-window cost on huge images.
+        // Resizes the input so its max dimension <= maxDim, runs DetectBest on the resized BMP
+        // and maps coordinates back to the original image space.
+        public (double score, int x, int y, int w, int h) DetectBestResized(BMP fullImage, ComputacaoContexto ctx = null, double detectCutoff = 0.5, int[] scales = null, int[] steps = null, int maxDim = 800)
+        {
+            if (fullImage == null) throw new ArgumentNullException(nameof(fullImage));
+            int origW = fullImage.Width, origH = fullImage.Height;
+            // If the smaller side is already less-or-equal to the target, no resize
+            if (Math.Min(origW, origH) <= maxDim)
+            {
+                return DetectBest(fullImage, ctx, detectCutoff, scales, steps);
+            }
+
+            // Scale so the smaller side equals maxDim, keeping aspect ratio
+            double scale = (double)maxDim / Math.Min(origW, origH);
+            int newW = Math.Max(1, (int)Math.Round(origW * scale));
+            int newH = Math.Max(1, (int)Math.Round(origH * scale));
+            var resized = ManipuladorDeImagem.redimensionar(fullImage, newW, newH);
+            var best = DetectBest(resized, ctx, detectCutoff, scales, steps);
+            // map back
+            if (double.IsNegativeInfinity(best.score) || double.IsNaN(best.score)) return best;
+            int rx = Math.Max(0, (int)Math.Round(best.x / scale));
+            int ry = Math.Max(0, (int)Math.Round(best.y / scale));
+            int rw = Math.Max(1, (int)Math.Round(best.w / scale));
+            int rh = Math.Max(1, (int)Math.Round(best.h / scale));
+            return (best.score, rx, ry, rw, rh);
+        }
+
     }
 }
