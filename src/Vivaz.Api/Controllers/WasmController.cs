@@ -31,7 +31,7 @@ namespace Vivaz.Api.Controllers
             var bytes = ms.ToArray();
             var png = VivazClient.DetectCropPng(bytes);
             if (png == null) return NotFound();
-            return File(png, "image/png");
+            return base.File(png, "image/png");
         }
 
         [HttpPost("embed")]

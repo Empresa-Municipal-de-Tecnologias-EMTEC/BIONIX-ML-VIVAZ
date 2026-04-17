@@ -7,6 +7,8 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using System.Linq;
+// avoid importing System.IO to prevent name conflicts with ControllerBase.File
+using System.Text.Json;
 using Microsoft.Extensions.Logging;
 
 namespace Vivaz.Api.Controllers;
@@ -45,7 +47,7 @@ public class FaceController : ControllerBase
             var sw = System.Diagnostics.Stopwatch.StartNew();
 
             // Delegate resizing + detection to model helper to avoid sliding-window on huge images
-            var best = _detector.DetectBestResized(bmp, ctx, detectCutoff: 0.5, scales: null, steps: null, maxDim: 800);
+            var best = _detector.DetectBestResized(bmp, ctx, detectCutoff: 0.3, scales: null, steps: null, maxDim: 800);
             sw.Stop();
             _log.LogInformation("Detect: DetectBestResized finished in {ms}ms, score={score}", sw.ElapsedMilliseconds, best.score);
 
@@ -63,7 +65,7 @@ public class FaceController : ControllerBase
             using var outMs = new MemoryStream();
             outImg.SaveAsJpeg(outMs);
             outMs.Seek(0, SeekOrigin.Begin);
-            return File(outMs.ToArray(), "image/jpeg", "crop.jpg");
+            return base.File(outMs.ToArray(), "image/jpeg", "crop.jpg");
         }
         catch (Exception ex)
         {
@@ -91,8 +93,24 @@ public class FaceController : ControllerBase
         try {
             var sw = System.Diagnostics.Stopwatch.StartNew();
             _log.LogDebug("DetectJson: starting DetectTopPerScale");
-            var allDet = _detector.DetectTopPerScale(bmp, ctx, detectCutoff: 0.5, scales: null, steps: null, topK: 5);
+            var allDet = _detector.DetectTopPerScale(bmp, ctx, detectCutoff: 0.3, scales: null, steps: null, topK: 5);
             _log.LogDebug("DetectJson: DetectTopPerScale finished in {ms}ms", sw.ElapsedMilliseconds);
+
+            // Save `allDet` as JSON for debugging/inspection in SAIDA/debug_images
+            try
+            {
+                var outDir = Path.Combine(Directory.GetCurrentDirectory(), "SAIDA", "debug_images");
+                Directory.CreateDirectory(outDir);
+                var simple = allDet.Select(d => new { d.score, d.x, d.y, d.w, d.h, d.work }).ToList();
+                var fname = Path.Combine(outDir, $"allDet_{DateTime.Now:yyyyMMdd_HHmmssfff}.json");
+                var json = JsonSerializer.Serialize(simple, new JsonSerializerOptions { WriteIndented = true });
+                System.IO.File.WriteAllText(fname, json);
+                _log.LogInformation("DetectJson: saved allDet JSON to {file}", fname);
+            }
+            catch (Exception ex)
+            {
+                _log.LogWarning(ex, "DetectJson: failed saving allDet JSON");
+            }
             var consensus = _detector.AggregateConsensus(allDet, bmp.Width, bmp.Height, 0.4);
             _log.LogDebug("DetectJson: AggregateConsensus finished in {ms}ms", sw.ElapsedMilliseconds);
             swTotal.Stop();
@@ -111,6 +129,59 @@ public class FaceController : ControllerBase
             return StatusCode(500, new { error = "internal error" });
         }
         
+    }
+
+    [HttpPost("detect_scalesweep")]
+    public async Task<IActionResult> DetectScaleSweep([FromForm] IFormFile image, [FromForm] string scales = null)
+    {
+        if (image == null) return BadRequest("image file required");
+        using var ms = new MemoryStream();
+        await image.CopyToAsync(ms);
+        ms.Seek(0, SeekOrigin.Begin);
+        Image<Rgba32> img;
+        try { img = Image.Load<Rgba32>(ms); }
+        catch (Exception ex) { _log.LogWarning(ex, "invalid image payload"); return BadRequest("invalid image"); }
+        var bmp = BMP.FromImage(img);
+        ComputacaoContexto ctx = new ComputacaoCPUContexto();
+
+        // default candidate scales to test (including 20px anchor)
+        int[] candidate = new int[] { 12, 16, 20, 24, 28, 32, 40, 48, 64 };
+        if (!string.IsNullOrEmpty(scales))
+        {
+            try
+            {
+                var parts = scales.Split(new char[] { ',', ';', ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                var list = new System.Collections.Generic.List<int>();
+                foreach (var p in parts) if (int.TryParse(p.Trim(), out var v)) list.Add(Math.Max(1, v));
+                if (list.Count > 0) candidate = list.ToArray();
+            }
+            catch { }
+        }
+
+        var outDir = Path.Combine(Directory.GetCurrentDirectory(), "SAIDA", "debug_images"); Directory.CreateDirectory(outDir);
+        var report = new System.Collections.Generic.List<object>();
+
+        foreach (var s in candidate)
+        {
+            try
+            {
+                // run detection using a single-scale sweep so windows of size `s` map to 20px when resized
+                var dets = _detector.DetectTopPerScale(bmp, ctx, detectCutoff: 0.3, scales: new int[] { s }, steps: new int[] { Math.Max(1, s / 4) }, topK: 20);
+                var simple = dets.Select(d => new { d.score, d.x, d.y, d.w, d.h, d.work }).ToList();
+                var fname = Path.Combine(outDir, $"scale_{s}_allDet_{DateTime.Now:yyyyMMdd_HHmmssfff}.json");
+                var json = JsonSerializer.Serialize(simple, new JsonSerializerOptions { WriteIndented = true });
+                System.IO.File.WriteAllText(fname, json);
+                _log.LogInformation("DetectScaleSweep: saved scale {scale} results to {file}", s, fname);
+                report.Add(new { scale = s, count = simple.Count, file = fname, examples = simple.Take(5) });
+            }
+            catch (Exception ex)
+            {
+                _log.LogWarning(ex, "DetectScaleSweep: scale {scale} failed", s);
+                report.Add(new { scale = s, error = ex.Message });
+            }
+        }
+
+        return Ok(new { tested = candidate, results = report });
     }
 
     [HttpPost("compare")]
