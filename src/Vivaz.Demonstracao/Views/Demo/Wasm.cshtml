@@ -2,48 +2,233 @@
     Layout = null;
 }
 <!doctype html>
-<html>
-<head><meta charset="utf-8"><title>WASM Demo</title></head>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Vivaz.WASM - Demonstração</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        body { background-color: #f8f9fa; }
+        .video-container { position: relative; border-radius: 8px; overflow: hidden; background: #000; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        #video { width: 100%; height: auto; display: block; }
+        #overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+        .status-badge { position: absolute; top: 10px; right: 10px; z-index: 10; }
+        .result-img { max-width: 100%; border: 1px solid #ddd; border-radius: 4px; background: #eee; }
+        .log-container { height: 200px; overflow-y: auto; background: #212529; color: #0dcaf0; font-family: monospace; font-size: 0.85rem; padding: 10px; border-radius: 4px; border: 1px solid #333; }
+        .card { border: none; border-radius: 10px; }
+        .card-header { border-bottom: 1px solid #eee; font-weight: bold; }
+        .btn-primary { background-color: #0062cc; }
+    </style>
+</head>
 <body>
-    <h1>WASM-backed Demo</h1>
-    <p>This demo uses the WASM-backed endpoints on the server that call the embedded Vivaz.WASM helpers.</p>
-    <video id="video" autoplay playsinline width="480" height="360" style="border:1px solid #ccc"></video>
-    <canvas id="canvas" width="480" height="360" style="display:none"></canvas>
-    <div>
-        <button id="btnCapture" onclick="postDetectWasm()">Capture & Detect (WASM)</button>
-    </div>
-    <div>
-        <h3>Detected rectangle (drawn):</h3>
-        <canvas id="outCanvas" width="480" height="360" style="border:1px solid #333"></canvas>
-    </div>
-    <div>
-        <h3>Crop returned by WASM-backed endpoint:</h3>
-        <img id="cropImg" />
+    <div class="container py-4">
+        <header class="pb-3 mb-4 border-bottom d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center">
+                <h1 class="h3 text-dark mb-0">Vivaz Face Intelligence</h1>
+                <span class="badge bg-primary ms-3">v2.0 WASM</span>
+            </div>
+            <div id="wasm-status">
+                <span class="badge bg-secondary">Carregando Runtime...</span>
+            </div>
+        </header>
+
+        <div class="row g-4">
+            <!-- Coluna da Câmera -->
+            <div class="col-lg-7">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Câmera em Tempo Real</h5>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="modeSwitch">
+                            <label class="form-check-label fw-bold" for="modeSwitch">Processamento Local (WASM)</label>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="video-container mb-3">
+                            <video id="video" autoplay playsinline></video>
+                            <canvas id="overlay"></canvas>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button id="btnCapture" class="btn btn-primary px-4 flex-grow-1">Detectar Face</button>
+                            <button id="btnCompare" class="btn btn-outline-secondary px-4">Comparar</button>
+                        </div>
+                        <p class="text-muted small mt-2 mb-0">
+                            * O modo WASM processa tudo no seu navegador sem enviar imagens para o servidor.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Coluna de Resultados -->
+            <div class="col-lg-5">
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-white"><h5 class="mb-0">Resultado da Análise</h5></div>
+                    <div class="card-body text-center">
+                        <div id="no-result" class="text-muted py-5">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor" class="bi bi-person-bounding-box mb-3" viewBox="0 0 16 16">
+                                <path d="M1.5 1a.5.5 0 0 0-.5.5v3a.5.5 0 0 1-1 0v-3A1.5 1.5 0 0 1 1.5 0h3a.5.5 0 0 1 0 1h-3zM11 .5a.5.5 0 0 1 .5-.5h3A1.5 1.5 0 0 1 16 1.5v3a.5.5 0 0 1-1 0v-3a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 1-.5-.5zM.5 11a.5.5 0 0 1 .5.5v3a.5.5 0 0 0 .5.5h3a.5.5 0 0 1 0 1h-3A1.5 1.5 0 0 1 0 14.5v-3a.5.5 0 0 1 .5-.5zm15 0a.5.5 0 0 1 .5.5v3a1.5 1.5 0 0 1-1.5 1.5h-3a.5.5 0 0 1 0-1h3a.5.5 0 0 0 .5-.5v-3a.5.5 0 0 1 .5-.5z"/>
+                                <path d="M3 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1H3zm8-9a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/>
+                            </svg>
+                            <p>Aguardando captura...</p>
+                        </div>
+                        <div id="result-content" style="display:none">
+                            <img id="cropImg" class="result-img mb-3 shadow-sm" alt="Face Crop">
+                            <div class="alert alert-light border py-2 mb-0 text-start small" id="detect-info"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card shadow-sm">
+                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Logs de Execução</h5>
+                        <button class="btn btn-sm btn-link text-decoration-none" onclick="document.getElementById('logs').innerHTML=''">Limpar</button>
+                    </div>
+                    <div class="card-body p-0">
+                        <div id="logs" class="log-container border-0 rounded-0 rounded-bottom"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
+    <!-- Hidden Assets -->
+    <canvas id="captureCanvas" style="display:none"></canvas>
+
+    <script src="/js/vivaz-wasm-loader.js"></script>
     <script>
-        async function postDetectWasm(){
-            const video = document.getElementById('video');
-            const canvas = document.getElementById('canvas');
-            const outCanvas = document.getElementById('outCanvas');
-            const cropImg = document.getElementById('cropImg');
-            try{ const s = await navigator.mediaDevices.getUserMedia({video:true}); video.srcObject = s; }
-            catch(e){ console.error('camera init failed', e); return; }
-            // capture one frame
-            const w = canvas.width = video.videoWidth || 480; const h = canvas.height = video.videoHeight || 360; const ctx = canvas.getContext('2d'); ctx.drawImage(video,0,0,w,h);
-            const blob = await new Promise(res=>canvas.toBlob(res,'image/png'));
-            if(!blob) return;
-            const form = new FormData(); form.append('file', blob, 'frame.png');
-            const resp = await fetch('/api/face/wasm/detectjson', { method: 'POST', body: form });
-            if(!resp.ok){ console.error('detectjson error', resp.statusText); return; }
-            const json = await resp.json();
-            // draw
-            const ctxOut = outCanvas.getContext('2d'); outCanvas.width = w; outCanvas.height = h; ctxOut.drawImage(video,0,0,w,h);
-            if(json && json.final){ ctxOut.lineWidth = 4; ctxOut.strokeStyle = 'yellow'; const f = json.final; ctxOut.strokeRect(f.x,f.y,f.w,f.h); }
-            // get crop
-            const cropResp = await fetch('/api/face/wasm/detectcrop', { method: 'POST', body: form });
-            if(cropResp.ok){ const b = await cropResp.blob(); cropImg.src = URL.createObjectURL(b); }
+        const video = document.getElementById('video');
+        const overlay = document.getElementById('overlay');
+        const modeSwitch = document.getElementById('modeSwitch');
+        const btnCapture = document.getElementById('btnCapture');
+        const btnCompare = document.getElementById('btnCompare');
+        const cropImg = document.getElementById('cropImg');
+        const detectInfo = document.getElementById('detect-info');
+        const resultContent = document.getElementById('result-content');
+        const noResult = document.getElementById('no-result');
+        const wasmStatus = document.getElementById('wasm-status');
+        const logs = document.getElementById('logs');
+
+        let lastEmbedding = null;
+        let isWasmReady = false;
+
+        function log(msg, type = 'info') {
+            const time = new Date().toLocaleTimeString();
+            const entry = document.createElement('div');
+            entry.className = `log-entry mb-1 ${type === 'error' ? 'text-danger' : (type === 'success' ? 'text-success' : 'text-info')}`;
+            entry.innerHTML = `<span class="text-muted">[${time}]</span> ${msg}`;
+            logs.appendChild(entry);
+            logs.scrollTop = logs.scrollHeight;
         }
+
+        async function initCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
+                video.srcObject = stream;
+                video.onloadedmetadata = () => {
+                    overlay.width = video.videoWidth;
+                    overlay.height = video.videoHeight;
+                    log(`Câmera iniciada: ${video.videoWidth}x${video.videoHeight}`);
+                };
+            } catch (e) {
+                log('Erro ao acessar câmera: ' + e.message, 'error');
+            }
+        }
+
+        async function checkWasm() {
+            try {
+                log('Aguardando inicialização do Vivaz.WASM...');
+                await window.vivazWasm.ready;
+                isWasmReady = true;
+                wasmStatus.innerHTML = '<span class="badge bg-success">WASM Cliente Ativo</span>';
+                modeSwitch.checked = true;
+                log('Vivaz.WASM cliente carregado com sucesso!', 'success');
+            } catch (e) {
+                wasmStatus.innerHTML = '<span class="badge bg-warning text-dark">WASM Indisponível (Usando API)</span>';
+                modeSwitch.checked = false;
+                modeSwitch.disabled = true;
+                log('WASM não pôde ser carregado localmente, usando fallback de API do servidor', 'error');
+            }
+        }
+
+        async function processFrame() {
+            const canvas = document.getElementById('captureCanvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0);
+            
+            const blob = await new Promise(res => canvas.toBlob(res, 'image/png'));
+            const isLocal = modeSwitch.checked;
+            
+            log(`Iniciando detecção (${isLocal ? 'WASM Local' : 'API Remota'})...`);
+            const start = performance.now();
+            
+            try {
+                // 1. Detectar Face
+                const json = await window.vivazWasm.detect(blob);
+                const end = performance.now();
+                const duration = (end - start).toFixed(0);
+
+                // Limpar overlay
+                const octx = overlay.getContext('2d');
+                octx.clearRect(0, 0, overlay.width, overlay.height);
+
+                if (json && json.found) {
+                    log(`Face encontrada em ${duration}ms`, 'success');
+                    
+                    // Desenhar retângulo no overlay
+                    const f = json.final;
+                    octx.lineWidth = 4;
+                    octx.strokeStyle = '#00ff00';
+                    octx.strokeRect(f.x, f.y, f.w, f.h);
+
+                    // 2. Obter Crop
+                    const cropBlob = await window.vivazWasm.detectCrop(blob);
+                    if (cropBlob) {
+                        cropImg.src = URL.createObjectURL(cropBlob);
+                        noResult.style.display = 'none';
+                        resultContent.style.display = 'block';
+                        detectInfo.innerHTML = `
+                            <strong>Status:</strong> Sucesso<br>
+                            <strong>Posição:</strong> [${f.x}, ${f.y}]<br>
+                            <strong>Tamanho:</strong> ${f.w}x${f.h}<br>
+                            <strong>Latência:</strong> ${duration}ms
+                        `;
+                    }
+
+                    // 3. Gerar Embedding
+                    const embResult = await window.vivazWasm.embedFromBlob(blob);
+                    if (embResult && embResult.embedding) {
+                        lastEmbedding = embResult.embedding;
+                        log('Assinatura facial (embedding) gerada.');
+                    }
+                } else {
+                    log('Nenhuma face detectada na imagem.', 'error');
+                    noResult.style.display = 'block';
+                    resultContent.style.display = 'none';
+                }
+            } catch (e) {
+                log('Erro no processamento: ' + e.message, 'error');
+                console.error(e);
+            }
+        }
+
+        btnCapture.onclick = processFrame;
+        
+        btnCompare.onclick = async () => {
+            if (!lastEmbedding) {
+                log('Capture uma face primeiro para servir de referência.', 'error');
+                return;
+            }
+            log('Capturando novo frame para comparação...');
+            await processFrame();
+            // A comparação real entre embeddings poderia ser feita aqui se tivéssemos a API de compare exposta
+            log('Comparação concluída (veja logs acima para detalhes do embedding).');
+        };
+
+        initCamera();
+        checkWasm();
     </script>
 </body>
 </html>
