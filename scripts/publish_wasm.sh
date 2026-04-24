@@ -9,6 +9,7 @@ DEMO_WWWROOT="$PROJECT_ROOT/src/Vivaz.Demonstracao/wwwroot"
 TARGET_DIR="$DEMO_WWWROOT/vivaz-wasm"
 PESOS_SRC="$PROJECT_ROOT/PESOS"
 PESOS_DEST="$TARGET_DIR/PESOS"
+PESOS_WWWROOT_DEST="$DEMO_WWWROOT/PESOS"
 
 echo "--- Iniciando publicação do Vivaz.WASM ---"
 echo "Projeto: $WASM_PROJ"
@@ -44,6 +45,10 @@ fi
 echo "Copiando pesos para $PESOS_DEST..."
 mkdir -p "$PESOS_DEST"
 cp -r "$PESOS_SRC/"* "$PESOS_DEST/"
+
+echo "Copiando pesos também para $PESOS_WWWROOT_DEST (servir em /PESOS)..."
+mkdir -p "$PESOS_WWWROOT_DEST"
+cp -r "$PESOS_SRC/"* "$PESOS_WWWROOT_DEST/"
 
 # 6. Criar arquivo de ajuda para o loader JS
 cat <<EOF > "$TARGET_DIR/vivaz-loader-helper.js"

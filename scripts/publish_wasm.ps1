@@ -11,6 +11,7 @@ $DEMO_WWWROOT = Join-Path $PROJECT_ROOT 'src\Vivaz.Demonstracao\wwwroot'
 $TARGET_DIR = Join-Path $DEMO_WWWROOT 'vivaz-wasm'
 $PESOS_SRC = Join-Path $PROJECT_ROOT 'PESOS'
 $PESOS_DEST = Join-Path $TARGET_DIR 'PESOS'
+$PESOS_WWWROOT_DEST = Join-Path $DEMO_WWWROOT 'PESOS'
 
 Write-Host "--- Iniciando publicação do Vivaz.WASM ---"
 Write-Host "Projeto: $WASM_PROJ"
@@ -59,6 +60,10 @@ if (Test-Path $APPBUNDLE_DIR) {
 Write-Host "Copiando pesos para $PESOS_DEST..."
 New-Item -ItemType Directory -Path $PESOS_DEST -Force | Out-Null
 Copy-Item -Path (Join-Path $PESOS_SRC '*') -Destination $PESOS_DEST -Recurse -Force
+
+Write-Host "Copiando pesos também para $PESOS_WWWROOT_DEST (servir em /PESOS)..."
+New-Item -ItemType Directory -Path $PESOS_WWWROOT_DEST -Force | Out-Null
+Copy-Item -Path (Join-Path $PESOS_SRC '*') -Destination $PESOS_WWWROOT_DEST -Recurse -Force
 
 # 6. Criar arquivo de ajuda para o loader JS
 $helperPath = Join-Path $TARGET_DIR 'vivaz-loader-helper.js'
