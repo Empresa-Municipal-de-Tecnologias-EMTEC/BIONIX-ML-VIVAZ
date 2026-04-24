@@ -2,5 +2,6 @@ artifacts/
 **/bin/
 **/obj/
 src/Vivaz.Demonstracao/wwwroot/vivaz-wasm/
+src/Vivaz.WASM/wasm_publish/
 DATASET/
 dataset/
