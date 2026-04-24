@@ -1,11 +1,27 @@
 <!doctype html>
 <html>
-<head><meta charset="utf-8"><title>Comparação — API (Servidor)</title></head>
+<head>
+  <meta charset="utf-8">
+  <title>Comparação — API (Servidor)</title>
+  <style>
+    body { font-family: sans-serif; }
+    .video-container { position: relative; display: inline-block; width: 640px; max-width: 100%; }
+    #video { display: block; width: 100%; height: auto; }
+    #overlay { position: absolute; left: 0; top: 0; pointer-events: none; }
+    .controls { margin-top: 8px; }
+    .captures { display:flex; gap:12px; margin-top:8px; align-items:flex-start; }
+    .captures > div { display:flex; flex-direction:column; align-items:flex-start; }
+    .captures img { border:1px solid #ccc; background:#eee; }
+  </style>
+</head>
 <body>
 <h1>Demo — API (comparação no servidor)</h1>
 <p>Alinhe o rosto na elipse e use <strong>Capturar A</strong> e <strong>Capturar B</strong>. A comparação será feita no servidor.</p>
-<video id="video" autoplay playsinline width="320" height="240"></video>
-<canvas id="overlay" style="position:relative; left:0; top:0;"></canvas>
+
+<div class="video-container">
+  <video id="video" autoplay playsinline></video>
+  <canvas id="overlay"></canvas>
+</div>
 <canvas id="canvas" style="display:none"></canvas>
 <div style="margin-top:8px;">
   <button id="capA">Capturar A</button>
