@@ -34,15 +34,18 @@ namespace Vivaz.WASM
         private static string GetPesosDir(string name)
         {
             // No WASM, os pesos devem estar na pasta virtual /PESOS
-            var pesosDir = Path.Combine(Directory.GetCurrentDirectory(), "PESOS", name);
-            
-            // Fallback para pasta alternativa se for o detector leve
-            if (name == "CLASSIFICADOR_DETECTOR_LEVE" && !Directory.Exists(pesosDir))
-            {
-                var altDir = Path.Combine(Directory.GetCurrentDirectory(), "PESOS", "CLASSIFICADOR_DETECTOR_LEVE_B");
-                if (Directory.Exists(altDir)) return altDir;
-            }
-            
+            var basePesos = Path.Combine(Directory.GetCurrentDirectory(), "PESOS");
+
+            // Prefer the newer _B classifier if available
+            var preferredB = Path.Combine(basePesos, "CLASSIFICADOR_DETECTOR_LEVE_B");
+            if (Directory.Exists(preferredB)) return preferredB;
+
+            // Otherwise try the requested name
+            var pesosDir = Path.Combine(basePesos, name);
+            if (Directory.Exists(pesosDir)) return pesosDir;
+
+            // Backwards-compat fallback: if requesting CLASSIFICADOR_DETECTOR_LEVE and it's missing,
+            // still allow using CLASSIFICADOR_DETECTOR_LEVE_B when present (already checked above)
             return pesosDir;
         }
 
