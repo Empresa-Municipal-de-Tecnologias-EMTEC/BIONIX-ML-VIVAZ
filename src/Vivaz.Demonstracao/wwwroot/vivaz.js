@@ -15,7 +15,8 @@
                 try {
                     console.log("[vivaz] Inicializando Runtime .NET 8 WASM...");
                     
-                    // Importa o módulo nativo do .NET
+                    // O caminho correto para o dotnet.js no .NET 8 é dentro de _framework/
+                    // O script de publicação move o AppBundle para /vivaz-wasm/
                     const { dotnet } = await import('/vivaz-wasm/_framework/dotnet.js');
                     
                     const { getAssemblyExports, getConfig } = await dotnet
@@ -32,7 +33,6 @@
                 } catch (e) {
                     if (e.message && e.message.includes("already loaded")) {
                         console.warn("[vivaz] Runtime já carregado, tentando recuperar exportações...");
-                        // Se já carregou, o objeto dotnet deve estar disponível ou em cache
                         return this._exports; 
                     }
                     console.error("[vivaz] Erro fatal ao carregar o runtime WASM:", e);
@@ -46,6 +46,7 @@
 
         async _call(method, ...args) {
             const exports = await this.init();
+            // Namespace: Vivaz.WASM.VivazClient
             const client = exports.Vivaz.WASM.VivazClient;
             if (!client[method]) throw new Error(`Método ${method} não encontrado no VivazClient`);
             return client[method](...args);
@@ -57,7 +58,7 @@
                 const res = await this._call('DetectJson', buffer);
                 return typeof res === 'string' ? JSON.parse(res) : res;
             } catch (e) {
-                console.warn("[vivaz] Fallback para API em detect:", e);
+                console.warn("[vivaz] Erro em detect:", e);
                 return this._fallback('/api/face/wasm/detectjson', blob);
             }
         },
@@ -69,7 +70,7 @@
                 if (!res) return null;
                 return new Blob([res], { type: 'image/png' });
             } catch (e) {
-                console.warn("[vivaz] Fallback para API em detectCrop:", e);
+                console.warn("[vivaz] Erro em detectCrop:", e);
                 return this._fallback('/api/face/wasm/detectcrop', blob, true);
             }
         },
@@ -80,7 +81,7 @@
                 const res = await this._call('EmbedJson', buffer);
                 return typeof res === 'string' ? JSON.parse(res) : res;
             } catch (e) {
-                console.warn("[vivaz] Fallback para API em embed:", e);
+                console.warn("[vivaz] Erro em embed:", e);
                 return this._fallback('/api/face/wasm/embed', blob);
             }
         },
@@ -92,7 +93,7 @@
                 const res = await this._call('CompareJson', bufferA, bufferB, 0.7);
                 return typeof res === 'string' ? JSON.parse(res) : res;
             } catch (e) {
-                console.warn("[vivaz] Fallback para API em compare:", e);
+                console.warn("[vivaz] Erro em compare:", e);
                 const form = new FormData();
                 form.append('a', aBlob, 'a.png');
                 form.append('b', bBlob, 'b.png');
@@ -112,7 +113,6 @@
         }
     };
 
-    // Exporta APIs para compatibilidade global
     window.vivazWasm = vivazWasm;
     window.VivazClientWASM = {
         _runtime: true,
@@ -121,6 +121,5 @@
         compareFromArrayBuffer: async (a, b) => vivazWasm.compareBlobs(new Blob([a]), new Blob([b]))
     };
 
-    // Inicialização imediata
     vivazWasm.init().catch(() => {});
 })();
