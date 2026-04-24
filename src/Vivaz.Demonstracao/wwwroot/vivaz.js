@@ -12,33 +12,39 @@
             if (this.ready) return this.ready;
 
             this.ready = (async () => {
-                try {
-                    console.log("[vivaz] Inicializando Runtime .NET 8 WASM...");
-                    
-                    // O caminho correto para o dotnet.js no .NET 8 é dentro de _framework/
-                    // O script de publicação move o AppBundle para /vivaz-wasm/
-                    const { dotnet } = await import('/vivaz-wasm/_framework/dotnet.js');
-                    
-                    const { getAssemblyExports, getConfig } = await dotnet
-                        .withDiagnosticTracing(false)
-                        .withApplicationArgumentsFromQuery()
-                        .create();
+                const tryPaths = [
+                    '/vivaz-wasm/_framework/dotnet.js',
+                    '/_framework/dotnet.js',
+                    '/vivaz-wasm/dotnet.js',
+                    '/dotnet.js'
+                ];
 
-                    const config = getConfig();
-                    this._exports = await getAssemblyExports(config.mainAssemblyName);
-                    this._runtime = dotnet;
-                    
-                    console.log("[vivaz] Vivaz.WASM carregado com sucesso!");
-                    return this._exports;
-                } catch (e) {
-                    if (e.message && e.message.includes("already loaded")) {
-                        console.warn("[vivaz] Runtime já carregado, tentando recuperar exportações...");
-                        return this._exports; 
+                let lastError = null;
+                for (const path of tryPaths) {
+                    try {
+                        console.log(`[vivaz] Tentando carregar runtime de: ${path}`);
+                        const { dotnet } = await import(path);
+                        
+                        const { getAssemblyExports, getConfig } = await dotnet
+                            .withDiagnosticTracing(false)
+                            .withApplicationArgumentsFromQuery()
+                            .create();
+
+                        const config = getConfig();
+                        this._exports = await getAssemblyExports(config.mainAssemblyName);
+                        this._runtime = dotnet;
+                        
+                        console.log(`[vivaz] Vivaz.WASM carregado com sucesso via ${path}!`);
+                        return this._exports;
+                    } catch (e) {
+                        lastError = e;
+                        console.warn(`[vivaz] Falha ao carregar de ${path}:`, e.message);
                     }
-                    console.error("[vivaz] Erro fatal ao carregar o runtime WASM:", e);
-                    this.ready = null; 
-                    throw e;
                 }
+
+                console.error("[vivaz] Erro fatal: Não foi possível carregar o runtime de nenhum caminho conhecido.", lastError);
+                this.ready = null; 
+                throw lastError;
             })();
 
             return this.ready;
@@ -46,7 +52,6 @@
 
         async _call(method, ...args) {
             const exports = await this.init();
-            // Namespace: Vivaz.WASM.VivazClient
             const client = exports.Vivaz.WASM.VivazClient;
             if (!client[method]) throw new Error(`Método ${method} não encontrado no VivazClient`);
             return client[method](...args);
