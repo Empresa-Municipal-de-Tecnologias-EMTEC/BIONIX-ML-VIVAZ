@@ -22,6 +22,9 @@ if (Directory.Exists(demoStatic))
 	contentTypeProvider.Mappings[".pdb"] = "application/octet-stream";
 	// Ensure .wasm is served with the correct MIME type
 	contentTypeProvider.Mappings[".wasm"] = "application/wasm";
+	// Serve other runtime/support files (symbols, ICU data)
+	contentTypeProvider.Mappings[".symbols"] = "application/octet-stream";
+	contentTypeProvider.Mappings[".dat"] = "application/octet-stream";
 	app.UseStaticFiles(new StaticFileOptions
 	{
 		FileProvider = provider,

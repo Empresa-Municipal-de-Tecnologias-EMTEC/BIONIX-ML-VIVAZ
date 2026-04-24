@@ -21,7 +21,10 @@
   // Demo config: use client WASM only (disable server fallback)
   window.demoCompareConfig = {
     allowServerFallback: false,
-    thresholdPercent: 70
+    thresholdPercent: 70,
+    // server endpoints used when client WASM is unavailable or for fallback
+    embedEndpoint: '/api/face/wasm/embed',
+    compareEndpoint: '/api/face/wasm/compare'
   };
 </script>
 <!-- load local glue at site root (moved to wwwroot) so runtime init runs early -->

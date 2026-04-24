@@ -144,6 +144,12 @@ namespace Vivaz.WASM
         }
 
         [JSExport]
+        public static byte[]? DetectCropPng(byte[] imageBytes)
+        {
+            return DetectCrop(imageBytes);
+        }
+
+        [JSExport]
         public static string EmbedJson(byte[] imageBytes)
         {
             if (imageBytes == null || imageBytes.Length == 0) 
