@@ -56,6 +56,41 @@ if (Test-Path $APPBUNDLE_DIR) {
     exit 1
 }
 
+# 4b. Garantir que exista um blazor.boot.json mínimo no root do vivaz-wasm
+$bootJsonPath = Join-Path $TARGET_DIR 'blazor.boot.json'
+if (-not (Test-Path $bootJsonPath)) {
+        Write-Host "Gerando blazor.boot.json mínimo em $bootJsonPath..."
+        $bootJson = @'
+{
+    "mainAssemblyName": "Vivaz.WASM.dll",
+    "resources": {
+        "assembly": {
+            "Vivaz.WASM.dll": "",
+            "Bionix.ML.dll": "",
+            "DetectorLeveBModel.dll": "",
+            "DetectorModel.dll": "",
+            "IdentificadorLeveModel.dll": "",
+            "ILGPU.dll": "",
+            "SixLabors.ImageSharp.dll": ""
+        },
+        "runtime": {
+            "icudt.dat": ""
+        },
+        "wasmNative": {
+            "dotnet.native.wasm": ""
+        },
+        "jsModuleNative": {
+            "dotnet.native.js": ""
+        },
+        "jsModuleRuntime": {
+            "dotnet.runtime.js": ""
+        }
+    }
+}
+'@
+        $bootJson | Out-File -FilePath $bootJsonPath -Encoding UTF8
+}
+
 # 5. Copiar pesos para o sistema de arquivos virtual do WASM
 Write-Host "Copiando pesos para $PESOS_DEST..."
 New-Item -ItemType Directory -Path $PESOS_DEST -Force | Out-Null

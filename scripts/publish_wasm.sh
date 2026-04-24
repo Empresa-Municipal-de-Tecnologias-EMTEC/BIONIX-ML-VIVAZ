@@ -41,6 +41,39 @@ else
     exit 1
 fi
 
+# 4b. Garantir que exista um blazor.boot.json mínimo no root do vivaz-wasm
+if [ ! -f "$TARGET_DIR/blazor.boot.json" ]; then
+        echo "Gerando blazor.boot.json mínimo em $TARGET_DIR..."
+        cat <<JSON > "$TARGET_DIR/blazor.boot.json"
+{
+    "mainAssemblyName": "Vivaz.WASM.dll",
+    "resources": {
+        "assembly": {
+            "Vivaz.WASM.dll": "",
+            "Bionix.ML.dll": "",
+            "DetectorLeveBModel.dll": "",
+            "DetectorModel.dll": "",
+            "IdentificadorLeveModel.dll": "",
+            "ILGPU.dll": "",
+            "SixLabors.ImageSharp.dll": ""
+        },
+        "runtime": {
+            "icudt.dat": ""
+        },
+        "wasmNative": {
+            "dotnet.native.wasm": ""
+        },
+        "jsModuleNative": {
+            "dotnet.native.js": ""
+        },
+        "jsModuleRuntime": {
+            "dotnet.runtime.js": ""
+        }
+    }
+}
+JSON
+fi
+
 # 5. Copiar pesos para o sistema de arquivos virtual do WASM
 echo "Copiando pesos para $PESOS_DEST..."
 mkdir -p "$PESOS_DEST"
