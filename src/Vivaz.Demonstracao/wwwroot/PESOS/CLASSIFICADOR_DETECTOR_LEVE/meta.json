@@ -1,1 +1,1 @@
-{"epoch":199,"lr":1.0000000000000004E-08,"timestamp":"2026-04-12T21:38:02.6350278Z","scheduler":{"bestLoss":0.7153057901280667,"epochsSinceImprovement":0,"currentLr":1.0000000000000004E-08}}
+{"epoch":15,"lr":1.0000000000000004E-08,"timestamp":"2026-04-15T18:55:49.4587688Z","scheduler":{"bestLoss":0.7153057901280667,"epochsSinceImprovement":0,"currentLr":1.0000000000000004E-08}}
