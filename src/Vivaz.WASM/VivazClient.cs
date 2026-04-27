@@ -65,7 +65,7 @@ namespace Vivaz.WASM
                 var bmp = BMP.FromImage(img);
                 ComputacaoContexto ctx = new ComputacaoCPUSIMDContexto();
                 
-                var pesosDir = GetPesosDir("CLASSIFICADOR_DETECTOR_LEVE");
+                var pesosDir = GetPesosDir("CLASSIFICADOR_DETECTOR_LEVE_B");
                 var det = DetectorLeve.GetInstance(ctx, pesosDir);
                 var all = det.DetectTopPerScale(bmp, ctx, 0.5, null, null, 5);
                 var cons = det.AggregateConsensus(all, bmp.Width, bmp.Height, 0.4);
@@ -89,7 +89,7 @@ namespace Vivaz.WASM
             {
                 var bmp = new Bionix.ML.dados.imagem.bmp.BMP(width, height, 3, rgbBytes);
                 ComputacaoContexto ctx = new ComputacaoCPUSIMDContexto();
-                var pesosDir = GetPesosDir("CLASSIFICADOR_DETECTOR_LEVE");
+                var pesosDir = GetPesosDir("CLASSIFICADOR_DETECTOR_LEVE_B");
                 var det = DetectorLeve.GetInstance(ctx, pesosDir);
                 var all = det.DetectTopPerScale(bmp, ctx, 0.5, null, null, 5);
                 var cons = det.AggregateConsensus(all, bmp.Width, bmp.Height, 0.4);
@@ -116,7 +116,7 @@ namespace Vivaz.WASM
                 var bmp = BMP.FromImage(img);
                 ComputacaoContexto ctx = new ComputacaoCPUSIMDContexto();
                 
-                var pesosDir = GetPesosDir("CLASSIFICADOR_DETECTOR_LEVE");
+                var pesosDir = GetPesosDir("CLASSIFICADOR_DETECTOR_LEVE_B");
                 var det = DetectorLeve.GetInstance(ctx, pesosDir);
                 var all = det.DetectTopPerScale(bmp, ctx, 0.5, null, null, 5);
                 var cons = det.AggregateConsensus(all, bmp.Width, bmp.Height, 0.4);
