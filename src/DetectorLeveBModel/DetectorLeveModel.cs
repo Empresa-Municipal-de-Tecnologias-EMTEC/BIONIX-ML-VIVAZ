@@ -314,12 +314,12 @@ namespace DetectorLeveBModel
                     try { var fi = new FileInfo(f); Console.WriteLine($"[DetectorLeveB]   - {fi.Name} ({fi.Length} bytes)"); } catch { }
                 }
 
-                var p = Path.Combine(dir, "w1.bin"); if (File.Exists(p) && W1 != null) { Console.WriteLine("[DetectorLeveB]   Loading w1.bin..."); var t = SerializadorTensor.LoadBinary(p); if (t != null && t.Size == W1.Size) for (int i = 0; i < W1.Size; i++) W1[i] = t[i]; }
-                p = Path.Combine(dir, "b1.bin"); if (File.Exists(p) && b1 != null) { Console.WriteLine("[DetectorLeveB]   Loading b1.bin..."); var t = SerializadorTensor.LoadBinary(p); if (t != null && t.Size == b1.Size) for (int i = 0; i < b1.Size; i++) b1[i] = t[i]; }
-                p = Path.Combine(dir, "w2.bin"); if (File.Exists(p) && W2 != null) { Console.WriteLine("[DetectorLeveB]   Loading w2.bin..."); var t = SerializadorTensor.LoadBinary(p); if (t != null && t.Size == W2.Size) for (int i = 0; i < W2.Size; i++) W2[i] = t[i]; }
-                p = Path.Combine(dir, "b2.bin"); if (File.Exists(p) && b2 != null) { Console.WriteLine("[DetectorLeveB]   Loading b2.bin..."); var t = SerializadorTensor.LoadBinary(p); if (t != null && t.Size == b2.Size) for (int i = 0; i < b2.Size; i++) b2[i] = t[i]; }
-                p = Path.Combine(dir, "convW.bin"); if (File.Exists(p) && convW != null) { Console.WriteLine("[DetectorLeveB]   Loading convW.bin..."); var t = SerializadorTensor.LoadBinary(p); if (t != null && t.Size == convW.Size) for (int i = 0; i < convW.Size; i++) convW[i] = t[i]; }
-                p = Path.Combine(dir, "convB.bin"); if (File.Exists(p) && convB != null) { Console.WriteLine("[DetectorLeveB]   Loading convB.bin..."); var t = SerializadorTensor.LoadBinary(p); if (t != null && t.Size == convB.Size) for (int i = 0; i < convB.Size; i++) convB[i] = t[i]; }
+                var p = Path.Combine(dir, "w1.bin"); if (File.Exists(p) && W1 != null) { Console.WriteLine("[DetectorLeveB]   Loading w1.bin..."); var t = SerializadorTensor.LoadBinary(p, _ctxUsed); Console.WriteLine($"[DetectorLeveB]   Loaded tensor type={t?.GetType().Name}, size={t?.Size}; target type={W1?.GetType().Name}, size={W1?.Size}"); if (t != null && t.Size == W1.Size) for (int i = 0; i < W1.Size; i++) W1[i] = t[i]; }
+                p = Path.Combine(dir, "b1.bin"); if (File.Exists(p) && b1 != null) { Console.WriteLine("[DetectorLeveB]   Loading b1.bin..."); var t = SerializadorTensor.LoadBinary(p, _ctxUsed); Console.WriteLine($"[DetectorLeveB]   Loaded tensor type={t?.GetType().Name}, size={t?.Size}; target type={b1?.GetType().Name}, size={b1?.Size}"); if (t != null && t.Size == b1.Size) for (int i = 0; i < b1.Size; i++) b1[i] = t[i]; }
+                p = Path.Combine(dir, "w2.bin"); if (File.Exists(p) && W2 != null) { Console.WriteLine("[DetectorLeveB]   Loading w2.bin..."); var t = SerializadorTensor.LoadBinary(p, _ctxUsed); Console.WriteLine($"[DetectorLeveB]   Loaded tensor type={t?.GetType().Name}, size={t?.Size}; target type={W2?.GetType().Name}, size={W2?.Size}"); if (t != null && t.Size == W2.Size) for (int i = 0; i < W2.Size; i++) W2[i] = t[i]; }
+                p = Path.Combine(dir, "b2.bin"); if (File.Exists(p) && b2 != null) { Console.WriteLine("[DetectorLeveB]   Loading b2.bin..."); var t = SerializadorTensor.LoadBinary(p, _ctxUsed); Console.WriteLine($"[DetectorLeveB]   Loaded tensor type={t?.GetType().Name}, size={t?.Size}; target type={b2?.GetType().Name}, size={b2?.Size}"); if (t != null && t.Size == b2.Size) for (int i = 0; i < b2.Size; i++) b2[i] = t[i]; }
+                p = Path.Combine(dir, "convW.bin"); if (File.Exists(p) && convW != null) { Console.WriteLine("[DetectorLeveB]   Loading convW.bin..."); var t = SerializadorTensor.LoadBinary(p, _ctxUsed); Console.WriteLine($"[DetectorLeveB]   Loaded tensor type={t?.GetType().Name}, size={t?.Size}; target type={convW?.GetType().Name}, size={convW?.Size}"); if (t != null && t.Size == convW.Size) for (int i = 0; i < convW.Size; i++) convW[i] = t[i]; }
+                p = Path.Combine(dir, "convB.bin"); if (File.Exists(p) && convB != null) { Console.WriteLine("[DetectorLeveB]   Loading convB.bin..."); var t = SerializadorTensor.LoadBinary(p, _ctxUsed); Console.WriteLine($"[DetectorLeveB]   Loaded tensor type={t?.GetType().Name}, size={t?.Size}; target type={convB?.GetType().Name}, size={convB?.Size}"); if (t != null && t.Size == convB.Size) for (int i = 0; i < convB.Size; i++) convB[i] = t[i]; }
                 Console.WriteLine("[DetectorLeveB] LoadWeights: finished loading available files");
             }
             catch (Exception ex) { Console.WriteLine("[DetectorLeveB] LoadWeights error: " + ex.ToString()); }
@@ -356,28 +356,28 @@ namespace DetectorLeveBModel
                     return _instance;
                 }
 
-                // If an instance already exists but a different computation context
-                // is requested, recreate the model using the requested context
-                if (ctx != null && _instance._ctxUsed != null && ctx.GetType() != _instance._ctxUsed.GetType())
+                // If an instance already exists but the provided computation context is
+                // different (different type or a different instance of the same type),
+                // recreate the model using the requested context. This avoids tensor
+                // operations failing due to context instance mismatch in WASM where
+                // callers often construct a fresh ComputacaoCPUSIMDContexto per call.
+                if (ctx != null)
                 {
-                    var m = new DetectorLeve();
-                    m.InitializeWeights(ctx);
-                    if (!string.IsNullOrEmpty(pesosDir))
+                    bool needRecreate = false;
+                    if (_instance._ctxUsed == null) needRecreate = true;
+                    else if (ctx.GetType() != _instance._ctxUsed.GetType()) needRecreate = true;
+                    else if (!ReferenceEquals(ctx, _instance._ctxUsed)) needRecreate = true;
+
+                    if (needRecreate)
                     {
-                        try { Console.WriteLine($"[DetectorLeveB] Recreating instance and loading weights from {pesosDir}"); m.LoadWeights(pesosDir); } catch (Exception ex) { Console.WriteLine("[DetectorLeveB] LoadWeights threw: " + ex.ToString()); }
+                        var m = new DetectorLeve();
+                        m.InitializeWeights(ctx);
+                        if (!string.IsNullOrEmpty(pesosDir))
+                        {
+                            try { Console.WriteLine($"[DetectorLeveB] Recreating instance and loading weights from {pesosDir}"); m.LoadWeights(pesosDir); } catch (Exception ex) { Console.WriteLine("[DetectorLeveB] LoadWeights threw: " + ex.ToString()); }
+                        }
+                        _instance = m;
                     }
-                    _instance = m;
-                }
-                else if (ctx != null && _instance._ctxUsed == null)
-                {
-                    // existing instance was created without recording context; recreate with ctx
-                    var m = new DetectorLeve();
-                    m.InitializeWeights(ctx);
-                    if (!string.IsNullOrEmpty(pesosDir))
-                    {
-                        try { Console.WriteLine($"[DetectorLeveB] Recreating instance (no prior ctx) and loading weights from {pesosDir}"); m.LoadWeights(pesosDir); } catch (Exception ex) { Console.WriteLine("[DetectorLeveB] LoadWeights threw: " + ex.ToString()); }
-                    }
-                    _instance = m;
                 }
 
                 return _instance;

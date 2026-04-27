@@ -36,6 +36,7 @@ namespace Vivaz.WASM
         {
             try
             {
+                Console.WriteLine($"[VivazClient] EnsurePesosAvailable called with: {dirOrUrl}");
                 // Determine if argument is an absolute URL or a local path
                 string webBase;
                 string localBaseDir;
@@ -44,6 +45,7 @@ namespace Vivaz.WASM
                     // dirOrUrl is an absolute URL; use its origin as web base and derive local target from its absolute path
                     webBase = parsed.GetLeftPart(UriPartial.Authority) + parsed.AbsolutePath.TrimEnd('/');
                     localBaseDir = Path.Combine(Directory.GetCurrentDirectory(), parsed.AbsolutePath.TrimStart('/'));
+                    Console.WriteLine($"[VivazClient] Parsed absolute URL. webBase={webBase}, localBaseDir={localBaseDir}");
                 }
                 else
                 {
@@ -53,6 +55,7 @@ namespace Vivaz.WASM
                         if (!webPath.StartsWith('/')) webPath = "/" + webPath;
                         // Use relative web path; HttpClient in WASM requires absolute URIs, so prefix with origin using JS -> loader should pass absolute URL when possible.
                         webBase = webPath; // may be relative; caller can pass absolute URL to avoid this
+                        Console.WriteLine($"[VivazClient] Using relative webBase={webBase}, localBaseDir={localBaseDir}");
                 }
 
                 // If local dir already has files, skip
@@ -131,7 +134,28 @@ namespace Vivaz.WASM
                 ComputacaoContexto ctx = new ComputacaoCPUSIMDContexto();
                 
                 var pesosDir = GetPesosDir("CLASSIFICADOR_DETECTOR_LEVE_B");
+                Console.WriteLine($"[VivazClient] DetectJson: ctx={ctx?.GetType().Name}, pesosDir={pesosDir}");
+                try
+                {
+                    if (Directory.Exists(pesosDir))
+                    {
+                        var fls = Directory.GetFiles(pesosDir);
+                        Console.WriteLine($"[VivazClient] DetectJson: pesosDir contains {fls.Length} files");
+                        foreach (var f in fls) Console.WriteLine($"[VivazClient]   - {Path.GetFileName(f)}");
+                    }
+                    else Console.WriteLine($"[VivazClient] DetectJson: pesosDir does not exist: {pesosDir}");
+                }
+                catch (Exception ex) { Console.WriteLine("[VivazClient] Inspect pesosDir failed: " + ex.ToString()); }
+
                 var det = DetectorLeve.GetInstance(ctx, pesosDir);
+                try
+                {
+                    foreach (var np in det.GetNamedParameters())
+                    {
+                        try { Console.WriteLine($"[VivazClient] Param {np.name}: type={np.tensor?.GetType().Name}, shape=[{string.Join(',', np.tensor?.Shape ?? new int[0])}], size={np.tensor?.Size}"); } catch { }
+                    }
+                }
+                catch (Exception ex) { Console.WriteLine("[VivazClient] Failed to enumerate parameters: " + ex.ToString()); }
                 var all = det.DetectTopPerScale(bmp, ctx, 0.5, null, null, 5);
                 var cons = det.AggregateConsensus(all, bmp.Width, bmp.Height, 0.4);
                 
@@ -142,7 +166,7 @@ namespace Vivaz.WASM
             }
             catch (Exception ex)
             {
-                return JsonSerializer.Serialize(new { found = false, error = ex.Message });
+                return JsonSerializer.Serialize(new { found = false, error = ex.ToString() });
             }
         }
 
@@ -166,7 +190,7 @@ namespace Vivaz.WASM
             }
             catch (Exception ex)
             {
-                return JsonSerializer.Serialize(new { found = false, error = ex.Message });
+                return JsonSerializer.Serialize(new { found = false, error = ex.ToString() });
             }
         }
 
@@ -241,7 +265,7 @@ namespace Vivaz.WASM
             }
             catch (Exception ex)
             {
-                return JsonSerializer.Serialize(new { error = ex.Message });
+                return JsonSerializer.Serialize(new { error = ex.ToString() });
             }
         }
 

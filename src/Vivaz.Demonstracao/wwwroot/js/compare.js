@@ -71,6 +71,8 @@
           const ctx = overlay.getContext('2d'); 
           ctx.clearRect(0, 0, overlay.width, overlay.height); 
           
+          console.log('[compare] detect response:', resp);
+
           if(resp && resp.found){
             const face = resp.final || resp;
             // Desenha o retângulo sobre o rosto detectado
