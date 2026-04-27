@@ -56,6 +56,55 @@ else
     echo "AVISO: Pasta PESOS não encontrada em $PESOS_SRC. Pulando cópia de pesos."
 fi
 
+# 5b. Garantir que exista um blazor.boot.json mínimo contendo os arquivos em PESOS
+BOOT_JSON="$TARGET_DIR/blazor.boot.json"
+if [ ! -f "$BOOT_JSON" ]; then
+    echo "Gerando blazor.boot.json mínimo com assets de PESOS em $BOOT_JSON..."
+    # montar lista de arquivos em PESOS relativa a vivaz-wasm
+    ASSETS_JSON=""
+    if [ -d "$PESOS_SRC" ]; then
+        while IFS= read -r -d '' f; do
+            rel=${f#"$PESOS_SRC/"}
+            rel=${rel//\//\/}
+            ASSETS_JSON+="        \"PESOS/$rel\": \"\",\n"
+        done < <(find "$PESOS_SRC" -type f -print0)
+        # remover vírgula final
+        ASSETS_JSON="${ASSETS_JSON%,\n}"
+    fi
+
+    cat > "$BOOT_JSON" <<EOF
+{
+    "mainAssemblyName": "Vivaz.WASM.dll",
+    "resources": {
+        "assembly": {
+            "Vivaz.WASM.dll": "",
+            "Bionix.ML.dll": "",
+            "DetectorLeveBModel.dll": "",
+            "DetectorModel.dll": "",
+            "IdentificadorLeveModel.dll": "",
+            "ILGPU.dll": "",
+            "SixLabors.ImageSharp.dll": ""
+        },
+        "runtime": {
+            "icudt.dat": ""
+        },
+        "wasmNative": {
+            "dotnet.native.wasm": ""
+        },
+        "jsModuleNative": {
+            "dotnet.native.js": ""
+        },
+        "jsModuleRuntime": {
+            "dotnet.runtime.js": ""
+        }
+    },
+    "assets": {
+$ASSETS_JSON
+    }
+}
+EOF
+fi
+
 # 6. Garantir que vivaz.js e vivaz-wasm-loader.js existam (os arquivos fonte já estão no repo)
 echo "Verificando scripts de carregamento no wwwroot..."
 if [ ! -f "$DEMO_WWWROOT/vivaz.js" ]; then

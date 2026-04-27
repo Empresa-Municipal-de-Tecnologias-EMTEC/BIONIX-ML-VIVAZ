@@ -38,11 +38,14 @@ namespace Vivaz.WASM
 
             // Prefer the newer _B classifier if available
             var preferredB = Path.Combine(basePesos, "CLASSIFICADOR_DETECTOR_LEVE_B");
-            if (Directory.Exists(preferredB)) return preferredB;
+            // Directory.Exists can be unreliable inside WASM virtual FS; also check for known files
+            if (Directory.Exists(preferredB) || File.Exists(Path.Combine(preferredB, "w1.bin")) || File.Exists(Path.Combine(preferredB, "meta.json")))
+                return preferredB;
 
             // Otherwise try the requested name
             var pesosDir = Path.Combine(basePesos, name);
-            if (Directory.Exists(pesosDir)) return pesosDir;
+            if (Directory.Exists(pesosDir) || File.Exists(Path.Combine(pesosDir, "w1.bin")) || File.Exists(Path.Combine(pesosDir, "meta.json")))
+                return pesosDir;
 
             // Backwards-compat fallback: if requesting CLASSIFICADOR_DETECTOR_LEVE and it's missing,
             // still allow using CLASSIFICADOR_DETECTOR_LEVE_B when present (already checked above)

@@ -60,7 +60,22 @@ if (Test-Path $APPBUNDLE_DIR) {
 $bootJsonPath = Join-Path $TARGET_DIR 'blazor.boot.json'
 if (-not (Test-Path $bootJsonPath)) {
         Write-Host "Gerando blazor.boot.json mínimo em $bootJsonPath..."
-        $bootJson = @'
+
+        # Coletar arquivos de PESOS e montar entradas JSON relativas (servidas em /vivaz-wasm/PESOS/...)
+        $pesoFiles = @()
+        if (Test-Path $PESOS_SRC) {
+                Get-ChildItem -Path $PESOS_SRC -Recurse -File | ForEach-Object {
+                    $rel = $_.FullName.Substring($PESOS_SRC.Length+1) -replace '\\','/'
+                    $pesoFiles += ('"PESOS/{0}": ""' -f $rel)
+                }
+        }
+
+        $assetsBlock = ""
+        if ($pesoFiles.Count -gt 0) {
+            $assetsBlock = '        ,"assets": {' + "`n" + ($pesoFiles -join ",`n") + "`n        }"
+        }
+
+        $bootJson = @"
 {
     "mainAssemblyName": "Vivaz.WASM.dll",
     "resources": {
@@ -86,8 +101,10 @@ if (-not (Test-Path $bootJsonPath)) {
             "dotnet.runtime.js": ""
         }
     }
+$assetsBlock
 }
-'@
+"@
+
         $bootJson | Out-File -FilePath $bootJsonPath -Encoding UTF8
 }
 
@@ -102,7 +119,9 @@ Copy-Item -Path (Join-Path $PESOS_SRC '*') -Destination $PESOS_WWWROOT_DEST -Rec
 
 # 6. Criar arquivo de ajuda para o loader JS
 $helperPath = Join-Path $TARGET_DIR 'vivaz-loader-helper.js'
-$helper = @'
+# Do not overwrite an existing custom helper; only create a default if missing
+if (-not (Test-Path $helperPath)) {
+    $helper = @'
 // Helper para carregar o Vivaz.WASM usando a nova API do .NET 8
 import { dotnet } from './_framework/dotnet.js';
 
@@ -124,7 +143,10 @@ export async function initVivaz() {
 }
 '@
 
-$helper | Out-File -FilePath $helperPath -Encoding UTF8
+    $helper | Out-File -FilePath $helperPath -Encoding UTF8
+} else {
+    Write-Host "Skipping helper overwrite; file already exists: $helperPath"
+}
 
 Write-Host "--- Publicação concluída com sucesso! ---"
 Write-Host "Arquivos disponíveis em: $TARGET_DIR"

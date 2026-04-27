@@ -20,6 +20,19 @@
                 ];
 
                 let lastError = null;
+                // Prefer the loader helper which mounts PESOS into the WASM FS
+                try {
+                    console.log('[vivaz] Tentando carregar runtime via vivaz-loader-helper.js');
+                    const helper = await import('/vivaz-wasm/vivaz-loader-helper.js');
+                    this._exports = await helper.initVivaz();
+                    this._runtime = { helperLoaded: true };
+                    console.log('[vivaz] Vivaz.WASM carregado com sucesso via vivaz-loader-helper.js');
+                    return this._exports;
+                } catch (e) {
+                    lastError = e;
+                    console.warn('[vivaz] Falha ao carregar via vivaz-loader-helper.js:', e && e.message ? e.message : e);
+                }
+
                 for (const path of tryPaths) {
                     try {
                         console.log(`[vivaz] Tentando carregar runtime de: ${path}`);
@@ -38,7 +51,7 @@
                         return this._exports;
                     } catch (e) {
                         lastError = e;
-                        console.warn(`[vivaz] Falha ao carregar de ${path}:`, e.message);
+                        console.warn(`[vivaz] Falha ao carregar de ${path}:`, e && e.message ? e.message : e);
                     }
                 }
 
