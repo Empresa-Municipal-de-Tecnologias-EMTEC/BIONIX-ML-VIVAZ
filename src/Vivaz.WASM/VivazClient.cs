@@ -32,26 +32,50 @@ namespace Vivaz.WASM
         }
 
         [JSExport]
-        public static async System.Threading.Tasks.Task<string> EnsurePesosAvailable(string dir)
+        public static async System.Threading.Tasks.Task<string> EnsurePesosAvailable(string dirOrUrl)
         {
             try
             {
-                // If directory already exists with files, nothing to do
-                try { if (Directory.Exists(dir) && Directory.GetFiles(dir).Length > 0) return "ok"; } catch { }
+                // Determine if argument is an absolute URL or a local path
+                string webBase;
+                string localBaseDir;
+                if (Uri.TryCreate(dirOrUrl, UriKind.Absolute, out var parsed) && (parsed.Scheme == "http" || parsed.Scheme == "https"))
+                {
+                    // dirOrUrl is an absolute URL; use its origin as web base and derive local target from its absolute path
+                    webBase = parsed.GetLeftPart(UriPartial.Authority) + parsed.AbsolutePath.TrimEnd('/');
+                    localBaseDir = Path.Combine(Directory.GetCurrentDirectory(), parsed.AbsolutePath.TrimStart('/'));
+                }
+                else
+                {
+                        // Treat as local (possibly absolute or relative) path and build webBase as relative path from root
+                        localBaseDir = dirOrUrl;
+                        var webPath = localBaseDir.Replace('\\', '/').TrimEnd('/');
+                        if (!webPath.StartsWith('/')) webPath = "/" + webPath;
+                        // Use relative web path; HttpClient in WASM requires absolute URIs, so prefix with origin using JS -> loader should pass absolute URL when possible.
+                        webBase = webPath; // may be relative; caller can pass absolute URL to avoid this
+                }
 
-                // Normalize to web-friendly base URL
-                var webBase = dir.Replace("\\", "/").TrimEnd('/');
-                if (!webBase.StartsWith('/')) webBase = "/" + webBase;
+                // If local dir already has files, skip
+                try { if (Directory.Exists(localBaseDir) && Directory.GetFiles(localBaseDir).Length > 0) return "ok"; } catch { }
 
                 var files = new[] { "w1.bin", "b1.bin", "w2.bin", "b2.bin", "convW.bin", "convB.bin", "meta.json", "opt_meta.json" };
                 using var client = new HttpClient();
+
                 foreach (var f in files)
                 {
-                    var url = webBase + "/" + f;
+                    string url;
+                    if (webBase.StartsWith("http://") || webBase.StartsWith("https://")) url = webBase.TrimEnd('/') + "/" + f;
+                    else
+                    {
+                        // If webBase is relative, try to construct absolute using window origin is not available here; log and continue
+                        Console.WriteLine($"[VivazClient] Skipping GET for relative web path: {webBase}/{f} (no origin available)");
+                        continue;
+                    }
+
                     try
                     {
                         var bytes = await client.GetByteArrayAsync(url);
-                        var targetPath = Path.Combine(dir, f);
+                        var targetPath = Path.Combine(localBaseDir, f);
                         var targetDir = Path.GetDirectoryName(targetPath) ?? ".";
                         if (!Directory.Exists(targetDir)) Directory.CreateDirectory(targetDir);
                         File.WriteAllBytes(targetPath, bytes);

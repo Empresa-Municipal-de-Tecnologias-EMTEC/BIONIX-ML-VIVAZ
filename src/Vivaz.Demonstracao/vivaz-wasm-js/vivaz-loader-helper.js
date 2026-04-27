@@ -111,8 +111,16 @@ export async function initVivaz() {
         const pesosDir = '/PESOS/CLASSIFICADOR_DETECTOR_LEVE_B';
         if (exports && exports.Vivaz && exports.Vivaz.WASM && exports.Vivaz.WASM.VivazClient && typeof exports.Vivaz.WASM.VivazClient.EnsurePesosAvailable === 'function') {
             try {
-                console.info('vivaz-loader-helper: requesting EnsurePesosAvailable for', pesosDir);
-                await exports.Vivaz.WASM.VivazClient.EnsurePesosAvailable(pesosDir);
+                // Construct an absolute URL for WASM HttpClient (requires absolute URIs)
+                let absoluteUrl = pesosDir;
+                try {
+                    if (typeof location !== 'undefined' && location && location.origin) {
+                        const suffix = pesosDir.startsWith('/') ? pesosDir : '/' + pesosDir;
+                        absoluteUrl = location.origin + suffix;
+                    }
+                } catch (e) { /* ignore and use pesosDir as-is */ }
+                console.info('vivaz-loader-helper: requesting EnsurePesosAvailable for', absoluteUrl);
+                await exports.Vivaz.WASM.VivazClient.EnsurePesosAvailable(absoluteUrl);
                 console.info('vivaz-loader-helper: EnsurePesosAvailable completed');
             } catch (e) {
                 console.warn('vivaz-loader-helper: EnsurePesosAvailable failed', e);
