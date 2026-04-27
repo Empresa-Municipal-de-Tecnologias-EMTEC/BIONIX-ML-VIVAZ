@@ -156,7 +156,7 @@ namespace Vivaz.WASM
                     }
                 }
                 catch (Exception ex) { Console.WriteLine("[VivazClient] Failed to enumerate parameters: " + ex.ToString()); }
-                var all = det.DetectTopPerScale(bmp, ctx, 0.5, null, null, 5);
+                var all = det.DetectTopPerScale(bmp, ctx, 0.7, null, null, 5);
                 var cons = det.AggregateConsensus(all, bmp.Width, bmp.Height, 0.4);
                 
                 return JsonSerializer.Serialize(new { 

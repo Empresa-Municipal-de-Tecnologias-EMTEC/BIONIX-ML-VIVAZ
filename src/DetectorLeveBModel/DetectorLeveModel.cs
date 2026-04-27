@@ -486,7 +486,7 @@ namespace DetectorLeveBModel
         // Return top-K detections per scale (work). Output tuple includes work so
         // caller can color by scale. Returned list is flat: all detections from
         // all scales, each annotated with its 'work' value.
-        public System.Collections.Generic.List<(double score, int x, int y, int w, int h, int work)> DetectTopPerScale(BMP crop, ComputacaoContexto ctx, double detectCutoff = 0.5, int[] scales = null, int[] steps = null, int topK = 5)
+        public System.Collections.Generic.List<(double score, int x, int y, int w, int h, int work)> DetectTopPerScale(BMP crop, ComputacaoContexto ctx, double detectCutoff = 0.0, int[] scales = null, int[] steps = null, int topK = 5)
         {
             if (crop == null) throw new ArgumentNullException(nameof(crop));
             if (scales == null) scales = new int[] { 32, 48, 64 };
