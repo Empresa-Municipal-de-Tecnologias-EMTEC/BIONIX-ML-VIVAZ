@@ -31,6 +31,47 @@ namespace Vivaz.WASM
             }
         }
 
+        [JSExport]
+        public static async System.Threading.Tasks.Task<string> EnsurePesosAvailable(string dir)
+        {
+            try
+            {
+                // If directory already exists with files, nothing to do
+                try { if (Directory.Exists(dir) && Directory.GetFiles(dir).Length > 0) return "ok"; } catch { }
+
+                // Normalize to web-friendly base URL
+                var webBase = dir.Replace("\\", "/").TrimEnd('/');
+                if (!webBase.StartsWith('/')) webBase = "/" + webBase;
+
+                var files = new[] { "w1.bin", "b1.bin", "w2.bin", "b2.bin", "convW.bin", "convB.bin", "meta.json", "opt_meta.json" };
+                using var client = new HttpClient();
+                foreach (var f in files)
+                {
+                    var url = webBase + "/" + f;
+                    try
+                    {
+                        var bytes = await client.GetByteArrayAsync(url);
+                        var targetPath = Path.Combine(dir, f);
+                        var targetDir = Path.GetDirectoryName(targetPath) ?? ".";
+                        if (!Directory.Exists(targetDir)) Directory.CreateDirectory(targetDir);
+                        File.WriteAllBytes(targetPath, bytes);
+                        Console.WriteLine($"[VivazClient] Wrote {targetPath} ({bytes.Length} bytes)");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"[VivazClient] Failed GET {url}: {ex.Message}");
+                    }
+                }
+
+                return "done";
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("[VivazClient] EnsurePesosAvailable error: " + ex.ToString());
+                return "error";
+            }
+        }
+
         private static string GetPesosDir(string name)
         {
             // No WASM, os pesos devem estar na pasta virtual /PESOS

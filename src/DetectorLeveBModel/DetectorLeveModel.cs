@@ -268,7 +268,45 @@ namespace DetectorLeveBModel
             try
             {
                 Console.WriteLine($"[DetectorLeveB] LoadWeights: looking in '{dir}'");
-                if (!Directory.Exists(dir)) { Console.WriteLine($"[DetectorLeveB] LoadWeights: directory not found: {dir}"); return; }
+                if (!Directory.Exists(dir))
+                {
+                    Console.WriteLine($"[DetectorLeveB] LoadWeights: directory not found: {dir}");
+                    try
+                    {
+                        var cwd = Directory.GetCurrentDirectory();
+                        Console.WriteLine($"[DetectorLeveB] CurrentDirectory: {cwd}");
+                    }
+                    catch { }
+                    try
+                    {
+                        Console.WriteLine("[DetectorLeveB] Listing root directories:");
+                        var roots = Directory.GetDirectories("/");
+                        foreach (var r in roots) Console.WriteLine("[DetectorLeveB]   root: " + r);
+                    }
+                    catch { }
+
+                    // Try alternative paths: without leading slash, or relative to current directory
+                    var alt = dir.StartsWith("/") ? dir.TrimStart('/') : dir;
+                    if (Directory.Exists(alt))
+                    {
+                        Console.WriteLine($"[DetectorLeveB] Found alternative path: {alt}");
+                        dir = alt;
+                    }
+                    else
+                    {
+                        var combined = Path.Combine(Directory.GetCurrentDirectory(), alt);
+                        if (Directory.Exists(combined))
+                        {
+                            Console.WriteLine($"[DetectorLeveB] Found combined path: {combined}");
+                            dir = combined;
+                        }
+                        else
+                        {
+                            Console.WriteLine($"[DetectorLeveB] No alternative path found for {dir}");
+                            return;
+                        }
+                    }
+                }
                 var files = Directory.GetFiles(dir);
                 Console.WriteLine($"[DetectorLeveB] LoadWeights: found {files.Length} files");
                 foreach (var f in files)

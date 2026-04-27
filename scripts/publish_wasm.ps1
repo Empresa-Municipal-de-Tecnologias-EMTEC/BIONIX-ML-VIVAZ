@@ -12,6 +12,8 @@ $TARGET_DIR = Join-Path $DEMO_WWWROOT 'vivaz-wasm'
 $PESOS_SRC = Join-Path $PROJECT_ROOT 'PESOS'
 $PESOS_DEST = Join-Path $TARGET_DIR 'PESOS'
 $PESOS_WWWROOT_DEST = Join-Path $DEMO_WWWROOT 'PESOS'
+# Optional folder with custom vivaz-wasm JS files to copy after publish
+$CUSTOM_VIVAZ_WASM_JS = Join-Path $PROJECT_ROOT 'src\Vivaz.Demonstracao\vivaz-wasm-js'
 
 Write-Host "--- Iniciando publicação do Vivaz.WASM ---"
 Write-Host "Projeto: $WASM_PROJ"
@@ -150,3 +152,11 @@ export async function initVivaz() {
 
 Write-Host "--- Publicação concluída com sucesso! ---"
 Write-Host "Arquivos disponíveis em: $TARGET_DIR"
+
+# If a custom vivaz-wasm-js folder exists, copy its contents into the target to preserve custom loaders
+if (Test-Path $CUSTOM_VIVAZ_WASM_JS) {
+    Write-Host "Copiando arquivos personalizados de $CUSTOM_VIVAZ_WASM_JS para $TARGET_DIR..."
+    Copy-Item -Path (Join-Path $CUSTOM_VIVAZ_WASM_JS '*') -Destination $TARGET_DIR -Recurse -Force
+} else {
+    Write-Host "Pasta de JS personalizada não encontrada em $CUSTOM_VIVAZ_WASM_JS (ignorada)."
+}
