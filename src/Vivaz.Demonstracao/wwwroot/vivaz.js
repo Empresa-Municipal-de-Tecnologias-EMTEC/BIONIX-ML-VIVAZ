@@ -93,6 +93,37 @@
             }
         },
 
+        // New: request BMP crop bytes from WASM and return a BMP Blob
+        async detectCropBmp(blob) {
+            try {
+                const buffer = new Uint8Array(await blob.arrayBuffer());
+                const res = await this._call('DetectCropBmp', buffer);
+                if (!res) return null;
+                return new Blob([res], { type: 'image/bmp' });
+            } catch (e) {
+                console.warn("[vivaz] Erro em detectCropBmp:", e);
+                return null;
+            }
+        },
+
+        // New: request the decoded BMP for the full image (no detection)
+        async detectDecodeBmp(blob) {
+            try {
+                const buffer = new Uint8Array(await blob.arrayBuffer());
+                const res = await this._call('DetectDecodeBmp', buffer);
+                if (!res) return null;
+                return new Blob([res], { type: 'image/bmp' });
+            } catch (e) {
+                try {
+                    console.error('[vivaz] Erro em detectDecodeBmp:', e);
+                    if (e && e.stack) console.error('[vivaz] stack:', e.stack);
+                    if (e && e.message) console.error('[vivaz] message:', e.message);
+                    if (e && e.name) console.error('[vivaz] name:', e.name);
+                } catch (logErr) { console.warn('[vivaz] failed to log error details', logErr); }
+                return null;
+            }
+        },
+
         async embedFromBlob(blob) {
             try {
                 const buffer = new Uint8Array(await blob.arrayBuffer());

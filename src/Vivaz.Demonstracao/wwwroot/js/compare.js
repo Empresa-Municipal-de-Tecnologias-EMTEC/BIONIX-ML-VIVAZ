@@ -126,6 +126,30 @@
     console.log("[compare] Face B capturada para identificação.");
   });
 
+  document.getElementById('downloadBmp').addEventListener('click', async ()=>{
+    try {
+      if(!video.srcObject) await initCamera();
+      if(window.vivazWasm && window.vivazWasm.ready) await window.vivazWasm.ready;
+      const blob = await capture();
+      // Request decoded BMP from WASM (no detection) to validate decoding pipeline
+      const bmpBlob = window.vivazWasm ? await window.vivazWasm.detectDecodeBmp(blob) : null;
+      if(!bmpBlob){ alert('Nenhum crop retornado ou WASM indisponível.'); return; }
+
+      const url = URL.createObjectURL(bmpBlob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `vivaz_crop_${Date.now()}.bmp`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      console.log('[compare] BMP de crop baixado.');
+    } catch(e){
+      console.error('[compare] Erro ao baixar BMP:', e);
+      alert('Erro ao gerar/baixar BMP. Veja console.');
+    }
+  });
+
   document.getElementById('compare').addEventListener('click', async ()=>{
     if(!blobA || !blobB){ alert('Capture as duas faces (A e B) antes de comparar.'); return; }
     

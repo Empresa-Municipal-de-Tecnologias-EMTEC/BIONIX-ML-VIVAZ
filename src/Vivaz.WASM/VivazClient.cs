@@ -181,6 +181,29 @@ namespace Vivaz.WASM
                 var pesosDir = GetPesosDir("CLASSIFICADOR_DETECTOR_LEVE_B");
                 var det = DetectorLeve.GetInstance(ctx, pesosDir);
                 var all = det.DetectTopPerScale(bmp, ctx, 0.5, null, null, 5);
+                try
+                {
+                    if (all == null)
+                    {
+                        Console.WriteLine("[VivazClient] DetectTopPerScale returned null");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"[VivazClient] total candidates: {all.Count}");
+                        for (int k = 0; k < Math.Min(10, all.Count); k++)
+                        {
+                            try
+                            {
+                                Console.WriteLine($"[VivazClient] candidate[{k}]: {all[k]}");
+                            }
+                            catch { }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("[VivazClient] Error while enumerating candidates: " + ex.ToString());
+                }
                 var cons = det.AggregateConsensus(all, bmp.Width, bmp.Height, 0.4);
                 
                 return JsonSerializer.Serialize(new { 
@@ -242,6 +265,109 @@ namespace Vivaz.WASM
         public static byte[]? DetectCropPng(byte[] imageBytes)
         {
             return DetectCrop(imageBytes);
+        }
+
+        [JSExport]
+        public static byte[]? DetectCropBmp(byte[] imageBytes)
+        {
+            if (imageBytes == null || imageBytes.Length == 0)
+            {
+                Console.WriteLine("[VivazClient] DetectCropBmp: empty imageBytes");
+                return null;
+            }
+
+            try
+            {
+                Console.WriteLine($"[VivazClient] DetectCropBmp called: {imageBytes.Length} bytes");
+                using var ms = new MemoryStream(imageBytes);
+                var fmt = Image.DetectFormat(ms);
+                ms.Position = 0;
+                Console.WriteLine($"[VivazClient] Detected image format: {fmt?.Name ?? "unknown"}");
+                var img = Image.Load<Rgba32>(ms);
+                Console.WriteLine($"[VivazClient] Loaded image: {img.Width}x{img.Height}");
+                var bmp = BMP.FromImage(img);
+                ComputacaoContexto ctx = new ComputacaoCPUSIMDContexto();
+
+                var pesosDir = GetPesosDir("CLASSIFICADOR_DETECTOR_LEVE_B");
+                Console.WriteLine($"[VivazClient] Using pesosDir: {pesosDir}");
+                var det = DetectorLeve.GetInstance(ctx, pesosDir);
+                var all = det.DetectTopPerScale(bmp, ctx, 0.5, null, null, 5);
+                var cons = det.AggregateConsensus(all, bmp.Width, bmp.Height, 0.4);
+
+                Console.WriteLine($"[VivazClient] Detection consensus: found={cons.found}, x={cons.x}, y={cons.y}, w={cons.w}, h={cons.h}");
+
+                if (!cons.found)
+                {
+                    Console.WriteLine("[VivazClient] DetectCropBmp: no face found");
+                    return null;
+                }
+
+                int cx = Math.Max(0, cons.x);
+                int cy = Math.Max(0, cons.y);
+                int cw = Math.Min(cons.w, bmp.Width - cx);
+                int ch = Math.Min(cons.h, bmp.Height - cy);
+
+                var outImg = new Image<Rgba32>(cw, ch);
+                for (int y = 0; y < ch; y++)
+                {
+                    for (int x = 0; x < cw; x++)
+                    {
+                        int sx = cx + x, sy = cy + y;
+                        int srcIdx = (sy * bmp.Width + sx) * bmp.QuantidadeCanais;
+                        byte r = bmp.Armazenamento[srcIdx + 0];
+                        byte g = bmp.Armazenamento[srcIdx + 1];
+                        byte b = bmp.Armazenamento[srcIdx + 2];
+                        outImg[x, y] = new Rgba32(r, g, b, 255);
+                    }
+                }
+
+                using var outMs = new MemoryStream();
+                outImg.SaveAsBmp(outMs);
+                var outBytes = outMs.ToArray();
+                Console.WriteLine($"[VivazClient] DetectCropBmp: returning BMP {outBytes.Length} bytes");
+                return outBytes;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("[VivazClient] DetectCropBmp error: " + ex.ToString());
+                return null;
+            }
+        }
+
+        // New: decode the provided image bytes using the same pipeline and return the full BMP bytes (no detection)
+        [JSExport]
+        public static byte[]? DetectDecodeBmp(byte[] imageBytes)
+        {
+            if (imageBytes == null || imageBytes.Length == 0)
+            {
+                Console.WriteLine("[VivazClient] DetectDecodeBmp: empty imageBytes");
+                return null;
+            }
+
+            try
+            {
+                Console.WriteLine($"[VivazClient] DetectDecodeBmp called: {imageBytes.Length} bytes");
+                using var ms = new MemoryStream(imageBytes);
+                var fmt = Image.DetectFormat(ms);
+                ms.Position = 0;
+                Console.WriteLine($"[VivazClient] DetectDecodeBmp detected format: {fmt?.Name ?? "unknown"}");
+                var img = Image.Load<Rgba32>(ms);
+                Console.WriteLine($"[VivazClient] DetectDecodeBmp loaded image: {img.Width}x{img.Height}");
+                var bmp = BMP.FromImage(img);
+
+                using var outMs = new MemoryStream();
+                outMs.Position = 0;
+                // Save as BMP using ImageSharp to preserve exact decoded pixels
+                img.SaveAsBmp(outMs);
+                var bytes = outMs.ToArray();
+                Console.WriteLine($"[VivazClient] DetectDecodeBmp: returning BMP {bytes.Length} bytes");
+                return bytes;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("[VivazClient] DetectDecodeBmp error: " + ex.ToString());
+                return null;
+            }
         }
 
         [JSExport]
